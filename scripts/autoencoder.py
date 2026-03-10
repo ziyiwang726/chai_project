@@ -13,8 +13,8 @@ from sklearn.decomposition import TruncatedSVD
 # =========================
 # User config (edit here)
 # =========================
-CSV_PATH = r"C:\Ziyi Wang\autoencoder_project\ZhuF_2020_species_pathway.csv"
-OUT_DIR  = r"C:\Ziyi Wang\autoencoder_project\outputs"
+CSV_PATH = r".\autoencoder_project\ZhuF_2020_species_pathway.csv"
+OUT_DIR  = r".\autoencoder_project\outputs"
 
 SEED = 123
 LATENT_DIM = 5
@@ -288,3 +288,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
