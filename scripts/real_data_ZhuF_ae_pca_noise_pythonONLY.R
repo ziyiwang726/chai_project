@@ -15,14 +15,9 @@ suppressPackageStartupMessages({
 # ------------------------------
 # Read autoencoder and PCA5 file
 # ------------------------------
-# First
-# ae5 <- read.csv("C:/Ziyi Wang/autoencoder_project/species_latent_features.csv", row.names = 1)
-# pca5 <- read.csv("C:/Ziyi Wang/autoencoder_project/species_PCA_scores.csv", row.names = 1)
-
-# Updated
-ae5  <- read.csv("C:/Ziyi Wang/autoencoder_project/outputs/ZhuF_2020_species_AE5.csv", row.names = 1)
-pca5 <- read.csv("C:/Ziyi Wang/autoencoder_project/outputs/ZhuF_2020_species_PCA5.csv", row.names = 1)
-# spec_path <- read.csv("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/Autoencoder/ZhuF_2020_species_pathway.csv", row.names = 1)
+ae5  <- read.csv("./data/Zhu_autoencoder/outputs/ZhuF_2020_species_AE5.csv", row.names = 1)
+pca5 <- read.csv("./data/Zhu_autoencoder/outputs/ZhuF_2020_species_PCA5.csv", row.names = 1)
+# spec_path <- read.csv("./data/Zhu_autoencoder/ZhuF_2020_species_pathway.csv", row.names = 1)
 
 
 # -----------------------------
@@ -145,8 +140,7 @@ library(adaptMT)
 library(AdaPTGMM)
 library(splines2)
 library(splines)
-setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
-# source("ConditionalGaussianlFDR_defined_functions_playing.R")
+
 source("chai.R")
 source("color_helper.R")
 
