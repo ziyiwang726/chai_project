@@ -11,19 +11,18 @@ library(FDRreg)
 library(coin)
 library(IHW)
 
-setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
-# source("chai.R")
+
+source("chai.R")
 source("color_helper.R")
 
-# load("./chai_env/eraw_tables.RData")
 
 ########################## Data from Github #################################
 
-mtb <- read.delim("./Erawijantari/mtb.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
+mtb <- read.delim("./data/Erawijantari/mtb.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
 # 96 x 524
-genera_counts <- read.delim("./Erawijantari/genera.counts.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
+genera_counts <- read.delim("./data/Erawijantari/genera.counts.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
 # 96 x 10527
-metadata <- read.delim("./Erawijantari/metadata.tsv", header = TRUE, stringsAsFactors = FALSE)
+metadata <- read.delim("./data/Erawijantari/metadata.tsv", header = TRUE, stringsAsFactors = FALSE)
 
 
 table(metadata$Study.Group)  # With metabolite profiles
@@ -46,11 +45,6 @@ genera_abun <- sweep(genera_counts_filtered, 1, row_sums, FUN="/")
 
 # Re-order the metadata to match the order of genera.
 metadata_reorder <- metadata[match(rownames(genera_abun), metadata$Subject), ]
-
-
-######################################################################################
-######################## Correlation of metabolite data ##############################
-######################################################################################
 
 ######################## Metabolite ##############################
 ##################### Filter out < 50% ###########################
@@ -478,21 +472,6 @@ glm_ns <- adapt_glm(x, pvals = p_value, alphas=alphas,
                     pi_formulas = formula, mu_formulas = formula)
 # alpha = 0.1: FDPhat 0.0992, Number of Rej. 359
 
-# # ispline
-# x <- data.frame(cancor)
-# formulas <- c(paste0("iSpline(cancor, df = ",2:8,")"))
-# glm_ispline <- adapt_glm(x, pvals = p_value,  alphas=alphas,
-#                          pi_formulas = formulas, mu_formulas = formulas)
-# # alpha = 0.1: FDPhat 0.0974, Number of Rej. 349
-# # alpha = 0.09: FDPhat 0.0895, Number of Rej. 324
-#
-# # bs
-# formula_bs <- c(paste0("bs(cancor, df = ",2:8,")"))
-# glm_bs <- adapt_glm(x, pvals = p_value,  alphas=alphas,
-#                          pi_formulas = formula_bs, mu_formulas = formula_bs)
-# # alpha = 0.1: FDPhat 0.0997, Number of Rej. 371
-# # alpha = 0.09: FDPhat 0.0886, Number of Rej. 316
-
 # GMM - p
 # ns
 gmm_ns_p <- adapt_gmm(x, pvals = p_value,  alphas=alphas,
@@ -501,30 +480,11 @@ gmm_ns_p <- adapt_gmm(x, pvals = p_value,  alphas=alphas,
 # alpha = 0.05: FDPhat 0.0495, Number of Rej. 212
 
 
-# # ispline
-# gmm_ispline_p <- adapt_gmm(x, pvals = p_value,  alphas=alphas,
-#                            beta_formulas = formulas)
-# # alpha = 0.1: FDPhat 0.0997, Number of Rej. 311
-# # alpha = 0.05: FDPhat 0.0491, Number of Rej. 224
-#
-# # bs
-# gmm_bs_p <- adapt_gmm(x, pvals = p_value,  alphas=alphas,
-#                       beta_formulas = formula_bs)
-#
-# # alpha = 0.1: FDPhat 0.0984, Number of Rej. 305
-# # alpha = 0.05: FDPhat 0.05, Number of Rej. 230
-
-
 # GMM - Z
 gmm_ns_z <- adapt_gmm(x, z = z_value, alphas=alphas,
                       beta_formulas = formula, testing = "two_sided")
 # alpha = 0.1: FDPhat 0.0997, Number of Rej. 386
 # alpha = 0.05: FDPhat 0.0482, Number of Rej. 197
-
-# gmm_bs_z <- adapt_gmm(x, z = z_value, alphas=alphas,
-#                            beta_formulas = formula_bs, testing = "two_sided")
-# # alpha = 0.1: FDPhat 0.0992, Number of Rej. 388
-# # alpha = 0.05: FDPhat 0.0477, Number of Rej. 199
 
 ################## OrderShapeEM #######################
 
@@ -574,15 +534,12 @@ chai_rejs <- sapply(q_levels, function(q) {
 
 # adapt_glm
 adapt_glm_ns_rej <- glm_ns$nrejs[1:10]
-# adapt_glm_bs_rej <- glm_bs$nrejs[1:10]
 
 # adapt_gmm_p
 adapt_gmm_p_ns_rej <- gmm_ns_p$nrejs[1:10]
-# adapt_gmm_p_bs_rej <- gmm_bs_p$nrejs[1:10]
 
 # adapt_gmm_z
 adapt_gmm_z_ns_rej <- gmm_ns_z$nrejs[1:10]
-# adapt_gmm_z_bs_rej <- gmm_bs_z$nrejs[1:10]
 
 # OrderShapeEM
 ordershapeem_rejs <- sapply(q_levels, function(q) {
@@ -612,11 +569,8 @@ eraw_sum <- data.frame(
   q = q_levels,
   chai = chai_rejs,
   adapt_glm = adapt_glm_ns_rej,
-  # adapt_glm_bs = adapt_glm_bs_rej,
   adapt_gmm_p = adapt_gmm_p_ns_rej,
-  # adapt_gmm_p_bs = adapt_gmm_p_bs_rej,
   adapt_gmm_z = adapt_gmm_z_ns_rej,
-  # adapt_gmm_z_bs = adapt_gmm_z_bs_rej,
   OrderShapeEM = ordershapeem_rejs,
   FDRreg = rdrreg_rejs,
   IHW = ihw_rejs,
@@ -704,269 +658,9 @@ p_eraw_cca <- plot_rejections_vs_q(eraw_long,
                                    title = "Number of Discoveries vs q, with metabolites CCA score",
                                    x_breaks = sort(unique(eraw_long$q)))
 
-
-#
-# eraw_chai <- filter(eraw_long, Method == "chai")
-# eraw_others <- filter(eraw_long, Method != "chai")
-#
-# # color map: viridis for others, red for chai
-# methods <- unique(eraw_long$Method)
-# others  <- setdiff(methods, "chai")
-# pal     <- viridis(length(others), option = "plasma")
-# method_cols <- c(setNames(pal, others), "chai" = "red")
-#
-# # last point (max q) for each method
-# endpoints <- eraw_long |>
-#   dplyr::arrange(Method, q) |>
-#   dplyr::group_by(Method) |>
-#   dplyr::slice_tail(n = 1) |>
-#   dplyr::ungroup()
-#
-# # plot with end-of-line labels
-# p <- ggplot() +
-#   geom_line(data = eraw_others, aes(q, Rejections, color = Method), size = 0.9) +
-#   geom_point(data = eraw_others, aes(q, Rejections, color = Method), size = 1.8) +
-#   geom_line(data = eraw_chai,   aes(q, Rejections, color = Method), size = 1.5) +
-#   geom_point(data = eraw_chai,  aes(q, Rejections, color = Method), size = 2.5) +
-#   geom_text_repel(
-#     data = endpoints,
-#     aes(q, Rejections, label = Method, color = Method),
-#     nudge_x = diff(range(eraw_long$q)) * 0.03,  # push labels a bit to the right
-#     hjust = 0, direction = "y",
-#     segment.size = 0.2, box.padding = 0.1, point.padding = 0.1,
-#     show.legend = FALSE
-#   ) +
-#   scale_color_manual(values = method_cols) +
-#   labs(title = "Number of Discoveries vs q", x = "q level", y = "Number of Rejections") +
-#   coord_cartesian(clip = "off") +
-#   expand_limits(x = max(eraw_long$q) + 0.01) +         # room for labels
-#   theme_minimal() +
-#   theme(
-#     plot.margin = margin(5.5, 60, 5.5, 5.5),           # extra right margin
-#     legend.position = "none"                            # labels replace legend; set to "bottom" if you want both
-#   )
-
-
-# ggsave("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/plots/Simulations/SimZ_fdr_power_updated.png", plot = combo, width = 8, height = 12, dpi = 300)
-
-
-pdf("./plots/Erawijantari/Erawijantari_cca_updated.pdf", width = 8, height = 4)
-plot(p_eraw_cca)
-dev.off()
-
-
-
-######################################################################################
-######################## Correlation of metabolite data ##############################
-######################################################################################
-
-# ######################## KEY Metabolite from paper ##############################
-#
-# key <- c("C04483", "C00695", "C00245", "C01921")
-# key_metabolite <- grepl(paste(key, collapse = "|"), colnames(mtb))
-# key_mtb <- mtb[, key_metabolite, drop = FALSE]
-#
-# ################# Canonical Correlation #####################
-# cancor_key <- numeric(ncol(genera_abun))
-# for (i in 1:ncol(genera_abun)) {
-#   temp <- cancor(genera_abun[, i], key_mtb)
-#   cancor_key[i] <- temp$cor
-# }
-#
-#
-# ################## Visualization ########################
-# df <- data.frame(z = z_value, x = cancor_key)
-# # z
-# ggplot(df, aes(x=z)) +
-#   geom_histogram(aes(y=..density..), binwidth=0.25, color="black", fill="lightblue") +
-#   geom_density() +
-#   stat_function(fun=dnorm, args=list(mean=0, sd=1), linetype="dashed") +
-#   labs(title="Histogram of z-value with N(0,1)", x="z", y="Density") +
-#   theme_minimal()
-#
-# # x - Canonical Correlation
-# ggplot(df, aes(x = x)) +
-#   geom_histogram(aes(y = ..density..), bins = 40, color = "black", fill = "lightblue") +
-#   geom_density() +
-#   labs(
-#     title = paste0("Histogram of X - Canonical Correlation"),
-#     x = "X", y = "Density"
-#   ) +
-#   theme_minimal()
-#
-# # z vs. x
-# ggplot(df, aes(x = z, y = x)) +
-#   geom_point(alpha = 0.6) +
-#   labs(x = "z-value", y = "Canonical Correlation") +
-#   theme_minimal()
-#
-# # p
-# ggplot(data.frame(p_value), aes(p_value)) +
-#   geom_histogram(bins=40, color="black", fill="grey80") +
-#   labs(title="Histogram of two-sided p-values", x="p", y="Count") +
-#   theme_minimal()
-#
-# ############################ Fit model ############################
-# ################## chai #######################
-# chai_cca_keymbt <- chai(z_value, as.matrix(cancor_key, ncol = 1), M = 100)
-# length(lFDRselect(chai_cca_keymbt$lFDR, 0.05, 1)) # 163
-# length(lFDRselect(chai_cca_keymbt$lFDR, 0.1, 1))  # 317
-#
-#
-# ################## Adapt #######################
-# alphas <- seq(0.01,0.1, by = 0.01)
-#
-# # GLM
-# # ns
-# x <- data.frame(cancor_key)
-# formula <- c(paste0("ns(cancor_key, df = ",2:8,")"))
-# glm_ns_keymbt <- adapt_glm(x, pvals = p_value, alphas=alphas,
-#                     pi_formulas = formula, mu_formulas = formula)
-# # alpha = 0.1: FDPhat 0.0979, Number of Rej. 286
-#
-# # ispline
-# x <- data.frame(cancor_key)
-# formulas <- c(paste0("iSpline(cancor_key, df = ",2:8,")"))
-# glm_ispline_keymbt <- adapt_glm(x, pvals = p_value,  alphas=alphas,
-#                          pi_formulas = formulas, mu_formulas = formulas)
-#
-#
-# # bs
-# formula_bs <- c(paste0("bs(cancor_key, df = ",2:8,")"))
-# glm_bs_keymbt <- adapt_glm(x, pvals = p_value,  alphas=alphas,
-#                     pi_formulas = formula_bs, mu_formulas = formula_bs)
-# # alpha = 0.1: FDPhat 0.0996, Number of Rej. 281
-#
-# # GMM - p
-# # ns
-# gmm_ns_p_keymbt <- adapt_gmm(x, pvals = p_value,  alphas=alphas,
-#                       beta_formulas = formula)
-# # alpha = 0.1: FDPhat 0.0994, Number of Rej. 357
-# # alpha = 0.05: FDPhat 0.0489, Number of Rej. 225
-#
-#
-# # ispline
-# gmm_ispline_p_keymbt <- adapt_gmm(x, pvals = p_value,  alphas=alphas,
-#                            beta_formulas = formulas)
-#
-# # bs
-# gmm_bs_p_keymbt <- adapt_gmm(x, pvals = p_value,  alphas=alphas,
-#                       beta_formulas = formula_bs)
-# # alpha = 0.1: FDPhat 0.0994, Number of Rej. 362
-# # alpha = 0.05: FDPhat 0.0482, Number of Rej. 228
-#
-#
-#
-# # GMM - Z
-# gmm_ns_z_keymbt <- adapt_gmm(x, z = z_value, alphas=alphas,
-#                       beta_formulas = formula, testing = "two_sided")
-# # alpha = 0.1: FDPhat 0.0988, Number of Rej. 425
-# # alpha = 0.05: FDPhat 0.0495, Number of Rej. 283
-#
-# gmm_bs_z_keymbt <- adapt_gmm(x, z = z_value, alphas=alphas,
-#                       beta_formulas = formula_bs, testing = "two_sided")
-# # alpha = 0.1: FDPhat 0.0997, Number of Rej. 396
-# # alpha = 0.05: FDPhat 0.0493, Number of Rej. 274
-#
-# ################## OrderShapeEM #######################
-#
-# require(OrderShapeEM)
-# orderfdr_keymbt <- OrderShapeEM(pvals = p_value, order.var = cancor_key,
-#                          OrderShapeEM.control(trace = TRUE))
-# sum(orderfdr_keymbt$fdr <= 0.05)
-# # 133
-#
-# ######################## FDRreg ############################
-# fdr_theo_keymbt <- FDRreg(z_value, cancor_key, nulltype = 'theoretical')
-# length(which(fdr_theo_keymbt$FDR <= 0.05))
-# # 312
-#
-# fdr_emp_keymbt <- FDRreg(z_value, cancor_key, nulltype = 'empirical')
-# length(which(fdr_emp_keymbt$FDR <= 0.05))
-# # 8
-#
-# ###########################################################
-# # Summarize into a different q level table
-# q_levels <- seq(0.05, 0.10, by = 0.01)
-#
-# # chai
-# chai_keymbt_rejs <- sapply(q_levels, function(q) {
-#   length(lFDRselect(chai_cca_keymbt$lFDR, q, 1))
-# })
-#
-# # adapt_glm
-# adapt_glm_ns_keymbt_rej <- glm_ns_keymbt$nrejs[5:10]
-# adapt_glm_bs_keymbt_rej <- glm_bs_keymbt$nrejs[5:10]
-#
-# # adapt_gmm_p
-# adapt_gmm_p_ns_keymbt_rej <- gmm_ns_p_keymbt$nrejs[5:10]
-# adapt_gmm_p_bs_keymbt_rej <- gmm_bs_p_keymbt$nrejs[5:10]
-#
-# # adapt_gmm_z
-# adapt_gmm_z_ns_keymbt_rej <- gmm_ns_z_keymbt$nrejs[5:10]
-# adapt_gmm_z_bs_keymbt_rej <- gmm_bs_z_keymbt$nrejs[5:10]
-#
-# # OrderShapeEM
-# ordershapeem_keymbt_rejs <- sapply(q_levels, function(q) {
-#   sum(orderfdr_keymbt$fdr <= q)
-# })
-#
-# # FDRreg
-# rdrreg_keymbt_rejs <- sapply(q_levels, function(q) {
-#   length(which(fdr_theo_keymbt$FDR <= q))
-# })
-#
-#
-# # combine into data frame
-# eraw_sum_keymbt <- data.frame(
-#   q = q_levels,
-#   chai = chai_keymbt_rejs,
-#   adapt_glm_ns = adapt_glm_ns_keymbt_rej,
-#   adapt_glm_bs = adapt_glm_bs_keymbt_rej,
-#   adapt_gmm_p_ns = adapt_gmm_p_ns_keymbt_rej,
-#   adapt_gmm_p_bs = adapt_gmm_p_bs_keymbt_rej,
-#   adapt_gmm_z_ns = adapt_gmm_z_ns_keymbt_rej,
-#   adapt_gmm_z_bs = adapt_gmm_z_bs_keymbt_rej,
-#   ordershapeem = ordershapeem_keymbt_rejs,
-#   fdrreg = rdrreg_keymbt_rejs
-# )
-#
-#
-# ###########################################################
-# # Plots
-# library(ggplot2)
-# library(tidyr)
-#
-# # into long format
-# eraw_long_keymbt <- eraw_sum_keymbt %>%
-#   pivot_longer(
-#     cols = -q,
-#     names_to = "Method",
-#     values_to = "Rejections"
-#   )
-#
-# eraw_chai_keymbt <- filter(eraw_long_keymbt, Method == "chai")
-# eraw_others_keymbt <- filter(eraw_long_keymbt, Method != "chai")
-#
-# # plot
-# p_keymbt <- ggplot() +
-#   # other methods with gradient palette
-#   geom_line(data = eraw_others_keymbt, aes(x = q, y = Rejections, color = Method), size = 0.9) +
-#   geom_point(data = eraw_others_keymbt, aes(x = q, y = Rejections, color = Method), size = 1.8) +
-#   scale_color_viridis_d(option = "plasma") +
-#
-#   # chai method highlighted in red
-#   geom_line(data = eraw_chai_keymbt, aes(x = q, y = Rejections), color = "red", size = 1.5) +
-#   geom_point(data = eraw_chai_keymbt, aes(x = q, y = Rejections), color = "red", size = 2.5) +
-#
-#   labs(
-#     title = "Number of Discoveries vs q",
-#     x = "q level",
-#     y = "Number of Rejections"
-#   ) +
-#   theme_minimal() +
-#   theme(legend.position = "bottom")
-
+# pdf("./plots/Erawijantari/Erawijantari_cca_updated.pdf", width = 8, height = 4)
+# plot(p_eraw_cca)
+# dev.off()
 
 
 ######################################################################################
@@ -1029,22 +723,6 @@ glm_ns_logcount <- adapt_glm(x, pvals = p_value, alphas=alphas,
 # alpha = 0.09: FDPhat 0.089, Number of Rej. 292
 # alpha = 0.08: FDPhat 0.0773, Number of Rej. 220
 
-# # ispline
-# formula_ispline <- c(paste0("iSpline(log_count, df = ",2:8,")"))
-# glm_ispline_logcount <- adapt_glm(x, pvals = p_value,  alphas=alphas,
-#                          pi_formulas = formula_ispline, mu_formulas = formula_ispline)
-# # alpha = 0.1: FDPhat 0.0994, Number of Rej. 332
-# # alpha = 0.09: FDPhat 0.0872, Number of Rej. 321
-# # alpha = 0.08: FDPhat 0.0784, Number of Rej. 306
-#
-# # bs
-# formula_bs <- c(paste0("bs(log_count, df = ",2:8,")"))
-# glm_bs_logcount <- adapt_glm(x, pvals = p_value,  alphas=alphas,
-#                     pi_formulas = formula_bs, mu_formulas = formula_bs)
-# # alpha = 0.1: FDPhat 0.0997, Number of Rej. 361
-# # alpha = 0.09: FDPhat 0.0897, Number of Rej. 301
-# # alpha = 0.08: FDPhat 0.0791, Number of Rej. 215
-
 # GMM - p
 # ns
 gmm_ns_p_logcount <- adapt_gmm(x, pvals = p_value,  alphas=alphas,
@@ -1053,29 +731,11 @@ gmm_ns_p_logcount <- adapt_gmm(x, pvals = p_value,  alphas=alphas,
 # alpha = 0.1: FDPhat 0.0998, Number of Rej. 411
 # alpha = 0.05: FDPhat 0.049, Number of Rej. 286
 
-# # ispline
-# gmm_ispline_p_logcount <- adapt_gmm(x, pvals = p_value,  alphas=alphas,
-#                            beta_formulas = formula_ispline)
-# # alpha = 0.1: FDPhat 0.099, Number of Rej. 414
-# # alpha = 0.05: FDPhat 0.0496, Number of Rej. 272
-#
-# # bs
-# gmm_bs_p_logcount <- adapt_gmm(x, pvals = p_value,  alphas=alphas,
-#                       beta_formulas = formula_bs)
-# # alpha = 0.1: FDPhat 0.099, Number of Rej. 414
-# # alpha = 0.05: FDPhat 0.0496, Number of Rej. 282
-
-
 # GMM - Z
 gmm_ns_z_logcount <- adapt_gmm(x, z = z_value, alphas=alphas,
                       beta_formulas = formula, testing = "two_sided")
 # alpha = 0.1: FDPhat 0.0998, Number of Rej. 456
 # alpha = 0.05: FDPhat 0.0495, Number of Rej. 303
-
-# gmm_bs_z_logcount <- adapt_gmm(x, z = z_value, alphas=alphas,
-#                       beta_formulas = formula_bs, testing = "two_sided")
-# # alpha = 0.1: FDPhat 0.0989, Number of Rej. 450
-# # alpha = 0.05: FDPhat 0.0488, Number of Rej. 297
 
 ################## OrderShapeEM #######################
 
@@ -1125,15 +785,12 @@ chai_logcount_rejs <- sapply(q_levels, function(q) {
 
 # adapt_glm
 adapt_glm_ns_logcount_rej <- glm_ns_logcount$nrejs[1:10]
-# adapt_glm_bs_logcount_rej <- glm_bs_logcount$nrejs[1:10]
 
 # adapt_gmm_p
 adapt_gmm_p_ns_logcount_rej <- gmm_ns_p_logcount$nrejs[1:10]
-# adapt_gmm_p_bs_logcount_rej <- gmm_bs_p_logcount$nrejs[1:10]
 
 # adapt_gmm_z
 adapt_gmm_z_ns_logcount_rej <- gmm_ns_z_logcount$nrejs[1:10]
-# adapt_gmm_z_bs_logcount_rej <- gmm_bs_z_logcount$nrejs[1:10]
 
 # OrderShapeEM
 ordershapeem_logcount_rejs <- sapply(q_levels, function(q) {
@@ -1157,11 +814,8 @@ eraw_sum_logcount <- data.frame(
   q = q_levels,
   chai = chai_logcount_rejs,
   adapt_glm = adapt_glm_ns_logcount_rej,
-  # adapt_glm_bs = adapt_glm_bs_logcount_rej,
   adapt_gmm_p = adapt_gmm_p_ns_logcount_rej,
-  # adapt_gmm_p_bs = adapt_gmm_p_bs_logcount_rej,
   adapt_gmm_z = adapt_gmm_z_ns_logcount_rej,
-  # adapt_gmm_z_bs = adapt_gmm_z_bs_logcount_rej,
   OrderShapeEM = ordershapeem_logcount_rejs,
   FDRreg = rdrreg_logcount_rejs,
   IHW = ihw_logcount_rejs,
@@ -1175,14 +829,6 @@ eraw_sum_logcount <- data.frame(
 # Plots
 library(ggplot2)
 library(tidyr)
-
-# into long format
-# eraw_long_logcount <- eraw_sum_logcount %>%
-#   pivot_longer(
-#     cols = -q,
-#     names_to = "Method",
-#     values_to = "Rejections"
-#   )
 
 # into long format
 eraw_long_logcount <- eraw_sum_logcount %>%
@@ -1254,56 +900,8 @@ p_eraw_logcount <- plot_rejections_vs_q(eraw_long_logcount,
                                    title = "Number of Discoveries vs q, log of normalized counts",
                                    x_breaks = sort(unique(eraw_long_logcount$q)))
 
-pdf("./plots/Erawijantari/Erawijantari_logcount_updated.pdf", width = 8, height = 4)
-plot(p_eraw_logcount)
-dev.off()
-
-# eraw_chai_logcount <- filter(eraw_long_logcount, Method == "chai")
-# eraw_others_logcount <- filter(eraw_long_logcount, Method != "chai")
-#
-# # plot
-# library(ggrepel)
-# library(viridisLite)
-#
-# # color map: viridis for others, red for chai
-# methods <- unique(eraw_long_logcount$Method)
-# others  <- setdiff(methods, "chai")
-# pal     <- viridis(length(others), option = "plasma")
-# method_cols <- c(setNames(pal, others), "chai" = "red")
-#
-# # last point (max q) for each method
-# endpoints <- eraw_long_logcount |>
-#   dplyr::arrange(Method, q) |>
-#   dplyr::group_by(Method) |>
-#   dplyr::slice_tail(n = 1) |>
-#   dplyr::ungroup()
-#
-# # plot with end-of-line labels
-# p <- ggplot() +
-#   geom_line(data = eraw_others_logcount, aes(q, Rejections, color = Method), size = 0.9) +
-#   geom_point(data = eraw_others_logcount, aes(q, Rejections, color = Method), size = 1.8) +
-#   geom_line(data = eraw_chai_logcount,   aes(q, Rejections, color = Method), size = 1.5) +
-#   geom_point(data = eraw_chai_logcount,  aes(q, Rejections, color = Method), size = 2.5) +
-#   geom_text_repel(
-#     data = endpoints,
-#     aes(q, Rejections, label = Method, color = Method),
-#     nudge_x = diff(range(eraw_long_logcount$q)) * 0.03,  # push labels a bit to the right
-#     hjust = 0, direction = "y",
-#     segment.size = 0.2, box.padding = 0.1, point.padding = 0.1,
-#     show.legend = FALSE
-#   ) +
-#   scale_color_manual(values = method_cols) +
-#   labs(title = "Number of Discoveries vs q", x = "q level", y = "Number of Rejections") +
-#   coord_cartesian(clip = "off") +
-#   expand_limits(x = max(eraw_long_logcount$q) + 0.01) +         # room for labels
-#   theme_minimal() +
-#   theme(
-#     plot.margin = margin(5.5, 60, 5.5, 5.5),           # extra right margin
-#     legend.position = "none"                            # labels replace legend; set to "bottom" if you want both
-#   )
-
-# save(eraw_sum, eraw_sum_logcount, file = "./chai_env/Erawijantari_tables.RData", compress = "xz")
-
-
+# pdf("./plots/Erawijantari/Erawijantari_logcount_updated.pdf", width = 8, height = 4)
+# plot(p_eraw_logcount)
+# dev.off()
 
 
