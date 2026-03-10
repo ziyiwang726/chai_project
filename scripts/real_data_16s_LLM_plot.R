@@ -17,8 +17,6 @@ library(splines)
 library(IHW)
 library(FDRreg)
 
-setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
-# source("ConditionalGaussianlFDR_defined_functions_playing.R")
 source("chai.R")
 source("color_helper.R")
 
