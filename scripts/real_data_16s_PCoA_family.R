@@ -5,9 +5,6 @@ library(CATMicrobiome)
 library(phyloseq)
 library(coin)
 
-# load("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/chai_env/Gopalakrishnan_16s_tables.RData")
-
-
 otuPath <- system.file("extdata","d1OTUtable.csv",
                        package = "CATMicrobiome")
 otutable <- read.csv(otuPath,header=TRUE,row.names = 1)
@@ -151,8 +148,6 @@ library(splines)
 library(IHW)
 library(FDRreg)
 
-setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
-# source("ConditionalGaussianlFDR_defined_functions_playing.R")
 source("chai.R")
 source("color_helper.R")
 
@@ -659,18 +654,6 @@ glm_DES_ns <- adapt_glm(x, pvals = DES_p, alphas=alphas,
                         pi_formulas = formula_ns, mu_formulas = formula_ns)
 # 0
 
-# # ispline
-# x <- data.frame(family_pcoa)
-#
-# glm_DES_ispline <- adapt_glm(x, pvals = DES_p,  alphas=alphas,
-#                              pi_formulas = formula_is, mu_formulas = formula_is)
-# # 0
-
-# bs
-
-# glm_DES_bs <- adapt_glm(x, pvals = DES_p,  alphas=alphas,
-#                         pi_formulas = formula_bs, mu_formulas = formula_bs)
-# # 0
 
 # GMM - p
 # ns
@@ -680,17 +663,6 @@ gmm_DES_ns_p <- adapt_gmm(x, pvals = DES_p,  alphas=alphas,
 # alpha = 0.05: FDPhat 0.05, Number of Rej. 9
 
 
-# # ispline
-# gmm_DES_ispline_p <- adapt_gmm(x, pvals = DES_p,  alphas=alphas,
-#                                beta_formulas = formula_is)
-# # alpha = 0.1: FDPhat 0.0938, Number of Rej. 8
-# # alpha = 0.05: FDPhat 0.05, Number of Rej. 7
-
-# # bs
-# gmm_DES_bs_p <- adapt_gmm(x, pvals = DES_p,  alphas=alphas,
-#                           beta_formulas = formula_bs)
-# # alpha = 0.1: FDPhat 0.0938, Number of Rej. 8
-# # alpha = 0.05: FDPhat 0.05, Number of Rej. 7
 
 
 # GMM - Z
@@ -699,10 +671,7 @@ gmm_DES_ns_z <- adapt_gmm(x, z = DES_stat, alphas=alphas,
 # alpha = 0.1: FDPhat 0.0938, Number of Rej. 8
 # alpha = 0.05: FDPhat 0.05, Number of Rej. 7
 
-# gmm_DES_bs_z <- adapt_gmm(x, z = DES_stat, alphas=alphas,
-#                           beta_formulas = formula_bs, testing = "two_sided")
-# # alpha = 0.1: FDPhat 0.0938, Number of Rej. 8
-# # alpha = 0.05: FDPhat 0.05, Number of Rej. 7
+
 
 ################## OrderShapeEM #######################
 
@@ -862,76 +831,6 @@ dev.off()
 
 # save(gopa_sum_16s_family, gopa_sum_16s_DES, file = "./chai_env/Gopalakrishnan_16s_tables.RData", compress = "xz")
 
-
-
-
-# # into long format
-# eraw_long_16s_DES <- eraw_sum_16s_DES %>%
-#   pivot_longer(
-#     cols = -q,
-#     names_to = "Method",
-#     values_to = "Rejections"
-#   )
-#
-# eraw_chai_DES <- filter(eraw_long_16s_DES, Method == "chai")
-# eraw_others_DES <- filter(eraw_long_16s_DES, Method != "chai")
-#
-#
-# # install.packages("ggrepel")  # once
-# library(ggrepel)
-# library(viridisLite)
-#
-# # color map: viridis for others, red for chai
-# methods <- unique(eraw_long_16s_DES$Method)
-# others  <- setdiff(methods, "chai")
-# pal     <- viridis(length(others), option = "plasma")
-# method_cols <- c(setNames(pal, others), "chai" = "red")
-#
-# # last point (max q) for each method
-# endpoints <- eraw_long_16s_DES |>
-#   dplyr::arrange(Method, q) |>
-#   dplyr::group_by(Method) |>
-#   dplyr::slice_tail(n = 1) |>
-#   dplyr::ungroup()
-#
-# # plot with end-of-line labels
-# p <- ggplot() +
-#   geom_line(data = eraw_others_DES, aes(q, Rejections, color = Method), size = 0.9) +
-#   geom_point(data = eraw_others_DES, aes(q, Rejections, color = Method), size = 1.8) +
-#   geom_line(data = eraw_chai_DES,   aes(q, Rejections, color = Method), size = 1.5) +
-#   geom_point(data = eraw_chai_DES,  aes(q, Rejections, color = Method), size = 2.5) +
-#   geom_text_repel(
-#     data = endpoints,
-#     aes(q, Rejections, label = Method, color = Method),
-#     nudge_x = diff(range(eraw_long_16s_DES$q)) * 0.03,  # push labels a bit to the right
-#     hjust = 0, direction = "y",
-#     segment.size = 0.2, box.padding = 0.1, point.padding = 0.1,
-#     show.legend = FALSE
-#   ) +
-#   scale_color_manual(values = method_cols) +
-#   labs(title = "Number of Discoveries vs q", x = "q level", y = "Number of Rejections") +
-#   coord_cartesian(clip = "off") +
-#   expand_limits(x = max(eraw_long_16s_DES$q) + 0.01) +         # room for labels
-#   theme_minimal() +
-#   theme(
-#     plot.margin = margin(5.5, 60, 5.5, 5.5),           # extra right margin
-#     legend.position = "none"                            # labels replace legend; set to "bottom" if you want both
-#   )
-
-
-
-
-
-
-
-
-######################################################################################
-############################ Log of normalized count #################################
-######################################################################################
-# Side info using log-transformed abundance table
-log_count <- log1p(colSums(genera_abun))
-
-
 ####################################################################
 ############################ PLOTS #################################
 ####################################################################
@@ -1021,15 +920,12 @@ rank_to_show <- "family"
 anno_pcao <- tax_all %>%
   # tibble::rownames_to_column("OTU") %>%
   mutate(
-    # 清洗要显示的标签（family）
     raw = .data[[rank_to_show]],
     clean = clean_taxon(raw),
     tip_label = ifelse(is.na(clean) | clean == "", OTU, clean),
 
-    # 清洗 phylum（用于色块）
     phylum_clean = clean_taxon(phylum),
 
-    # tip 文字颜色（红/黑）
     tip_color = dplyr::case_when(
       OTU %in% sel_otus_pcoa & OTU %in% bh_otus ~ "both",
       OTU %in% sel_otus_pcoa & !(OTU %in% bh_otus) ~ "chai_only",
@@ -1037,14 +933,13 @@ anno_pcao <- tax_all %>%
       TRUE ~ "neither"
     )  ) %>%
   dplyr::select(OTU, tip_label, phylum_clean, tip_color) %>%
-  distinct(OTU, .keep_all = TRUE)     # 确保顺序与树 tip 一致（ggtree 依赖 label 对齐）
+  distinct(OTU, .keep_all = TRUE) 
 
 tr <- ape::as.phylo(tr_all)
 p <- ggtree(tr, layout = "circular", size = 0.5)
 
 p1 <- p %<+% anno_pcao
 
-# 外圈 phylum 色块（每个 tip 一个小方块）
 p2 <- p1 +
   new_scale_fill() +
   ggtreeExtra::geom_fruit(
@@ -1059,7 +954,7 @@ p3 <- p2 +
   geom_tiplab(
     aes(label = tip_label, color = tip_color),
     size = 2,
-    offset = 0.02,          # 文字离色块距离：想更远就调大
+    offset = 0.02,          
     show.legend = FALSE
   ) +
   scale_color_manual(
@@ -1072,7 +967,6 @@ p3 <- p2 +
   labs(title = "Phylogenetic tree with selected families by chai on wilcoxon z with PCoA") +
   theme(legend.position = "right")
 
-# 2) 加一个“只为图例服务”的点层（不会画在图上，但会生成完美图例）
 legend_df <- data.frame(
   x = NA_real_, y = NA_real_,
   tip_color = factor(c("chai_only","BH_only","both","neither"),
@@ -1198,15 +1092,12 @@ rank_to_show <- "family"
 anno_DES <- tax_all %>%
   # tibble::rownames_to_column("OTU") %>%
   mutate(
-    # 清洗要显示的标签（family）
     raw = .data[[rank_to_show]],
     clean = clean_taxon(raw),
     tip_label = ifelse(is.na(clean) | clean == "", OTU, clean),
 
-    # 清洗 phylum（用于色块）
     phylum_clean = clean_taxon(phylum),
 
-    # tip 文字颜色（红/黑）
     tip_color = dplyr::case_when(
       OTU %in% sel_otus_DES & OTU %in% sel_otus_BH ~ "both",
       OTU %in% sel_otus_DES & !(OTU %in% sel_otus_BH) ~ "chai_only",
@@ -1214,14 +1105,13 @@ anno_DES <- tax_all %>%
       TRUE ~ "neither"
     )  ) %>%
   dplyr::select(OTU, tip_label, phylum_clean, tip_color) %>%
-  distinct(OTU, .keep_all = TRUE)     # 确保顺序与树 tip 一致（ggtree 依赖 label 对齐）
+  distinct(OTU, .keep_all = TRUE) 
 
 tr <- ape::as.phylo(tr_all)
 p <- ggtree(tr, layout = "circular", size = 0.5)
 
 p1 <- p %<+% anno_DES
 
-# 外圈 phylum 色块（每个 tip 一个小方块）
 p2 <- p1 +
   new_scale_fill() +
   ggtreeExtra::geom_fruit(
@@ -1236,7 +1126,7 @@ p3 <- p2 +
   geom_tiplab(
     aes(label = tip_label, color = tip_color),
     size = 2,
-    offset = 0.02,          # 文字离色块距离：想更远就调大
+    offset = 0.02, 
     show.legend = FALSE
   ) +
   scale_color_manual(
@@ -1249,7 +1139,6 @@ p3 <- p2 +
   labs(title = "Phylogenetic tree with selected families by chai on DESeq2 z with PCoA") +
   theme(legend.position = "right")
 
-# 2) 加一个“只为图例服务”的点层（不会画在图上，但会生成完美图例）
 legend_df <- data.frame(
   x = NA_real_, y = NA_real_,
   tip_color = factor(c("chai_only","BH_only","both","neither"),
