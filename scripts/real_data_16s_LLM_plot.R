@@ -640,15 +640,12 @@ rank_to_show <- "family"
 anno <- tax_all %>%
   # tibble::rownames_to_column("OTU") %>%
   mutate(
-    # 清洗要显示的标签（family）
     raw = .data[[rank_to_show]],
     clean = clean_taxon(raw),
     tip_label = ifelse(is.na(clean) | clean == "", OTU, clean),
 
-    # 清洗 phylum（用于色块）
     phylum_clean = clean_taxon(phylum),
 
-    # tip 文字颜色（红/黑）
     tip_color = dplyr::case_when(
       OTU %in% sel_otus & OTU %in% bh_otus ~ "both",
       OTU %in% sel_otus & !(OTU %in% bh_otus) ~ "chai_only",
@@ -656,7 +653,7 @@ anno <- tax_all %>%
       TRUE ~ "neither"
     )  ) %>%
   dplyr::select(OTU, tip_label, phylum_clean, tip_color) %>%
-  distinct(OTU, .keep_all = TRUE)     # 确保顺序与树 tip 一致（ggtree 依赖 label 对齐）
+  distinct(OTU, .keep_all = TRUE)
 
 anno$tip_color <- factor(
   anno$tip_color,
@@ -668,7 +665,6 @@ p <- ggtree(tr, layout = "circular", size = 0.5)
 
 p1 <- p %<+% anno
 
-# 外圈 phylum 色块（每个 tip 一个小方块）
 p2 <- p1 +
   new_scale_fill() +
   ggtreeExtra::geom_fruit(
@@ -680,12 +676,11 @@ p2 <- p1 +
   ) +
   labs(fill = "phylum")
 
-# 先关掉 tiplab 的图例（避免它贡献 legend key）
 p3 <- p2 +
   geom_tiplab(
     aes(label = tip_label, color = tip_color),
     size = 2,
-    offset = 0.02,          # 文字离色块距离：想更远就调大
+    offset = 0.02,
     show.legend = FALSE
   ) +
   scale_color_manual(
@@ -698,7 +693,6 @@ p3 <- p2 +
   labs(title = "Phylogenetic tree with selected families by chai on wilcoxon z with LLM") +
   theme(legend.position = "right")
 
-# 2) 加一个“只为图例服务”的点层（不会画在图上，但会生成完美图例）
 legend_df <- data.frame(
   x = NA_real_, y = NA_real_,
   tip_color = factor(c("chai_only","BH_only","both","neither"),
