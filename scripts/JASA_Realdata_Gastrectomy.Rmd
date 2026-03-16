@@ -1,0 +1,354 @@
+---
+title: "JASA_Realdata_Gastrectomy"
+author: "Ziyi Wang"
+date: "2026-03-16"
+output: html_document
+---
+
+## Load Packages/Functions
+```{r setup, include=FALSE}
+library(knitr)
+library(locfdr)
+library(CATMicrobiome)
+library(admix)
+library(mvtnorm)
+library(mixtools)
+library(devtools)
+library(KScorrect)
+library(mclust)
+library(adaptMT)
+library(AdaPTGMM)
+library(splines2)
+library(splines)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(coin)
+library(ggrepel)
+library(viridisLite)
+library(IHW)
+library(FDRreg)
+library(OrderShapeEM)
+
+devtools::load_all("C:/Ziyi Wang/chai_package/chai")
+# setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
+
+```
+
+## Real data
+### Gastrectomy - The first real data in paper
+##### Load the data and pre-processing the data
+```{r}
+# Load the data
+mtb <- read.delim("./Erawijantari/mtb.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
+
+genera_counts <- read.delim("./Erawijantari/genera.counts.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
+
+metadata <- read.delim("./Erawijantari/metadata.tsv", header = TRUE, stringsAsFactors = FALSE)
+
+table(metadata$Study.Group)
+
+# Filter out the 'low abundance' across all subjects
+# Keep genera that are non-zero in at least 10% of subjects
+present_counts <- colSums(genera_counts > 0)
+genera_counts_filtered <- genera_counts[, present_counts >= (nrow(genera_counts) * 0.1)] # 96 x 5163
+
+# Get the abundance table - genera_abun
+row_sums <- rowSums(genera_counts_filtered)
+genera_abun <- sweep(genera_counts_filtered, 1, row_sums, FUN="/") # 96 x 5163
+
+# Re-order the metadata to match the order of genera. 
+metadata_reorder <- metadata[match(rownames(genera_abun), metadata$Subject), ]
+
+# Get the outcome - outcome
+outcome <- as.factor(metadata_reorder$Study.Group)
+```
+
+##### Explore the data
+```{r}
+# alpha diversity
+alpha_df <- tibble(
+  sample = rownames(genera_abun),
+  group = outcome,
+  shannon = vegan::diversity(genera_abun, index = "shannon"),
+  simpson = vegan::diversity(genera_abun, index = "simpson")
+)
+
+alpha_df$group <- factor(alpha_df$group, levels = c("Gastrectomy", "Healthy"))
+
+cols <- c("Gastrectomy" = "#C8A100",
+          "Healthy" = "#2C7FB8")
+
+a_p <- wilcox.test(shannon ~ group, data = alpha_df)$p.value
+a_lab <- sprintf("p-value = %.3g", a_p)
+
+
+pa <- ggplot(alpha_df, aes(x = group, y = shannon, fill = group)) +
+  geom_violin(trim = FALSE, alpha = 0.25) +
+  geom_jitter(aes(color = group), width = 0.15, alpha = 0.6) +
+  scale_fill_manual(values = cols) +
+  scale_color_manual(values = cols) +
+  labs(x = NULL, y = "Shannon", title = "Alpha diversity (Shannon)") +
+  annotate("text",
+           x = 1.5, y = max(alpha_df$shannon, na.rm = TRUE)*1.2,
+           label = a_lab,
+           size = 4, color = "black") +
+  theme_bw() +
+  theme(legend.position = "none")
+
+
+# beta diversity
+bc <- vegan::vegdist(genera_abun, method = "bray")
+
+# PCoA
+pcoa_res <- ape::pcoa(bc)
+coords <- as.data.frame(pcoa_res$vectors[, 1:2, drop = FALSE])
+colnames(coords) <- c("PCoA1", "PCoA2")
+coords$sample <- rownames(coords)
+coords$group <- outcome
+
+# variance explained
+rel_eig <- pcoa_res$values$Relative_eig
+ve1 <- round(100*rel_eig[1], 1)
+ve2 <- round(100*rel_eig[2], 1)
+
+# PERMANVOA
+ad <- adonis2(bc ~ outcome, permutations = 9999)
+
+ad_r2 <- ad$R2[1]
+ad_p <- ad$`Pr(>F)`[1]
+ad_lab <- sprintf("PERMANOVA: R2 = %.3f, p = %.3g", ad_r2, ad_p)
+
+coords$group <- factor(coords$group, levels = c("Gastrectomy", "Healthy"))
+
+ppcoa <- ggplot(coords, aes(x = PCoA1, y = PCoA2)) +
+  geom_point(aes(color = group), size = 2.5, alpha = 0.85) +
+  stat_ellipse(aes(color = group, fill = group), 
+               level = 0.95, type = "t", linewidth = 1) +
+  annotate("text",
+           x = min(coords$PCoA1, na.rm = TRUE), 
+           y = max(coords$PCoA2, na.rm = TRUE),
+           label = ad_lab,
+           hjust = 0, vjust = 1,
+           size = 4, color = "black") +
+  scale_color_manual(values = cols) +
+  scale_fill_manual(values = cols) +
+  labs(
+    title = "PCoA on Bray-Curtis distance",
+    x = paste0("PCoA1 (", ve1, "%)"),
+    y = paste0("PCoA2 (", ve2, "%)")
+  ) + 
+  theme_bw()
+
+library(patchwork)
+p_ab <- pa + ppcoa + 
+  plot_layout(ncol = 2, widths = c(1, 1.2)) +
+  plot_annotation(tag_levels = "A")
+
+print(p_ab)
+```
+
+
+##### Generating the p-value/z-value for each genera
+```{r}
+# p-value/z-value 
+compute_pz_wilcox <- function(t_abun, outcome) {
+  stopifnot(nrow(t_abun) == length(outcome))
+  
+  p_z_values <- sapply(colnames(t_abun), function(feature) {
+    features <- t_abun[, feature, drop = FALSE]
+    wilcox <- coin::wilcox_test(features[, 1] ~ outcome)
+    
+    c(
+      p_value = as.numeric(coin::pvalue(wilcox)),
+      z_value = as.numeric(coin::statistic(wilcox))
+    )
+  }, simplify = "matrix")
+  p_z_values <- as.data.frame(t(p_z_values))
+  p_z_values$feature <- rownames(p_z_values)
+  rownames(p_z_values) <- NULL
+  
+  return(p_z_values)
+}
+
+p_z_values <- compute_pz_wilcox(genera_abun, outcome)
+p_value <- p_z_values[,1]
+z_value <- p_z_values[,2]
+
+##################### BH ###########################
+p_adjusted <- p.adjust(p_value, method = "BH")
+bh <- which(p_adjusted < 0.05)
+length(bh) # 98
+```
+
+##### Generating the side information - Canonical Correlation between genera relative abundance table and top 50 metabolomes
+```{r}
+######################## Metabolite ##############################
+# Filter out the 'low abundance' metabolites
+# Keep metabolites that are non-zero in at least 50% of subjects
+present_counts <- colSums(mtb > 0)
+mtb_filtered <- mtb[, present_counts >= (nrow(mtb) * 0.5)]
+dim(mtb_filtered)
+# 96 x 144
+
+# Get top 50 'importance' of metabolites
+mtb_norm <- mtb_filtered / rowSums(mtb_filtered)
+metabolite_means <- colMeans(mtb_norm, na.rm = TRUE)
+top50_metabolites <- names(sort(metabolite_means, decreasing = TRUE))[1:50]
+mtb_top50 <- mtb_norm[, top50_metabolites]
+
+
+# Check the order
+# making sure that rownames of meta and of abun are matching
+table(rownames(genera_abun) == rownames(mtb_top50))
+table(rownames(genera_abun) == metadata_reorder$Subject)
+
+
+################# Canonical Correlation #####################
+cancor <- numeric(ncol(genera_abun))
+for (i in 1:ncol(genera_abun)) {
+  temp <- cancor(genera_abun[, i], mtb_top50)
+  cancor[i] <- temp$cor
+}
+```
+
+
+
+##### Fit the models
+```{r}
+q_levels <- seq(0.01, 0.10, by = 0.01)
+
+# chai
+set.seed(123)
+chai_cca <- chai(z_value, as.matrix(cancor, ncol = 1), B = 100)
+chai_rejs <- sapply(q_levels, function(q) {
+  length(clfdrselect(chai_cca$clFDR, q, 1))
+})
+
+# Adapt_glm
+x <- data.frame(cancor)
+formula <- c(paste0("ns(cancor, df = ",2:8,")"))
+glm_ns <- adapt_glm(x, pvals = p_value, alphas=q_levels, 
+                    pi_formulas = formula, mu_formulas = formula)
+adapt_glm_ns_rej <- glm_ns$nrejs[1:10]
+
+# Adapt_gmm_p
+gmm_ns_p <- adapt_gmm(x, pvals = p_value,  alphas=q_levels, 
+                      beta_formulas = formula)
+adapt_gmm_p_ns_rej <- gmm_ns_p$nrejs[1:10]
+
+# Adapt_gmm_z
+gmm_ns_z <- adapt_gmm(x, z = z_value, alphas=q_levels, 
+                      beta_formulas = formula, testing = "two_sided")
+adapt_gmm_z_ns_rej <- gmm_ns_z$nrejs[1:10]
+
+# OrderShapeEM
+orderfdr <- OrderShapeEM(pvals = p_value, order.var = cancor, 
+                         OrderShapeEM.control(trace = TRUE))
+ordershapeem_rejs <- sapply(q_levels, function(q) {
+  sum(orderfdr$fdr <= q)
+})
+
+# FDRreg
+set.seed(123)
+fdr_theo <- FDRreg(z_value, as.matrix(cancor), nulltype = 'theoretical')
+rdrreg_rejs <- sapply(q_levels, function(q) {
+  length(which(fdr_theo$FDR <= q))
+})
+
+# IHW
+ihw_rejs <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = cancor, alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+# BH
+bh_rejs <- sapply(q_levels, function(q) {
+  length(which(p_adjusted <= q))
+})
+
+
+# combine into data frame
+eraw_sum <- data.frame(
+  q = q_levels,
+  chai = chai_rejs,
+  adapt_glm = adapt_glm_ns_rej,
+  adapt_gmm_p = adapt_gmm_p_ns_rej,
+  adapt_gmm_z = adapt_gmm_z_ns_rej,
+  OrderShapeEM = ordershapeem_rejs,
+  FDRreg = rdrreg_rejs, 
+  IHW = ihw_rejs, 
+  BH = bh_rejs
+)
+
+
+# into long format for further visualization
+eraw_long <- eraw_sum %>%
+  pivot_longer(
+    cols = -q,
+    names_to = "Method",
+    values_to = "Rejections"
+  ) %>%
+  mutate(Method = as.character(Method))
+```
+
+##### Visualization
+```{r}
+plot_rejections_vs_q <- function(long_table, title = "Number of Discoveries vs q",
+                                 K_variants = 12, x_breaks = NULL) {
+  
+  ord <- method_order(long_table$Method)
+  long_table <- long_table %>% mutate(Method = factor(Method, levels = ord))
+  pal <- make_method_palette(levels(long_table$Method), K = K_variants)
+  
+  endpoints <- long_table %>%
+    group_by(Method) %>%
+    filter(q == max(q, na.rm = TRUE)) %>%
+    slice_tail(n = 1) %>%
+    ungroup() %>%
+    mutate(label = as.character(Method))
+  
+  x_rng   <- range(long_table$q, na.rm = TRUE)
+  x_nudge <- diff(x_rng) * 0.03
+  
+  p <- ggplot(long_table, aes(x = q, y = Rejections, group = Method, color = Method)) +
+    geom_line(linewidth = 0.9, na.rm = TRUE) +
+    geom_point(size = 1.8, na.rm = TRUE) +
+    ggrepel::geom_text_repel(
+      data = endpoints,
+      aes(label = label),
+      nudge_x = x_nudge,
+      hjust = 0,
+      direction = "y",
+      segment.size = 0.2,
+      box.padding = 0.15,
+      point.padding = 0.10,
+      min.segment.length = 0,
+      max.overlaps = Inf,
+      seed = 1,
+      show.legend = FALSE
+    ) +
+    scale_color_manual(values = pal, breaks = ord) +
+    labs(title = title, x = "q level", y = "Number of Rejections") +
+    coord_cartesian(clip = "off") +
+    theme_minimal() +
+    theme(
+      legend.position = "none",
+      plot.margin = margin(5.5, 60, 5.5, 5.5)
+    )
+  
+  if (!is.null(x_breaks)) {
+    p <- p + scale_x_continuous(breaks = x_breaks, expand = expansion(mult = c(0.02, 0.18)))
+  } else {
+    p <- p + scale_x_continuous(expand = expansion(mult = c(0.02, 0.18)))
+  }
+  
+  p
+}
+
+p_eraw_cca <- plot_rejections_vs_q(eraw_long, 
+                                   title = "Number of Discoveries vs q, with metabolites CCA score",
+                                   x_breaks = sort(unique(eraw_long$q)))
+
+print(p_eraw_cca)
+```

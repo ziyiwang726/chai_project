@@ -1,0 +1,325 @@
+---
+title: "JASA_Realdata_Melanoma"
+author: "Ziyi Wang"
+date: "2026-03-16"
+output: html_document
+---
+
+## Load Packages/Functions
+```{r setup, include=FALSE}
+library(knitr)
+library(locfdr)
+library(CATMicrobiome)
+library(admix)
+library(mvtnorm)
+library(mixtools)
+library(devtools)
+library(KScorrect)
+library(mclust)
+library(adaptMT)
+library(AdaPTGMM)
+library(splines2)
+library(splines)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(coin)
+library(ggrepel)
+library(viridisLite)
+library(IHW)
+library(FDRreg)
+library(OrderShapeEM)
+
+devtools::load_all("C:/Ziyi Wang/chai_package/chai")
+setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
+
+```
+
+## Real data
+### Melanoma anti-PD-1 - The second real data
+##### Load the data and pre-processing the data
+
+```{r}
+#################### Load data from package CATMicrobiome ##############
+otuPath <- system.file("extdata","d1OTUtable.csv", 
+                       package = "CATMicrobiome")
+otutable <- read.csv(otuPath,header=TRUE,row.names = 1)
+
+taxonomyPath <- system.file("extdata","d1Taxonomy.csv", 
+                            package = "CATMicrobiome")
+taxonomy <- read.csv(taxonomyPath,header=TRUE,row.names = 1)
+
+metaPath <- system.file("extdata","d1Meta.csv", 
+                        package = "CATMicrobiome")
+metaData <- read.csv(metaPath,header=TRUE,row.names = 1)
+
+treePath <- system.file("extdata","d1Tree.tree", 
+                        package = "CATMicrobiome")
+tree <- read.tree(treePath)
+
+otus_tree   <- tree$tip.label       # 1437
+otus_tax    <- rownames(taxonomy)   # 1455
+otus_keep   <- intersect(otus_tree, otus_tax)   # Keep 1437
+
+# Prune tree and taxonomy
+tree <- keep.tip(tree, otus_keep)
+taxonomy <- taxonomy[otus_keep, , drop = FALSE]
+taxonomy <- taxonomy[match(tree$tip.label, rownames(taxonomy)), , drop = FALSE]  # reorder to tree tips
+otutable <- otutable[otus_keep, , drop = FALSE]
+# 1437 tips
+
+OTU <- otu_table(as.matrix(otutable), taxa_are_rows = TRUE)
+TAX <- tax_table(as.matrix(taxonomy))
+SAM <- sample_data(metaData)
+TR  <- phy_tree(tree)
+
+ps <- phyloseq(OTU, TAX, SAM, TR)
+
+###################### Family level ps #######################
+family <- tax_glom(ps, taxrank='family')
+
+###################### Abundance table #######################
+# family
+cs <- colSums(otu_table(family))
+cs[cs == 0] <- 1
+family_abun <- sweep(otu_table(family), 2, cs, "/") * 100
+t_family_abun <- t(family_abun)     # 43 x 76
+
+########################## Outcome ###################################
+# Check the metadata order matching to the abundance subject order
+rownames(sample_data(family)) == rownames(t_family_abun)
+
+outcome <- factor(sample_data(family)$BinOutcomes, levels = c("NR","R"))
+table(outcome)
+```
+
+##### Generating the p-value/z-value
+
+```{r}
+# family's p-value and z-value
+family_pz <- compute_pz_wilcox(t_family_abun, outcome)
+```
+
+##### Combine the p-value/z-value with corresponding abundance table
+```{r}
+#################### Build OTU for each level #####################
+library(dplyr)
+library(tibble)
+library(stringr)
+library(tidyr)
+
+# Define a function to clean the feature name
+clean_taxon <- function(x) {
+  x %>%
+    as.character() %>%
+    str_replace("^.*?__", "") %>%        # Remove k__/f__/g__
+    str_replace_all("\\[|\\]", "") %>%   # Remove []
+    str_squish()                         # Remove extra space
+}
+
+# Define a function that can combine the right rank tables together
+make_main_df <- function(t_abun, pz_df, ps_obj, rank) {
+  # rank: the tax_table column you want to join on, e.g. "family" / "genus" / "order" / "class"
+  
+  tax_df <- as.data.frame(tax_table(ps_obj)) %>%
+    rownames_to_column("otu_rep")
+  
+  # find the taxonomy column robustly (case-insensitive)
+  rank_col <- names(tax_df)[tolower(names(tax_df)) == tolower(rank)]
+  if (length(rank_col) != 1) {
+    stop("Could not uniquely find taxonomy column for rank = '", rank, "'. ",
+         "Available columns: ", paste(names(tax_df), collapse = ", "))
+  }
+  
+  tax_map <- tax_df %>%
+    transmute(
+      otu_rep,
+      rank_value = as.character(.data[[rank_col]])
+    )
+  
+  # p/z mapping (supports either pz_df$feature or assumes same order as colnames(t_abun))
+  pz_map <- if ("feature" %in% names(pz_df)) {
+    pz_df %>%
+      transmute(
+        otu_rep = feature,
+        p_main  = as.numeric(p_value),
+        z_main  = as.numeric(z_value)
+      )
+  } else {
+    data.frame(
+      otu_rep = colnames(t_abun),
+      p_main  = as.numeric(pz_df$p_value),
+      z_main  = as.numeric(pz_df$z_value),
+      stringsAsFactors = FALSE
+    )
+  }
+  
+  main_df <- pz_map %>%
+    left_join(tax_map, by = "otu_rep") %>%
+    mutate(taxon_key = clean_taxon(rank_value))
+  
+  main_df
+}
+
+# Generate the family level data frame
+family_pz_tax = make_main_df(t_abun = t_family_abun,  pz_df = family_pz,  
+                             ps_obj = family,  rank = "family")
+
+```
+
+##### Load LLM results at family level and pre-processing
+
+```{r}
+library(readr)
+library(auctestr)
+
+class_aux_otu <- read_csv("./LLM_from_Yushu/d1Taxonomy_OTU_ABCD_class_and_below.csv")
+
+# Aggregation using stouffer_z, only stouffer non-zero values
+stouffer_nonzero <- function(v) {
+  v2 <- v[!is.na(v) & v != 0]
+  if (length(v2) == 0) return(0)
+  stouffer_z(v2, ignore.na = FALSE)
+}
+
+level <- "family"
+cla_ag_fam <- class_aux_otu %>%
+  filter(!is.na(.data[[level]]), .data[[level]] != "") %>%
+  group_by(.data[[level]]) %>%
+  summarise(
+    across(
+      .cols  = c(A, B, C, D),
+      .fns   = agg_fun,
+      .names = "x{col}"
+    ),
+    .groups = "drop"
+  ) %>%
+  mutate(taxon_key = clean_taxon(.data[[level]]))
+
+
+df_model <- family_pz_tax %>% 
+  dplyr::left_join(cla_ag_fam %>% dplyr::select(taxon_key, xA, xB, xC),
+            by = "taxon_key")
+
+z <- df_model$z_main
+p <- df_model$p_main
+X <- df_model[, c("xA", "xB", "xC")]
+```
+
+##### Fit the models
+```{r}
+q_levels <- seq(0.01, 0.10, by = 0.01)
+
+########################## chai ################################
+set.seed(123)
+chai_family_llm <- chai(z, X, B = 100)
+chai_rejs <- sapply(q_levels, function(q) {
+  length(clfdrselect(chai_family_llm$clFDR, q, 1))
+})
+
+########################## Adapt-glm ##########################
+x <- data.frame(X)
+formula_ns <- list(
+  ~ ns(xA, df=2) + ns(xB, df=2) + ns(xC, df=2),
+  ~ ns(xA, df=4) + ns(xB, df=4) + ns(xC, df=4),
+  ~ ns(xA, df=6) + ns(xB, df=6) + ns(xC, df=6)
+)
+
+glm_ns <- adapt_glm(x, pvals = p, alphas=alphas, 
+                    pi_formulas = formula_ns, mu_formulas = formula_ns)
+adapt_glm_ns_rej <- glm_ns$nrejs[1:10]
+
+########################## Adapt-gmm-p ##########################
+gmm_ns_p <- adapt_gmm(x, pvals = p,  alphas=alphas, 
+                      beta_formulas = formula_ns)
+adapt_gmm_p_ns_rej <- gmm_ns_p$nrejs[1:10]
+
+########################## Adapt-gmm-z ##########################
+gmm_ns_z <- adapt_gmm(x, z = z, alphas=alphas, 
+                      beta_formulas = formula_ns, testing = "two_sided")
+adapt_gmm_z_ns_rej <- gmm_ns_z$nrejs[1:10]
+
+########################## OrderShapeEM ##########################
+ordershape_x1 <- OrderShapeEM(pvals = p, order.var = X[,1], 
+                              OrderShapeEM.control(trace = TRUE))
+ordershapeem_x1_rejs <- sapply(q_levels, function(q) {
+  sum(ordershape_x1$fdr <= q)
+})
+
+ordershape_x2 <- OrderShapeEM(pvals = p, order.var = X[,2], 
+                              OrderShapeEM.control(trace = TRUE))
+ordershapeem_x2_rejs <- sapply(q_levels, function(q) {
+  sum(ordershape_x2$fdr <= q)
+})
+
+ordershape_x3 <- OrderShapeEM(pvals = p, order.var = X[,3], 
+                              OrderShapeEM.control(trace = TRUE))
+ordershapeem_x3_rejs <- sapply(q_levels, function(q) {
+  sum(ordershape_x3$fdr <= q)
+})
+
+########################## FDRreg ##########################
+set.seed(123)
+fdr_theo <- FDRreg(z, as.matrix(X), nulltype = 'theoretical')
+rdrreg_rejs <- sapply(q_levels, function(q) {
+  length(which(fdr_theo$FDR <= q))
+})
+
+########################## IHW ##########################
+set.seed(123)
+ihw_1_rejs <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p, covariates = X[,1], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+ihw_2_rejs <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p, covariates = X[,2], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+ihw_3_rejs <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p, covariates = X[,3], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+########################## BH ##########################
+p_adjusted <- p.adjust(p, method = "BH")
+bh_rejs <- sapply(q_levels, function(q) {
+  length(which(p_adjusted <= q))
+})
+
+# combine into data frame
+LLM_fam_classandbelow <- data.frame(
+  q = q_levels,
+  chai = chai_rejs,
+  adapt_glm = adapt_glm_ns_rej,
+  adapt_gmm_p = adapt_gmm_p_ns_rej,
+  adapt_gmm_z = adapt_gmm_z_ns_rej,
+  OrderShapeEM_x1 = ordershapeem_x1_rejs,
+  OrderShapeEM_x2 = ordershapeem_x2_rejs,
+  OrderShapeEM_x3 = ordershapeem_x3_rejs,
+  FDRreg = rdrreg_rejs, 
+  IHW_x1 = ihw_1_rejs, 
+  IHW_x2 = ihw_2_rejs, 
+  IHW_x3 = ihw_3_rejs, 
+  BH = bh_rejs
+)
+
+# into long format
+LLM_fam_classandbelow_long <- LLM_fam_classandbelow %>%
+  pivot_longer(
+    cols = -q,
+    names_to = "Method",
+    values_to = "Rejections"
+  ) %>%
+  mutate(Method = as.character(Method))
+```
+
+##### Visualization
+```{r}
+p_LLM <- plot_rejections_vs_q(LLM_fam_classandbelow_long,
+                              title = "Number of Discoveries vs q, with LLM",
+                              x_breaks = sort(unique(LLM_fam_classandbelow_long$q)))
+
+print(p_LLM)
+```
