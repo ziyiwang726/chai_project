@@ -1,0 +1,17 @@
+# RStudio
+.Rproj.user/
+*.Rproj.user
+
+# R session
+.Rhistory
+.RData
+.Ruserdata
+
+# Build/check artifacts
+*.tar.gz
+*.Rcheck/
+.Rcheck/
+
+# macOS / Windows junk
+.DS_Store
+Thumbs.db

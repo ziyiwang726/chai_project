@@ -1,0 +1,180 @@
+article_rank,article,informative_taxa,sign_diff,pvalue_diff,presence_diff,total_diff,taxon,difference_type,openai_value,claude_value,gemini_value,openai_raw,claude_raw,gemini_raw
+1,PMC11107795,5,0,1,1,6,Ruminococcus,presence_mismatch;pvalue_mismatch,+0.024,,+0.05,+0.024 A,,+0.05 A {n=54}
+1,PMC11107795,5,0,0,1,6,Bacteroides,presence_mismatch,+0.03,,,+0.03 A {n=40},,
+1,PMC11107795,5,0,0,1,6,Lactobacillus,presence_mismatch,-0.02,,,-0.02 A {n=40},,
+1,PMC11107795,5,0,0,1,6,Parabacteroides,presence_mismatch,+0.024,,,+0.024 A {n=38},,
+1,PMC11107795,5,0,0,1,6,Ruminococcaceae,presence_mismatch,,,+0.05,,,+0.05 A {n=54}
+2,PMC11838642,4,0,1,1,5,Lachnospiraceae,presence_mismatch;pvalue_mismatch,+0.02,+0.05,,+0.02 A {n=41},+0.05 A {n=41} [Enriched in responders at baseline; also enriched in no-irAE group],
+2,PMC11838642,4,0,0,1,5,Blautia,presence_mismatch,+0.05,+0.05,,+0.05 A {n=41},+0.05 A {n=41} [Several Blautia species significantly associated with responders],
+2,PMC11838642,4,0,0,1,5,Enterobacter,presence_mismatch,,,-0.05,,,-0.05 A {n=41} [Observed only in non-responders]
+2,PMC11838642,4,0,0,1,5,Lachnospira,presence_mismatch,-0.002,,,-0.002 A {n=41},,
+3,PMC8184628,3,0,1,1,4,Acinetobacter,presence_mismatch;pvalue_mismatch,,+8.94e-09,+8.94e-08,,+8.94e-09 B {n=369} [correlation coefficient = 0.28],+8.94e-08 B {n=369} [correlation coefficient = 0.28 (with infiltrating CD8+ T cells)]
+3,PMC8184628,3,0,0,1,4,Lachnospiraceae,presence_mismatch,,+0.05,+0.05,,+0.05 B,+0.05 A [higher abundance in responders than non-responders]
+3,PMC8184628,3,0,0,1,4,Synergistes,presence_mismatch,,+0.05,,,+0.05 B {n=369},
+4,PMC11399570,2,0,1,1,3,Faecalibacterium,presence_mismatch;pvalue_mismatch,+0.0041,,+0.0039,+0.0041 C {n=74},,+0.0039 C {n=74}
+4,PMC11399570,2,0,0,1,3,Escherichia,presence_mismatch,-0.00033,,-0.00033,-0.00033 C {n=74} [LDA > 3],,-0.00033 C {n=74}
+5,PMC9641019,18,0,0,1,18,Alistipes,presence_mismatch,,+0.05,,,+0.05 C {n=24} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Anaerotruncus,presence_mismatch,-0.05,-0.05,,-0.05 C {n=3} [Enriched in non-responders at 12 weeks (LEfSe)],-0.05 C {n=24} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Bacteroidales,presence_mismatch,,+0.05,,,+0.05 C {n=27} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Bacteroides,presence_mismatch,+0.05,+0.05,,+0.05 C {n=27} [Genus Bacteroides enriched in the non-AE group at baseline (LEfSe).],+0.05 C {n=27} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Barnesiella,presence_mismatch,,+0.05,,,+0.05 C {n=24} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Bifidobacterium,presence_mismatch,,+0.05,,,+0.05 C {n=24} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Bilophila,presence_mismatch,-0.05,-0.05,,-0.05 C {n=24} [Enriched in non-responders at 6 weeks (LEfSe)],-0.05 C {n=24} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Butyricimonas,presence_mismatch,+0.05,+0.05,,+0.05 C {n=24} [Enriched in responders at 6 weeks (LEfSe)],+0.05 C {n=24} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Clostridiales,presence_mismatch,,+0.05,,,+0.05 C {n=27} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Clostridium,presence_mismatch,,+0.05,,,+0.05 C {n=24} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Collinsella,presence_mismatch,+0.05,+0.05,,+0.05 C {n=24} [Enriched in responders at 6 weeks (LEfSe)],+0.05 C {n=24} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Enterobacter,presence_mismatch,,-0.05,,,-0.05 C {n=24} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Erysipelotrichaceae,presence_mismatch,,-0.05,,,-0.05 C {n=24} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Eubacterium,presence_mismatch,,+0.05,,,+0.05 C {n=24} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Fusobacterium,presence_mismatch,-0.05,-0.05,,-0.05 C {n=3} [Enriched in non-responders at 12 weeks (LEfSe)],-0.05 C {n=24} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Parabacteroides,presence_mismatch,+0.05,+0.05,,+0.05 C {n=24} [Enriched in responders at 6 weeks (LEfSe)],+0.05 C {n=24} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Phascolarctobacterium,presence_mismatch,+0.05,+0.05,,+0.05 C {n=24} [Enriched in responders at 6 weeks (LEfSe)],+0.05 C {n=24} [LDA score > 2.0],
+5,PMC9641019,18,0,0,1,18,Porphyromonas,presence_mismatch,+0.05,+0.05,,+0.05 C {n=24} [Enriched in responders at 6 weeks (LEfSe)],+0.05 C {n=24} [LDA score > 2.0],
+6,PMC10134792,16,0,0,1,16,Acidaminococcus,presence_mismatch,+0.05,,,+0.05 A {n=680},,
+6,PMC10134792,16,0,0,1,16,Adlercreutzia,presence_mismatch,-0.05,,,-0.05 A {n=680},,
+6,PMC10134792,16,0,0,1,16,Alistipes,presence_mismatch,+0.05,,,+0.05 A {n=680},,
+6,PMC10134792,16,0,0,1,16,Barnesiella,presence_mismatch,+0.05,,,+0.05 A {n=680},,
+6,PMC10134792,16,0,0,1,16,Bifidobacterium,presence_mismatch,+0.05,,,+0.05 A {n=680},,
+6,PMC10134792,16,0,0,1,16,Blautia,presence_mismatch,+0.05,,,+0.05 A {n=680},,
+6,PMC10134792,16,0,0,1,16,Collinsella,presence_mismatch,+0.05,,,+0.05 A {n=680},,
+6,PMC10134792,16,0,0,1,16,Coprococcus,presence_mismatch,-0.05,,,-0.05 A {n=680},,
+6,PMC10134792,16,0,0,1,16,Dialister,presence_mismatch,-0.05,,,-0.05 A {n=680},,
+6,PMC10134792,16,0,0,1,16,Eubacterium,presence_mismatch,+0.05,,,+0.05 A {n=680},,
+6,PMC10134792,16,0,0,1,16,Faecalibacterium,presence_mismatch,+0.05,,,+0.05 A {n=680},,
+6,PMC10134792,16,0,0,1,16,Parabacteroides,presence_mismatch,+0.05,,,+0.05 A {n=680},,
+6,PMC10134792,16,0,0,1,16,Phascolarctobacterium,presence_mismatch,+0.05,,,+0.05 A {n=680},,
+6,PMC10134792,16,0,0,1,16,Prevotella,presence_mismatch,-0.05,,,-0.05 A {n=680},,
+6,PMC10134792,16,0,0,1,16,Roseburia,presence_mismatch,+0.05,,,+0.05 A {n=680},,
+6,PMC10134792,16,0,0,1,16,Ruminococcus,presence_mismatch,+0.05,,,+0.05 A {n=680},,
+7,PMC10339964,15,0,0,1,15,Bifidobacterium,presence_mismatch,-0.05,,,-0.05 C {n=63},,
+7,PMC10339964,15,0,0,1,15,Christensenellaceae,presence_mismatch,,+0.05,,,+0.05 C {n=65} [Christensenellaceae R-7 group associated with irAEs occurrence],
+7,PMC10339964,15,0,0,1,15,Clostridia,presence_mismatch,+0.05,,,+0.05 C {n=63},,
+7,PMC10339964,15,0,0,1,15,Clostridiaceae,presence_mismatch,-0.05,-0.05,,-0.05 C {n=63},-0.05 C {n=63} [associated with NRs],
+7,PMC10339964,15,0,0,1,15,Coprobacillus,presence_mismatch,+0.05,,,+0.05 C {n=63},,
+7,PMC10339964,15,0,0,1,15,Eubacterium,presence_mismatch,-0.05,,,-0.05 C {n=65},,
+7,PMC10339964,15,0,0,1,15,Faecalibacterium,presence_mismatch,,+0.05,,,+0.05 C {n=65} [associated with irAEs occurrence],
+7,PMC10339964,15,0,0,1,15,Haemophilus,presence_mismatch,-0.05,-0.05,,-0.05 C {n=65},-0.05 C {n=63} [decreased in Rs (clinical outcome)],
+7,PMC10339964,15,0,0,1,15,Lachnospiraceae,presence_mismatch,+0.05,,,+0.05 C {n=63},,
+7,PMC10339964,15,0,0,1,15,Oscillospira,presence_mismatch,+0.05,+0.05,,+0.05 C {n=63},+0.05 C {n=63},
+7,PMC10339964,15,0,0,1,15,Prevotella,presence_mismatch,+0.05,,,+0.05 C {n=63},,
+7,PMC10339964,15,0,0,1,15,Shuttleworthia,presence_mismatch,-0.05,-0.05,,-0.05 C {n=63},-0.05 C {n=63} [associated with NRs],
+7,PMC10339964,15,0,0,1,15,Streptococcus,presence_mismatch,-0.05,-0.05,,-0.05 C {n=63},-0.05 C {n=63} [decreased in Rs],
+7,PMC10339964,15,0,0,1,15,Subdoligranulum,presence_mismatch,,+0.05,,,+0.05 C {n=65} [associated with irAEs occurrence],
+7,PMC10339964,15,0,0,1,15,Sutterella,presence_mismatch,-0.05,-0.05,,-0.05 C {n=65},-0.05 C {n=63} [decreased in Rs],
+8,PMC10380337,14,0,0,1,14,Akkermansia,presence_mismatch,,+0.05,,,+0.05 A {n=25} [depleted in sarcopenic patients (sarcopenia associated with non-response)],
+8,PMC10380337,14,0,0,1,14,Butyricimonas,presence_mismatch,,-0.05,,,-0.05 A {n=25} [enriched in sarcopenic patients (sarcopenia associated with non-response)],
+8,PMC10380337,14,0,0,1,14,Clostridium,presence_mismatch,-0.05,-0.05,,-0.05 A {n=31},-0.05 A {n=31} [under-represented in responders (over-represented in non-responders)],
+8,PMC10380337,14,0,0,1,14,Dorea,presence_mismatch,-0.05,-0.05,,-0.05 A {n=31},-0.05 A {n=31} [under-represented in responders (over-represented in non-responders)],
+8,PMC10380337,14,0,0,1,14,Enterobacteriaceae,presence_mismatch,,-0.05,,,-0.05 A {n=25} [enriched in sarcopenic patients (sarcopenia associated with non-response)],
+8,PMC10380337,14,0,0,1,14,Fusobacterium,presence_mismatch,-0.05,-0.05,,-0.05 A {n=31},-0.05 A {n=31} [under-represented in responders (over-represented in non-responders)],
+8,PMC10380337,14,0,0,1,14,Lactobacillus,presence_mismatch,,-0.05,,,-0.05 A {n=25} [enriched in sarcopenic patients (sarcopenia associated with non-response)],
+8,PMC10380337,14,0,0,1,14,Oscillospira,presence_mismatch,,+0.05,,,+0.05 A {n=31} [associated with therapeutic response via DIABLO integration analysis],
+8,PMC10380337,14,0,0,1,14,Phascolarctobacterium,presence_mismatch,,+0.06,,,+0.06 A {n=31} [enriched in responders (trend)],
+8,PMC10380337,14,0,0,1,14,Ruminococcaceae,presence_mismatch,,+0.05,,,+0.05 A {n=25} [depleted in sarcopenic patients (sarcopenia associated with non-response)],
+8,PMC10380337,14,0,0,1,14,Ruminococcus,presence_mismatch,,-0.05,,,-0.05 A {n=25} [enriched in sarcopenic patients (sarcopenia associated with non-response)],
+8,PMC10380337,14,0,0,1,14,Streptococcaceae,presence_mismatch,,-0.05,,,-0.05 A {n=25} [enriched in sarcopenic patients (sarcopenia associated with non-response)],
+8,PMC10380337,14,0,0,1,14,Streptococcus,presence_mismatch,-0.05,-0.05,,-0.05 A {n=31},-0.05 A {n=31} [under-represented in responders (over-represented in non-responders)],
+8,PMC10380337,14,0,0,1,14,Veillonella,presence_mismatch,-0.05,-0.05,,-0.05 A {n=31},-0.05 A {n=31} [under-represented in responders (over-represented in non-responders)],
+9,PMC12259845,11,0,0,1,11,Adlercreutzia,presence_mismatch,+0.05,,+0.05,+0.05 A {n=20},,+0.05 A {n=20}
+9,PMC12259845,11,0,0,1,11,Cerasicoccaceae,presence_mismatch,+0.05,,+0.05,+0.05 A {n=20},,+0.05 A {n=20}
+9,PMC12259845,11,0,0,1,11,Clostridium,presence_mismatch,-0.05,,-0.05,-0.05 A {n=20},,-0.05 A {n=20}
+9,PMC12259845,11,0,0,1,11,Coriobacteriaceae,presence_mismatch,+0.05,,+0.05,+0.05 A {n=20},,+0.05 A {n=20}
+9,PMC12259845,11,0,0,1,11,Gemmiger,presence_mismatch,+0.05,,,+0.05 A {n=20} [Enriched in patients with no or grade 1 toxicity vs grade ≥2 (LEfSe)],,
+9,PMC12259845,11,0,0,1,11,Lachnospiraceae,presence_mismatch,+0.05,,+0.05,+0.05 A {n=20},,+0.05 A {n=20}
+9,PMC12259845,11,0,0,1,11,Leuconostocaceae,presence_mismatch,+0.05,,,+0.05 A {n=20} [Enriched in patients with no or grade 1 toxicity vs grade ≥2 (LEfSe)],,
+9,PMC12259845,11,0,0,1,11,Oscillospira,presence_mismatch,-0.05,,,-0.05 A {n=20} [Enriched in patients with grade ≥2 toxicity (LEfSe)],,
+9,PMC12259845,11,0,0,1,11,Oxalobacteraceae,presence_mismatch,+0.05,,,+0.05 A {n=20} [Enriched in patients with no or grade 1 toxicity vs grade ≥2 (LEfSe)],,
+9,PMC12259845,11,0,0,1,11,Pasteurellaceae,presence_mismatch,-0.05,,-0.05,-0.05 A {n=20},,-0.05 A {n=20}
+9,PMC12259845,11,0,0,1,11,Prevotellaceae,presence_mismatch,+0.05,,+0.05,+0.05 A {n=20},,+0.05 A {n=20}
+10,PMC8938272,11,0,0,1,11,Akkermansia,presence_mismatch,+0.05,,,+0.05 A {n=284},,
+10,PMC8938272,11,0,0,1,11,Alistipes,presence_mismatch,,,+0.05,,,+0.05 C {n=100}
+10,PMC8938272,11,0,0,1,11,Bacteroides,presence_mismatch,-0.05,,,-0.05 A {n=284},,
+10,PMC8938272,11,0,0,1,11,Bifidobacterium,presence_mismatch,+0.05,,,+0.05 A {n=284},,
+10,PMC8938272,11,0,0,1,11,Butyricimonas,presence_mismatch,+0.05,,,+0.05 A {n=284},,
+10,PMC8938272,11,0,0,1,11,Eubacterium,presence_mismatch,+0.05,,,+0.05 A {n=284},,
+10,PMC8938272,11,0,0,1,11,Lactobacillus,presence_mismatch,+0.05,,,+0.05 B,,
+10,PMC8938272,11,0,0,1,11,Phascolarctobacterium,presence_mismatch,+0.05,,,+0.05 B,,
+10,PMC8938272,11,0,0,1,11,Roseburia,presence_mismatch,+0.05,+0.05,,+0.05 A {n=284},+0.05 A {n=312} [Roseburia spp. associated with responders in meta-analysis panel (identified by at least three meta-analysis methods)],
+10,PMC8938272,11,0,0,1,11,Ruminococcus,presence_mismatch,-0.05,,,-0.05 A {n=53},,
+10,PMC8938272,11,0,0,1,11,Turicibacter,presence_mismatch,+0.05,,,+0.05 A {n=284},,
+11,PMC11992761,9,0,0,1,9,Anaerofilum,presence_mismatch,-0.05,,,-0.05 C {n=13},,
+11,PMC11992761,9,0,0,1,9,Bacteroides,presence_mismatch,+0.05,,,+0.05 C {n=21},,
+11,PMC11992761,9,0,0,1,9,Clostridia,presence_mismatch,-0.05,,,-0.05 C {n=13},,
+11,PMC11992761,9,0,0,1,9,Eggerthella,presence_mismatch,+0.05,,,+0.05 C {n=21},,
+11,PMC11992761,9,0,0,1,9,Enterococcaceae,presence_mismatch,-0.05,,,-0.05 C {n=13},,
+11,PMC11992761,9,0,0,1,9,Escherichia,presence_mismatch,+0.05,,,+0.05 C {n=21},,
+11,PMC11992761,9,0,0,1,9,Ruminococcaceae,presence_mismatch,-0.05,,,-0.05 C {n=13},,
+11,PMC11992761,9,0,0,1,9,Streptococcus,presence_mismatch,+0.05,,,+0.05 C {n=13},,
+11,PMC11992761,9,0,0,1,9,Veillonella,presence_mismatch,+0.05,,,+0.05 C {n=21},,
+12,PMC6785875,9,0,0,1,9,Bilophila,presence_mismatch,-0.05,-0.05,,-0.05 B {n=27},-0.05 B {n=27} [associated with shorter PFS],
+12,PMC6785875,9,0,0,1,9,Blautia,presence_mismatch,-0.05,,,-0.05 B {n=27},,
+12,PMC6785875,9,0,0,1,9,Clostridium,presence_mismatch,+0.05,+0.05,,+0.05 B {n=27},+0.05 B {n=27} [associated with longer PFS],
+12,PMC6785875,9,0,0,1,9,Coprococcus,presence_mismatch,+0.05,,,+0.05 B {n=27},,
+12,PMC6785875,9,0,0,1,9,Faecalibacterium,presence_mismatch,+0.05,+0.05,,+0.05 B {n=27},+0.05 B {n=27} [associated with longer PFS],
+12,PMC6785875,9,0,0,1,9,Parabacteroides,presence_mismatch,+0.05,+0.05,,+0.05 B {n=27},+0.05 B {n=27} [associated with longer PFS],
+12,PMC6785875,9,0,0,1,9,Prevotella,presence_mismatch,+0.05,,,+0.05 B {n=27},,
+12,PMC6785875,9,0,0,1,9,Ruminococcus,presence_mismatch,-0.05,,,-0.05 B {n=27},,
+12,PMC6785875,9,0,0,1,9,Streptococcus,presence_mismatch,+0.05,,,+0.05 B {n=27},,
+13,PMC6707353,8,0,0,1,8,Bifidobacteriaceae,presence_mismatch,+0.05,,,+0.05 A {n=42},,
+13,PMC6707353,8,0,0,1,8,Bifidobacterium,presence_mismatch,+0.05,,,+0.05 A {n=42},,
+13,PMC6707353,8,0,0,1,8,Collinsella,presence_mismatch,+0.05,,,+0.05 A {n=42},,
+13,PMC6707353,8,0,0,1,8,Lactobacillus,presence_mismatch,+0.05,,,+0.05 A {n=42},,
+13,PMC6707353,8,0,0,1,8,Parabacteroides,presence_mismatch,+0.05,,,+0.05 A {n=42},,
+13,PMC6707353,8,0,0,1,8,Roseburia,presence_mismatch,-0.05,,,-0.05 A {n=42},,
+13,PMC6707353,8,0,0,1,8,Ruminococcus,presence_mismatch,-0.05,,,-0.05 A {n=42},,
+13,PMC6707353,8,0,0,1,8,Veillonella,presence_mismatch,+0.05,,,+0.05 A {n=42},,
+14,PMC10685659,7,0,0,1,7,Akkermansia,presence_mismatch,-0.014,,-0.014,-0.014 A {n=29},,-0.014 A {n=29}
+14,PMC10685659,7,0,0,1,7,Barnesiella,presence_mismatch,-0.001,,-0.001,-0.001 A {n=29},,-0.001 A {n=29}
+14,PMC10685659,7,0,0,1,7,Barnesiellaceae,presence_mismatch,-0.003,,-0.003,-0.003 A {n=29},,-0.003 A {n=29}
+14,PMC10685659,7,0,0,1,7,Butyricimonas,presence_mismatch,-0.031,,-0.031,-0.031 A {n=29},,-0.031 A {n=29}
+14,PMC10685659,7,0,0,1,7,Enterobacteriaceae,presence_mismatch,-0.04,,-0.04,-0.04 A {n=29},,-0.04 A {n=29}
+14,PMC10685659,7,0,0,1,7,Odoribacteraceae,presence_mismatch,-0.049,,-0.049,-0.049 A {n=29},,-0.049 A {n=29}
+14,PMC10685659,7,0,0,1,7,Ruminococcus,presence_mismatch,+0.017,,,+0.017 A {n=29},,
+15,PMC10245822,6,0,0,1,6,Bacteroides,presence_mismatch,,-0.05,,,-0.05 B {n=71},
+15,PMC10245822,6,0,0,1,6,Delftia,presence_mismatch,,-0.05,,,-0.05 B {n=71},
+15,PMC10245822,6,0,0,1,6,Enterobacter,presence_mismatch,,-0.05,,,-0.05 B {n=71},
+15,PMC10245822,6,0,0,1,6,Fusobacterium,presence_mismatch,,+0.05,,,+0.05 B {n=71},
+15,PMC10245822,6,0,0,1,6,Porphyromonas,presence_mismatch,,+0.05,,,+0.05 B {n=71},
+15,PMC10245822,6,0,0,1,6,Pseudomonas,presence_mismatch,,-0.05,,,-0.05 B {n=71},
+16,PMC11560503,4,0,0,1,4,Bacteroidaceae,presence_mismatch,,,+0.05,,,+0.05 A {n=29}
+16,PMC11560503,4,0,0,1,4,Bacteroides,presence_mismatch,+0.05,,,+0.05 A {n=29},,
+16,PMC11560503,4,0,0,1,4,Enterobacteriaceae,presence_mismatch,+0.05,,+0.05,+0.05 A {n=29},,+0.05 A {n=29}
+16,PMC11560503,4,0,0,1,4,Lachnospiraceae,presence_mismatch,-0.05,,-0.05,-0.05 A {n=29},,-0.05 A {n=29}
+17,PMID31990790,4,0,0,1,4,Bacteroides,presence_mismatch,+0.05,,,+0.05 B {n=25} [HR 3.79 (PFS)],,
+17,PMID31990790,4,0,0,1,4,Peptostreptococcaceae,presence_mismatch,-0.05,,-0.05,-0.05 B {n=25} [HR 0.18 (OS); HR 0.11 (PFS)],,-0.05 B {n=25} [HR 0.18]
+17,PMID31990790,4,0,0,1,4,Streptococcaceae,presence_mismatch,+0.05,,,+0.05 B {n=25} [HR 6.9],,
+17,PMID31990790,4,0,0,1,4,Streptococcus,presence_mismatch,+0.05,,,+0.05 B {n=25} [HR 6.9 (OS)],,
+18,PMC11307144,3,0,0,1,3,Acinetobacter,presence_mismatch,-0.05,,,-0.05 A {n=71},,
+18,PMC11307144,3,0,0,1,3,Campylobacter,presence_mismatch,-0.05,,,-0.05 A {n=71},,
+18,PMC11307144,3,0,0,1,3,Moraxellaceae,presence_mismatch,-0.05,,-0.05,-0.05 B {n=71},,-0.05 A {n=71}
+19,PMC11629153,3,0,0,1,3,Bacteroidales,presence_mismatch,,-0.05,,,-0.05 A {n=23} [Stable nCR taxa dominated by Bacteroidales (60%)],
+19,PMC11629153,3,0,0,1,3,Clostridia,presence_mismatch,,,+0.05,,,+0.05 A {n=23}
+19,PMC11629153,3,0,0,1,3,Lachnospiraceae,presence_mismatch,+0.05,+0.05,,+0.05 A {n=281} [Enrichment of Lachnospiraceae-associated flagellin gene terms in responders across multiple baseline cohorts],+0.05 A {n=281} [Lachnospiraceae-associated flagellin gene families enriched in ICI responders; significant gene set enrichment in 8 of 9 external baseline melanoma cohorts],
+20,PMC4740747,3,0,0,1,3,Bacteroidaceae,presence_mismatch,+0.01,,,+0.01 A {n=34},,
+20,PMC4740747,3,0,0,1,3,Barnesiellaceae,presence_mismatch,+0.05,,,+0.05 A {n=34},,
+20,PMC4740747,3,0,0,1,3,Rikenellaceae,presence_mismatch,+0.05,,,+0.05 A {n=34},,
+21,PMC7489660,3,0,0,1,3,Clostridia,presence_mismatch,+0.05,,,+0.05 C [Enriched in responders (LEfSe)],,
+21,PMC7489660,3,0,0,1,3,Clostridiales,presence_mismatch,+0.05,,+0.05,+0.05 C [Enriched in responders vs non-responders],,+0.05 C {n=65}
+21,PMC7489660,3,0,0,1,3,Ruminococcaceae,presence_mismatch,+0.05,,+0.05,+0.05 C [Enriched in responders vs non-responders],,+0.05 C {n=65}
+22,PMC10252899,2,0,0,1,2,Eggerthella,presence_mismatch,+0.05,,+0.05,+0.05 A {n=15} [Higher abundance in late complete responders (LDA < 3)],,+0.05 A {n=15}
+22,PMC10252899,2,0,0,1,2,Prevotellaceae,presence_mismatch,-0.046,,-0.046,-0.046 A {n=15} [Lower abundance in late complete responders vs early],,-0.046 A {n=15}
+23,PMC8650838,2,0,0,1,2,Akkermansia,presence_mismatch,,+0.05,,,+0.05 C [positively correlated with cDC1 and cDC2 infiltration and negatively correlated with tumor burden; highest BiBC score; monocolonization increased intratumoral DCs and improved tumor control],
+23,PMC8650838,2,0,0,1,2,Lactobacillus,presence_mismatch,,-0.05,,,-0.05 C [negatively correlated with cDC1 and cDC2 infiltration in transkingdom network analysis],
+24,PMID39515321,2,0,0,1,2,Coprococcus,presence_mismatch,+0.05,,,+0.05 C,,
+24,PMID39515321,2,0,0,1,2,Faecalibacterium,presence_mismatch,+0.05,,,+0.05 A,,
+25,PMC10354755,1,0,0,1,1,Lactococcus,presence_mismatch,+0.0001,,,+0.0001 A [Lung metastasis area 3.97% vs 23.70% (L-CTB-hsCD80 vs vector)],,
+26,PMC10891084,1,0,0,1,1,Faecalibacterium,presence_mismatch,+0.008,,,+0.008 B [Overrepresented at baseline in patients without recurrence at 2 years (nDC arm)],,
+27,PMC11033470,1,0,0,1,1,Blautia,presence_mismatch,-0.05,,,-0.05 B [Reduced PFS in melanoma],,
+28,PMC11215408,1,0,0,1,1,Ruminococcaceae,presence_mismatch,+0.05,,,+0.05 A [higher abundance associated with improved response to ICB/anti-PD-1 in melanoma],,
+29,PMC11225377,1,0,0,1,1,Streptococcus,presence_mismatch,,-0.05,,,-0.05 C,
+30,PMC11976794,1,0,0,1,1,Bifidobacterium,presence_mismatch,,-0.01,-0.01,,"-0.01 C {n=213} [Bifidobacterium positivity in normal tissue associated with lower FOXP3+ T-cell levels (p=0.01 normal tissue; p<0.01 tumor tissue), suggesting upregulated anti-tumor immune response in ESCC]",-0.01 C {n=186} [decreased FOXP3 expression in tumor tissue]
+31,PMC12068300,1,0,0,1,1,Escherichia,presence_mismatch,+0.0001,,,"+0.0001 B {n=6} [50% survival (3/6) with Bio-HCP@FM-NPs, significantly better than EM or STCM groups]",,
+32,PMC4721659,1,0,0,1,1,Bacteroides,presence_mismatch,+0.05,,,+0.05 D,,
+33,PMC4873287,1,0,0,1,1,Bifidobacterium,presence_mismatch,,,+5.7e-05,,,+5.7e-05 A [positive association with antitumor T cell responses and improved tumor control]
+34,PMC7542661,1,0,0,1,1,Akkermansia,presence_mismatch,,,+0.05,,,+0.05 C [positive correlation with the antitumor immune responses]
+35,PMC9653730,1,0,0,1,1,Clostridia,presence_mismatch,-3.19e-20,,,-3.19e-20 A {n=57} [Clostridia UCG-014 ASVs enriched in non-responders],,
+36,PMID11592838,1,0,0,1,1,Escherichia,presence_mismatch,+0.05,,,+0.05 D [substantial survival benefit],,
+37,PMID38490195,1,0,0,1,1,Lactobacillus,presence_mismatch,+0.05,,,+0.05 C,,
+38,PMID41606121,1,0,0,1,1,Clostridium,presence_mismatch,-0.05,,,-0.05 A {n=40},,
+39,PMID41794037,1,0,0,1,1,Bifidobacterium,presence_mismatch,+0.05,,,+0.05 D,,

@@ -1,0 +1,12 @@
+.DS_Store
+.Rhistory
+__pycache__/
+.runtime/
+checkpoint_col_*.csv
+article_exclusion_report.csv
+taxa_ids.csv
+results_melanoma_taxa_updated.csv
+taxa_ids_filtered.refiltered.csv
+*_cost_tracker.json
+*_bracket_cleanup_cost.json
+bracket_cleanup_log*.csv

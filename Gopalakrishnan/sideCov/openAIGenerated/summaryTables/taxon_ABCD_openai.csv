@@ -1,0 +1,42 @@
+"taxon","A","B","C"
+"Acidaminococcus",NA,NA,"0.0500"
+"Actinomyces","-0.0500",NA,NA
+"Adlercreutzia","0.0500",NA,NA
+"Akkermansia","0.0140, 0.0500",NA,"0.0500"
+"Alistipes",NA,NA,"0.0500"
+"Bacteroidaceae","0.0500",NA,NA
+"Bacteroidales","-0.0500",NA,NA
+"Bacteroides",NA,"-0.0500, -0.0039",NA
+"Barnesiella","0.0010",NA,NA
+"Barnesiellaceae","0.0030",NA,NA
+"Bifidobacteriaceae","0.0500",NA,NA
+"Bifidobacterium",NA,NA,"0.0500"
+"Bilophila",NA,"-0.0500",NA
+"Blautia","0.0500",NA,NA
+"Butyricimonas","0.0310",NA,NA
+"Cerasicoccaceae","0.0500",NA,NA
+"Clostridium","-0.0500, -0.0500","0.0500",NA
+"Coriobacteriaceae","0.0500",NA,NA
+"Dorea","-0.0500",NA,NA
+"Enterobacteriaceae","0.0400, 0.0500",NA,NA
+"Eubacterium",NA,NA,"0.0500"
+"Faecalibacterium",NA,"0.0500",NA
+"Fusobacterium","-0.0500",NA,NA
+"Gemmiger","0.0500",NA,NA
+"Haemophilus",NA,NA,"-0.0500"
+"Lachnospira",NA,NA,"0.0500"
+"Lachnospiraceae","0.0500, -0.0500, 0.0500",NA,"0.0500"
+"Leuconostocaceae","0.0500",NA,NA
+"Megasphaera",NA,NA,"-0.0500"
+"Moraxellaceae","-0.0500",NA,NA
+"Mucispirillum","0.0500",NA,NA
+"Odoribacteraceae","0.0490",NA,NA
+"Oscillospira","-0.0500",NA,NA
+"Parabacteroides",NA,"0.0500",NA
+"Prevotellaceae","0.0500",NA,NA
+"Rhodospirillales",NA,NA,"0.0500"
+"Ruminococcaceae","0.0500, 0.0500, 0.0500, 0.0500",NA,"0.0500"
+"Ruminococcus","0.0240, 0.0500",NA,NA
+"Streptococcus","-0.0500",NA,"-0.0500"
+"Veillonella","-0.0500",NA,NA
+"Victivallaceae",NA,NA,"0.0500"
