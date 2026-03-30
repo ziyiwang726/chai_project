@@ -64,7 +64,7 @@ For the full application and visualization of this real dataset, please see: [Ga
 
 
 ### 2. 16S rRNA gene sequence data: responders vs. non-responders in a melanoma cohort
-For the full application and visualization of this real dataset, please see: [Melanoma](reports/JASA_Realdata_Melanoma.html).
+For the full application and visualization of this real dataset, please see: [Melanoma with PCoA](reports/JASA_Realdata_Melanoma_PCoA.html) and [Melanoma with LLM](reports/JASA_Realdata_Melanoma_LLM.html)
 
 
 ### 3. Shotgun metagenomic sequencing data: schizophrenia vs. healthy individuals
