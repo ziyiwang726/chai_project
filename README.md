@@ -43,7 +43,7 @@ Here is the line chart of **chai** and other benchmark methods in simulation 1 w
 ![Simulation 1 - FDR and power](figures/SimA_fixa_1_2_zero.png)
 
 ## Simulation 2 - Two dimensional auxiliary-information
-For the generation and visualization of **Simulation 2**, please see: [Simulation 2](reports/JASA_Simulation_2.html).  
+For the generation and visualization of **Simulation 2**, please see: [Simulation 2](https://ziyiwang726.github.io/chai_project/reports/JASA_Simulation_2.html).  
 
 #### Simulation setting
 This simulation also considers a multiple testing setting with 1,000 hypotheses, including 950 null hypotheses and two non-null groups with positive (25) and negative signals (25). 
@@ -60,14 +60,14 @@ This line chart shows the number of rejected hypotheses selected by **chai** and
 ## Real data
 
 ### 1. Shotgun metagenomic sequencing data: gastrectomy vs. healthy individuals
-For the full application and visualization of this real dataset, please see: [Gastrectomy](reports/JASA_Realdata_Gastrectomy.html).
+For the full application and visualization of this real dataset, please see: [Gastrectomy](https://ziyiwang726.github.io/chai_project/reports/JASA_Realdata_Gastrectomy.html).
 
 #### Results
 Plot A below is the line chart that shows the number of genera selected by **chai** and other benchmark methods at different target FDR level ($q$) in this post-gastrectomy dataset. Plot B is the scatter plot of the Canonical correlation coefficient vs. z-statistics, colored by whether it selected by **chai** and/or **BH**. 
 ![Gastrectomy](figures/Erawijantari_comb.png)
 
 ### 2. 16S rRNA gene sequence data: responders vs. non-responders in a melanoma cohort
-For the full application and visualization of this real dataset, please see: [Melanoma with PCoA](reports/JASA_Realdata_Melanoma_PCoA.html) and [Melanoma with LLM](reports/JASA_Realdata_Melanoma_LLM.html)
+For the full application and visualization of this real dataset, please see: [Melanoma with PCoA](https://ziyiwang726.github.io/chai_project/reports/JASA_Realdata_Melanoma_PCoA.html) and [Melanoma with LLM](https://ziyiwang726.github.io/chai_project/reports/JASA_Realdata_Melanoma_LLM.html)
 
 We tried three different analysis configurations:
 
@@ -80,11 +80,12 @@ We tried three different analysis configurations:
 <img src="figures/16s_wilcoxz_pcoa_family_updated.png" width="50%" alt="Melanoma (i)">
 
 - `(ii)`: DESeq2-derived signed Wald statistics with PCoA covariates as X
-<img src="figures/16s_DES_pcoa_family_updated.png" width="48%" align="left">
-<img src="figures/16s_DESeq2_PCoA_phylo_tree.png" width="48%" align="right">
+<img src="figures/16s_DES_pcoa_family_updated.png" width="60%" align="left">
+<img src="figures/16s_DESeq2_PCoA_phylo_tree.png" width="38%" align="right">
+
 
 - `(iii)`: Wilcoxon z-statistics with the LLM-derived 3 covariates as X
 <img src="figures/16s_wilcoxz_LLM_family_updated.png" width="50%" alt="Melanoma (iii)">
 
 ### 3. Shotgun metagenomic sequencing data: schizophrenia vs. healthy individuals
-For the full application and visualization of this real dataset, please see: [Schizophrenia](reports/JASA_Realdata_Schizophrenia.html).
+For the full application and visualization of this real dataset, please see: [Schizophrenia](https://ziyiwang726.github.io/chai_project/reports/JASA_Realdata_Schizophrenia.html).
