@@ -77,15 +77,14 @@ We tried three different analysis configurations:
 
 #### Results
 - `(i)`: Wilcoxon z-statistics with phylogeny-derived PCoA covariates as X
-![Melanoma (i)](figures/16s_wilcoxz_pcoa_family_updated.png)
+<img src="figures/16s_wilcoxz_pcoa_family_updated.png" width="50%" alt="Melanoma (i)">
 
 - `(ii)`: DESeq2-derived signed Wald statistics with PCoA covariates as X
-![Melanoma (ii)](figures/16s_DES_pcoa_family_updated.png)
-![Melanoma (ii) tree](figures/16s_DESeq2_PCoA_phylo_tree.png)
+<img src="figures/16s_DES_pcoa_family_updated.png" width="48%" align="left">
+<img src="figures/16s_DESeq2_PCoA_phylo_tree.png" width="48%" align="right">
 
 - `(iii)`: Wilcoxon z-statistics with the LLM-derived 3 covariates as X
-![Melanoma (iii)](figures/16s_wilcoxz_LLM_family_updated.png)
-
+<img src="figures/16s_wilcoxz_LLM_family_updated" width="50%" alt="Melanoma (iii)">
 
 ### 3. Shotgun metagenomic sequencing data: schizophrenia vs. healthy individuals
 For the full application and visualization of this real dataset, please see: [Schizophrenia](reports/JASA_Realdata_Schizophrenia.html).
