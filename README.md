@@ -27,7 +27,7 @@ To install the `chai` package, please visit: **[chai](https://github.com/ziyiwan
   Contains all related figures.
 
 ## Simulation 1 - One dimensional auxiliary-information
-For the generation and visualization of **Simulation 1**, please see: [Simulation 1](reports/JASA_Simulation_1.html).  
+For the generation and visualization of **Simulation 1**, please see: [Simulation 1](https://ziyiwang726.github.io/chai_project/reports/JASA_Simulation_1.html).  
 
 #### Simulation setting
 Briefly, this simulation considers a multiple testing setting with 1,000 hypotheses, including 950 null hypotheses and two non-null groups with positive and negative signals. 
@@ -84,7 +84,7 @@ We tried three different analysis configurations:
 <img src="figures/16s_DESeq2_PCoA_phylo_tree.png" width="48%" align="right">
 
 - `(iii)`: Wilcoxon z-statistics with the LLM-derived 3 covariates as X
-<img src="figures/16s_wilcoxz_LLM_family_updated" width="50%" alt="Melanoma (iii)">
+<img src="figures/16s_wilcoxz_LLM_family_updated.png" width="50%" alt="Melanoma (iii)">
 
 ### 3. Shotgun metagenomic sequencing data: schizophrenia vs. healthy individuals
 For the full application and visualization of this real dataset, please see: [Schizophrenia](reports/JASA_Realdata_Schizophrenia.html).
