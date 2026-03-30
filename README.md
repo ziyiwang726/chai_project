@@ -62,9 +62,29 @@ This line chart shows the number of rejected hypotheses selected by **chai** and
 ### 1. Shotgun metagenomic sequencing data: gastrectomy vs. healthy individuals
 For the full application and visualization of this real dataset, please see: [Gastrectomy](reports/JASA_Realdata_Gastrectomy.html).
 
+#### Results
+Plot A below is the line chart that shows the number of genera selected by **chai** and other benchmark methods at different target FDR level ($q$) in this post-gastrectomy dataset. Plot B is the scatter plot of the Canonical correlation coefficient vs. z-statistics, colored by whether it selected by **chai** and/or **BH**. 
+![Gastrectomy](figures/Erawijantari_comb.png)
 
 ### 2. 16S rRNA gene sequence data: responders vs. non-responders in a melanoma cohort
 For the full application and visualization of this real dataset, please see: [Melanoma with PCoA](reports/JASA_Realdata_Melanoma_PCoA.html) and [Melanoma with LLM](reports/JASA_Realdata_Melanoma_LLM.html)
+
+We tried three different analysis configurations:
+
+- `(i)`: Wilcoxon z-statistics with phylogeny-derived PCoA covariates as X,
+- `(ii)`: DESeq2-derived signed Wald statistics with PCoA covariates as X,
+- `(iii)`: Wilcoxon z-statistics with the LLM-derived 3 covariates as X.
+
+#### Results
+- `(i)`: Wilcoxon z-statistics with phylogeny-derived PCoA covariates as X
+![Melanoma (i)](figures/16s_wilcoxz_pcoa_family_updated.png)
+
+- `(ii)`: DESeq2-derived signed Wald statistics with PCoA covariates as X
+![Melanoma (ii)](figures/16s_DES_pcoa_family_updated.png)
+![Melanoma (ii) tree](figures/16s_DESeq2_PCoA_phylo_tree.png)
+
+- `(iii)`: Wilcoxon z-statistics with the LLM-derived 3 covariates as X
+![Melanoma (iii)](figures/16s_wilcoxz_LLM_family_updated.png)
 
 
 ### 3. Shotgun metagenomic sequencing data: schizophrenia vs. healthy individuals
