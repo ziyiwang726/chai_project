@@ -1,0 +1,636 @@
+---
+title: "JASA_simulation 1"
+author: "Ziyi Wang"
+date: "2026-02-07"
+output: html_document
+---
+## Simulation 1 - One dimensional x 
+sim a
+
+
+### Load Packages/Functions
+
+```{r setup, include=FALSE}
+library(knitr)
+library(locfdr)
+library(CATMicrobiome)
+library(admix)
+library(mvtnorm)
+library(mixtools)
+library(devtools)
+library(KScorrect)
+library(mclust)
+library(adaptMT)
+library(AdaPTGMM)
+library(splines2)
+library(splines)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(coin)
+library(ggrepel)
+library(viridisLite)
+library(IHW)
+library(FDRreg)
+library(OrderShapeEM)
+library(chai)
+
+# setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
+
+# ggsave("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/plots/Simulations/SimA_fixa_1_2.png", plot = a_1_2, width = 14, height = 9, units = "in", dpi = 300)
+
+# devtools::load_all("C:/Ziyi Wang/chai_package/chai")
+```
+
+### Simulation generating and fit the models
+
+Note: this chunk is very time-consuming. Specifically, for each seed (100 randomly generated seeds in total) and each value of $a$ ($a \in {0, 0.5, 1, 1.5, 2}$), one simulation dataset was generated and then analyzed using \code{chai} and each benchmark method. For every method, we recorded the number of selections, FDP, and power at all $q$-level from 0.01 to 0.10, together with the corresponding seed and $a$ setting. 
+
+You can directly run next chuck to load all the results.
+
+```{r, eval=FALSE}
+run_all_methods_sim <- function(seed, a_val, q_grid, 
+                                n0 = 950,  n1 = 25,   n2 = 25,
+                                m0 = 0,    m1 = 2,    m2 = -4,
+                                sd0 = 1,   sd1 = 1,   sd2 = 1){
+  set.seed(seed)
+  
+  # Simulation generation - z
+  n <- n0 + n1 + n2
+  z0 <- rnorm(n0, mean = 0, sd = 1)
+  z1 <- rnorm(n1, mean = 2, sd = 0.5)
+  z2 <- rnorm(n2, mean = -2, sd = 0.5)
+  z  <- c(z0, z1, z2)
+  # gt <- seq((n0 + 1), n)
+  p <- 2 * (1 - pnorm(abs(z)))
+  
+  # Simulation generation - X
+  m0a <- m0
+  m1a <- m0 + a_val * (m1 - m0)
+  m2a <- m0 + a_val * (m2 - m0)
+  
+  x0 <- rnorm(n0, mean = m0a, sd = sd0)
+  x1 <- rnorm(n1, mean = m1a, sd = sd1)
+  x2 <- rnorm(n2, mean = m2a, sd = sd2)
+  X  <- c(x0, x1, x2)
+  x_df <- data.frame(X = X)
+  formula <- paste0("ns(X, df = ", 2:8, ")")
+  
+  # Initialize a list
+  run_results <- list()
+  
+  ## 1) chai 
+  res_chai <- chai(z, X, B = 100)
+  
+  for (qq in seq_along(q_grid)) {
+    select <- clfdrselect(res_chai, q = q_grid[qq])
+    p1  <- performance(gt, select, z = res_chai$z,
+                       bh_level = q_grid[qq], one.sided = FALSE)
+    # chai
+    run_results[[length(run_results)+1]] <- 
+       data.frame(Seed = seed, a = a_val, 
+                  q = q_grid[qq], Method = "chai", 
+                  Selected = p1[[4]], FDP = p1[[1]], Power = p1[[2]])
+    # BH
+    run_results[[length(run_results)+1]] <- 
+       data.frame(Seed = seed, a = a_val, 
+                  q = q_grid[qq], Method = "BH", 
+                  Selected = p1[[13]], FDP = p1[[8]], Power = p1[[9]])
+  }
+
+  ## 2) adapt_gmm (z)
+  res_gmm_z <- adapt_gmm(x_df, z = z, alphas = q_grid,
+                         beta_formulas = formula, testing = "two_sided")
+  
+  for (qq in seq_along(q_grid)) {
+    p2  <- performance(gt, res_gmm_z$rejs[[qq]], z = z,
+                       bh_level = q_grid[qq], one.sided = FALSE)
+    run_results[[length(run_results)+1]] <- 
+       data.frame(Seed = seed, a = a_val, 
+                  q = q_grid[qq], Method = "adapt_gmm_z", 
+                  Selected = p2[[4]], FDP = p2[[1]], Power = p2[[2]])
+  }
+
+  ## 3) adapt_gmm (p)
+  res_gmm_p <- adapt_gmm(x_df, pvals = p, alphas = q_grid,
+                         beta_formulas = formula, testing = "two_sided")
+  for (qq in seq_along(q_grid)) {
+    # idx <- match(qq, q_grid)
+    p3  <- performance(gt, res_gmm_p$rejs[[qq]], z = z,
+                       bh_level = q_grid[qq], one.sided = FALSE)
+    run_results[[length(run_results)+1]] <- 
+       data.frame(Seed = seed, a = a_val, 
+                  q = q_grid[qq], Method = "adapt_gmm_p", 
+                  Selected = p3[[4]], FDP = p3[[1]], Power = p3[[2]])
+  }
+
+  ## 4) adapt_glm
+  res_glm <- adapt_glm(x_df, pvals = p, alphas = q_grid,
+                       pi_formulas = formula, mu_formulas = formula)
+  empty <- is.null(res_glm) || (!is.list(res_glm$rejs))
+  for (qq in seq_along(q_grid)) {
+    if (!empty && lengths(res_glm$rejs)[qq] > 0L){
+     p4 <- performance(gt, res_glm$rejs[[qq]], z = z,
+                        bh_level = q_grid[qq], one.sided = FALSE)
+     run_results[[length(run_results)+1]] <- 
+       data.frame(Seed = seed, a = a_val, 
+                  q = q_grid[qq], Method = "adapt_glm", 
+                  Selected = p4[[4]], FDP = p4[[1]], Power = p4[[2]])
+    } else {
+      run_results[[length(run_results)+1]] <- 
+       data.frame(Seed = seed, a = a_val, 
+                  q = q_grid[qq], Method = "adapt_glm", 
+                  Selected = 0, FDP = NA, Power = NA)
+      }
+  }
+
+  ## 5) OrderShapeEM
+  tryCatch({
+    res_osem <- OrderShapeEM(pvals = p, order.var = X,
+                             OrderShapeEM.control(trace = FALSE))
+    for (qq in seq_along(q_grid)) {
+      p5 <- performance(gt, which(res_osem$fdr <= q_grid[qq]), z = z,
+                        bh_level = q_grid[qq], one.sided = FALSE)
+      run_results[[length(run_results)+1]] <- 
+       data.frame(Seed = seed, a = a_val, 
+                  q = q_grid[qq], Method = "OrderShapeEM", 
+                  Selected = p5[[4]], FDP = p5[[1]], Power = p5[[2]])
+    }
+  }, error = function(e) {
+    message(paste("OrderShapeEM failed at seed", seeds[s], "a =", a, ":", e$message))
+    for (qq in seq_along(q_grid)) {
+      run_results[[length(run_results)+1]] <- 
+       data.frame(Seed = seed, a = a_val, 
+                  q = q_grid[qq], Method = "OrderShapeEM", 
+                  Selected = NA, FDP = NA, Power = NA)
+    }
+  })
+
+  ## 6) FDRreg（theoretical null）
+  res_fdrreg <- FDRreg(z, as.matrix(X), nulltype = "theoretical")
+  for (qq in seq_along(q_grid)) {
+    p6 <- performance(gt, which(res_fdrreg$FDR <= q_grid[qq]), z = z,
+                      bh_level = q_grid[qq], one.sided = FALSE)
+    run_results[[length(run_results)+1]] <- 
+       data.frame(Seed = seed, a = a_val, 
+                  q = q_grid[qq], Method = "FDRreg", 
+                  Selected = p6[[4]], FDP = p6[[1]], Power = p6[[2]])
+  }
+    
+    
+  ## 7) IHW
+  for (qq in seq_along(q_grid)) {
+    res_ihw <- IHW::ihw(pvalues = p, covariates = x_df[,1], alpha = q_grid[qq], nbins = 5)
+    p7 <- performance(gt, which(IHW::adj_pvalues(res_ihw) <= q_grid[qq]), z = z, bh_level = qq, one.sided = FALSE)
+    
+    run_results[[length(run_results)+1]] <- 
+       data.frame(Seed = seed, a = a_val, 
+                  q = q_grid[qq], Method = "IHW", 
+                  Selected = p7[[4]], FDP = p7[[1]], Power = p7[[2]])
+  }
+  
+  # Clean up memory after this specific a_val/seed is done
+  gc()
+  
+  return(do.call(rbind, run_results))
+}
+
+set.seed(1)
+seeds <- c(sample(1:10000, 99), 123)  # Add seed 123 for checking purpose
+
+n  <- 1000
+n0 <- 950
+n1 <- 25
+m0 <- 0; m1 <- 2; m2 <- -4
+sd0 <- 1;   sd1 <- 1; sd2 <- 1
+
+# ground truth
+gt <- seq((n0 + 1), n)
+  
+# informativeness grid：from 'no info' to 'higher info'
+a_grid <- c(0, 0.5, 1, 1.5, 2)
+q_grid <- seq(0.01, 0.1, by = 0.01)
+
+cache_file <- "all_methods_simulation_1_results.rds"
+
+if (file.exists(cache_file)){
+  # if already did, load it
+  results_all <- readRDS(cache_file)
+} else {
+  # if not, run the simulation
+  param_grid <- expand.grid(seed = seeds, a = a_grid)
+  
+  library(purrr)
+  results_list <- pmap(list(param_grid$seed, param_grid$a),
+                       ~run_all_methods_sim(seed = ..1, a_val = ..2, q_grid = q_grid))
+  
+  results_all <- bind_rows(results_list) %>% mutate(across(c(Selected, FDP, Power), as.numeric))
+  
+  # save to dist
+  saveRDS(results_all, cache_file)
+}
+```
+
+### Load simulation 1's results 
+Load simulation 1 results and calculate the average across 100 repeats.
+
+```{r}
+# Load results
+results_1 <- readRDS("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/chai_env/simA_all_results_with_zero.rds")
+
+# # Load summary results
+# summary_1 <- readRDS("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/chai_env/simA_summary_with_zero.rds")
+
+# Calculate the average of selections, FDP and power.
+summary_1 <- results_1 %>%
+  group_by(Method, q, a) %>%
+  summarise(
+    mean_Selected = mean(Selected),
+    mean_FDP      = mean(FDP),
+    mean_Power    = mean(Power),
+    .groups = "drop"
+  )
+
+# Check the summary results at a = 1 and q = 0.05
+summary_1 %>% filter(a == 1, q == 0.05)
+
+simA_long <- summary_1 %>%
+  mutate(
+    mean_FDP   = ifelse(is.nan(mean_FDP), NA, mean_FDP),
+    mean_Power = ifelse(is.nan(mean_Power), NA, mean_Power)
+  ) %>%
+  pivot_longer(cols = c(mean_FDP, mean_Power),
+               names_to = "Metric", values_to = "Value") %>%
+  mutate(Metric = recode(Metric,
+                         mean_FDP = "FDP",
+                         mean_Power = "Power"))
+```
+
+### Define the plot functions to ensure consistent color assignments across different methods.
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+# ---------- color helpers ----------
+blend_color <- function(col, target = "white", amount = 0.4) {
+  a <- grDevices::col2rgb(col) / 255
+  b <- grDevices::col2rgb(target) / 255
+  out <- (1 - amount) * a + amount * b
+  grDevices::rgb(out[1,], out[2,], out[3,])
+}
+
+variant_shades <- function(base_col, K = 12) {
+  grDevices::colorRampPalette(c(
+    blend_color(base_col, "white", 0.55),
+    base_col,
+    blend_color(base_col, "black", 0.25)
+  ))(K)
+}
+
+make_method_palette <- function(methods, K = 12) {
+  fixed <- c(
+    chai        = "red",
+    adapt_glm   = "#FF7F0E",
+    adapt_gmm_z = "#2CA02C",
+    adapt_gmm_p = "#9467BD",
+    FDRreg      = "#8C564B",
+    BH          = "black"
+  )
+
+  family_base <- c(
+    OrderShapeEM = "#1F77B4",  # blue family
+    IHW          = "#17BECF"   # teal family
+  )
+
+  ord_shades <- variant_shades(family_base["OrderShapeEM"], K = K)
+  ihw_shades <- variant_shades(family_base["IHW"],          K = K)
+
+  methods <- unique(as.character(methods))
+  pal <- setNames(rep("#7F7F7F", length(methods)), methods)  # fallback grey
+
+  for (m in methods) {
+    if (m %in% names(fixed)) {
+      pal[m] <- fixed[m]
+      next
+    }
+
+    base <- sub("_x\\d+$", "", m)
+    idx  <- suppressWarnings(as.integer(sub(".*_x", "", m)))
+
+    if (base %in% names(family_base)) {
+      if (is.na(idx)) {
+        pal[m] <- family_base[base]  # e.g. "OrderShapeEM" with no suffix
+      } else {
+        idx <- max(1L, min(idx, K))
+        pal[m] <- if (base == "OrderShapeEM") ord_shades[idx] else ihw_shades[idx]
+      }
+    }
+  }
+
+  pal
+}
+
+method_order <- function(methods) {
+  methods <- unique(as.character(methods))
+  core <- c("chai","adapt_glm","adapt_gmm_z","adapt_gmm_p","FDRreg")
+
+  sort_family <- function(base) {
+    fam <- methods[grepl(paste0("^", base, "(_x\\d+)?$"), methods)]
+    base_present <- base %in% fam
+    vars <- fam[grepl("_x\\d+$", fam)]
+    if (length(vars)) {
+      idx <- suppressWarnings(as.integer(sub(".*_x", "", vars)))
+      vars <- vars[order(idx)]
+    }
+    c(if (base_present) base else character(0), vars)
+  }
+
+  out <- c(core, sort_family("OrderShapeEM"), sort_family("IHW"), "BH")
+  out <- unique(out)
+  out[out %in% methods]
+}
+
+# ---------- Updated plotting function (fix a or q) ----------
+library(ggrepel)
+library(stringr)
+
+plot_metric_aq <- function(long_table, metric_name, x_var = c("q","a"),
+                           ylab, title,
+                           K_variants = 12,
+                           fdp_y = 0.2,
+                           x_breaks = NULL,
+                           q_level = 0.05,
+                           method_font = 5.5) {
+
+  x_var <- match.arg(x_var)
+
+  dat <- long_table %>%
+    dplyr::filter(Metric == metric_name) %>%
+    mutate(Method = as.character(Method))
+
+  ord <- method_order(dat$Method)
+  dat <- dat %>% mutate(Method = factor(Method, levels = ord))
+  pal <- make_method_palette(levels(dat$Method), K = K_variants)
+
+  # endpoints for labels = last x (either max q or max a)
+  endpoints <- dat %>%
+    group_by(Method) %>%
+    filter(.data[[x_var]] == max(.data[[x_var]], na.rm = TRUE)) %>%
+    slice_tail(n = 1) %>%
+    ungroup() %>%
+    mutate(label = as.character(Method))
+  
+  y_max <- if (metric_name == "FDP") fdp_y else 1
+  
+  endpoints <- endpoints %>%
+  mutate(
+    Value_label = pmin(Value, y_max)   # clamp label anchor to the axis top
+  )
+
+  x_rng   <- range(dat[[x_var]], na.rm = TRUE)
+  x_nudge <- diff(x_rng) * 0.03
+
+  p <- ggplot(dat, aes(x = .data[[x_var]], y = Value, group = Method, color = Method)) +
+    geom_line(linewidth = 0.9, na.rm = TRUE) +
+    geom_point(size = 1.6, na.rm = TRUE) +
+    ggrepel::geom_text_repel(
+      data = endpoints,
+      aes(x = .data[[x_var]], y = Value_label, label = label),
+      size = method_font,
+      nudge_x = x_nudge,
+      hjust = 0,
+      direction = "y",
+      box.padding = 0.25,
+      point.padding = 0.15,
+      segment.size = 0.25,
+      min.segment.length = 0,
+      max.overlaps = Inf,
+      seed = 1,
+      show.legend = FALSE
+    ) +
+    scale_color_manual(values = pal, breaks = ord) +
+    coord_cartesian(ylim = c(0, 1), clip = "off") +
+    labs(x = x_var, y = ylab, title = title) +
+    theme_minimal() +
+    theme(
+      legend.position = "none",
+      plot.margin = margin(5.5, 60, 5.5, 5.5),
+      axis.title.x = element_text(size = 14),
+      axis.title.y = element_text(size = 14),
+      axis.text.x  = element_text(size = 12),
+      axis.text.y  = element_text(size = 12)
+    )
+
+  if (!is.null(x_breaks)) {
+    p <- p + scale_x_continuous(breaks = x_breaks,
+                                expand = expansion(mult = c(0.02, 0.18)))
+  } else {
+    p <- p + scale_x_continuous(expand = expansion(mult = c(0.02, 0.18)))
+  }
+
+  if (metric_name == "FDP" && x_var == "q") {
+    p <- p +
+      annotate(
+        "segment",
+        x = 0, y = 0, xend = 0.1, yend = 0.1,
+        linetype = "dashed",
+        linewidth = 1.2,
+        color = "black"
+      ) +
+      coord_cartesian(ylim = c(0, fdp_y))
+
+    
+      # geom_segment(
+      #   aes(x = 0, y = 0, xend = 0.1, yend = 0.1),
+      #   inherit.aes = FALSE,
+      #   linetype = "dashed",
+      #   linewidth = 1.2,
+      #   color = "black"
+      # ) +
+  }
+  
+  if (metric_name == "FDP" && x_var == "a") {
+    p <- p +
+      geom_hline(
+        yintercept = q_level,
+        linetype = "dashed",
+        linewidth = 1.2,
+        color = "black"
+      ) +
+      coord_cartesian(ylim = c(0, fdp_y))
+  }
+
+  p
+}
+
+```
+
+### Visualization - Fix a
+
+```{r}
+library(patchwork)
+
+a0_dat <- dplyr::filter(simA_long, abs(a - 0) < 1e-12)
+a0_fdp <- plot_metric_aq(a0_dat, "FDP", x_var = "q",
+                         ylab = "Mean FDP",
+                         title = sprintf("FDP vs q (a = 0)"),
+                         fdp_y = 0.12,
+                         x_breaks = sort(unique(a0_dat$q))) 
+a0_pow <- plot_metric_aq(a0_dat, "Power", x_var = "q",
+                            ylab = "Mean Power",
+                            title = sprintf("Power vs q (a = 0)"),
+                            x_breaks = sort(unique(a0_dat$q)))
+
+a0.5_dat <- dplyr::filter(simA_long, abs(a - 0.5) < 1e-12)
+a0.5_fdp <- plot_metric_aq(a0.5_dat, "FDP", x_var = "q",
+                            ylab = "Mean FDP",
+                            title = sprintf("FDP vs q (a = 0.5)"),
+                            fdp_y = 0.12,
+                            x_breaks = sort(unique(a0.5_dat$q)))
+a0.5_pow <- plot_metric_aq(a0.5_dat, "Power", x_var = "q",
+                            ylab = "Mean Power",
+                            title = sprintf("Power vs q (a = 0.5)"),
+                            x_breaks = sort(unique(a0.5_dat$q)))
+
+a1_dat <- dplyr::filter(simA_long, abs(a - 1) < 1e-12)
+a1_fdp <- plot_metric_aq(a1_dat, "FDP", x_var = "q",
+                            ylab = "Mean FDP",
+                            title = sprintf("FDP vs q (a = 1)"),
+                            fdp_y = 0.12,
+                            x_breaks = sort(unique(a1_dat$q)))
+a1_pow <- plot_metric_aq(a1_dat, "Power", x_var = "q",
+                            ylab = "Mean Power",
+                            title = sprintf("Power vs q (a = 1)"),
+                            x_breaks = sort(unique(a1_dat$q)))
+
+
+a1.5_dat <- dplyr::filter(simA_long, abs(a - 1.5) < 1e-12)
+a1.5_fdp <- plot_metric_aq(a1.5_dat, "FDP", x_var = "q",
+                            ylab = "Mean FDP",
+                            title = sprintf("FDP vs q (a = 1.5)"),
+                            fdp_y = 0.12,
+                            x_breaks = sort(unique(a1.5_dat$q)))
+a1.5_pow <- plot_metric_aq(a1.5_dat, "Power", x_var = "q",
+                            ylab = "Mean Power",
+                            title = sprintf("Power vs q (a = 1.5)"),
+                            x_breaks = sort(unique(a1.5_dat$q)))
+
+a2_dat <- dplyr::filter(simA_long, abs(a - 2) < 1e-12)
+a2_fdp <- plot_metric_aq(a2_dat, "FDP", x_var = "q",
+                            ylab = "Mean FDP",
+                            title = sprintf("FDP vs q (a = 2)"),
+                            fdp_y = 0.12,
+                            x_breaks = sort(unique(a2_dat$q)))
+a2_pow <- plot_metric_aq(a2_dat, "Power", x_var = "q",
+                            ylab = "Mean Power",
+                            title = sprintf("Power vs q (a = 2)"),
+                            x_breaks = sort(unique(a2_dat$q)))
+
+
+fdps  <- list(a0_fdp, a0.5_fdp, a1_fdp, a1.5_fdp, a2_fdp)
+pows  <- list(a0_pow, a0.5_pow, a1_pow, a1.5_pow, a2_pow)
+
+combo <- wrap_plots(
+  c(fdps, pows),
+  nrow = 5, ncol = 2,
+  byrow = FALSE
+) 
+  # + plot_annotation(title = "Method Performance vs q")
+
+# combo
+
+a_1_2 <- wrap_plots(
+  c(list(a1_fdp, a2_fdp), list(a1_pow, a2_pow)),
+  nrow = 2, ncol = 2,
+  byrow = FALSE
+)
+  # + plot_annotation(title = "Method Performance vs q")
+# a_1_2
+
+# ggsave("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/plots/Simulations/SimA_fixa_fdr_power_updated_zero.png", plot = combo, width = 14, height = 18, units = "in", dpi = 300)
+# 
+# ggsave("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/plots/Simulations/SimA_fixa_1_2_zero.png", plot = a_1_2, width = 14, height = 9, units = "in", dpi = 300)
+
+```
+
+```{r, fig.width=14, fig.height=18, out.width='100%', warning=FALSE}
+combo
+```
+
+
+```{r, fig.width=14, fig.height=9, out.width='100%', warning=FALSE}
+a_1_2
+```
+
+
+### Visualization - Fix q
+
+```{r}
+library(patchwork)
+
+q0.01_dat <- dplyr::filter(simA_long, abs(q - 0.01) < 1e-12)
+q0.01_fdp <- plot_metric_aq(q0.01_dat, "FDP", x_var = "a",
+                            ylab = "Mean FDP",
+                            title = sprintf("FDP vs a (q = 0.01)"),
+                            fdp_y = 0.05,
+                            x_breaks = sort(unique(q0.01_dat$a)),
+                            q_level = 0.01)
+
+q0.01_pow <- plot_metric_aq(q0.01_dat, "Power", x_var = "a",
+                            ylab = "Mean Power",
+                            title = sprintf("Power vs a (q = 0.01)"),
+                            x_breaks = sort(unique(q0.01_dat$a)),
+                            q_level = 0.01)
+
+
+q0.05_dat <- dplyr::filter(simA_long, abs(q - 0.05) < 1e-12)
+q0.05_fdp <- plot_metric_aq(q0.05_dat, "FDP", x_var = "a",
+                            ylab = "Mean FDP",
+                            title = sprintf("FDP vs a (q = 0.05)"),
+                            fdp_y = 0.1,
+                            x_breaks = sort(unique(q0.05_dat$a)),
+                            q_level = 0.05)
+
+q0.05_pow <- plot_metric_aq(q0.05_dat, "Power", x_var = "a",
+                            ylab = "Mean Power",
+                            title = sprintf("Power vs a (q = 0.05)"),
+                            x_breaks = sort(unique(q0.05_dat$a)),
+                            q_level = 0.05)
+
+
+
+q0.1_dat <- dplyr::filter(simA_long, abs(q - 0.1) < 1e-12)
+q0.1_fdp <- plot_metric_aq(q0.1_dat, "FDP", x_var = "a",
+                            ylab = "Mean FDP",
+                            title = sprintf("FDP vs a (q = 0.1)"),
+                            fdp_y = 0.2,
+                            x_breaks = sort(unique(q0.1_dat$a)),
+                            q_level = 0.1)
+
+q0.1_pow <- plot_metric_aq(q0.1_dat, "Power", x_var = "a",
+                            ylab = "Mean Power",
+                            title = sprintf("Power vs a (q = 0.1)"),
+                            x_breaks = sort(unique(q0.1_dat$a)),
+                            q_level = 0.1)
+
+
+
+fdps_pow  <- list(q0.01_fdp, q0.05_fdp, q0.1_fdp)
+pows_pow  <- list(q0.01_pow, q0.05_pow, q0.1_pow)
+
+combo_q <- wrap_plots(
+  c(fdps_pow, pows_pow),
+  nrow = 3, ncol = 2,
+  byrow = FALSE
+) 
+  # + plot_annotation(title = "Method Performance vs a")
+
+# ggsave("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/plots/Simulations/SimA_fixq_fdr_power_updated_zero.png", plot = combo_q, width = 14, height = 12, units = "in", dpi = 300)
+
+```
+
+```{r, fig.width=14, fig.height=12, out.width='100%', warning=FALSE}
+combo_q
+```

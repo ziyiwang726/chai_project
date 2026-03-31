@@ -1,0 +1,792 @@
+---
+title: "JASA_Realdata_Schizophrenia"
+author: "Ziyi Wang"
+date: "2026-03-16"
+output: html_document
+---
+# Real data
+## Schizophrenia - The third real data
+
+### Load Packages/Functions
+```{r setup, include=TRUE, warning=FALSE}
+suppressPackageStartupMessages({
+  library(curatedMetagenomicData)
+  library(SummarizedExperiment)
+  library(data.table)
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+  library(ggrepel)
+  library(GGally)
+  library(knitr)
+  library(mvtnorm)
+  library(mixtools)
+  library(devtools)
+  library(KScorrect)
+  library(adaptMT)
+  library(AdaPTGMM)
+  library(splines2)
+  library(ggplot2)
+  library(coin)
+  library(ggrepel)
+  library(IHW)
+  library(FDRreg)
+  library(OrderShapeEM)
+  library(chai)
+})
+```
+
+```{r, include=FALSE}
+# Set the working direction
+setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
+```
+
+### Load the data and pre-processing the data
+
+**Note**: The pro-processing part and model fitting chunk could be time-consuming. We saved the processed data together with the organized results after fitting the models. When knitting this HTML file, we loaded the **Schizophrenia_env.RData** file directly and generated the plots from it. 
+
+However, for verification or reproducibility, you can also run each pre-processing chunk and/or model-fitting chunk one by one, while skiping the chunk that loads the .RData file. This should produce the same results.
+
+```{r, eval=FALSE, message=FALSE, warning=FALSE}
+ae5  <- read.csv("./autoencoder_project/outputs/ZhuF_2020_species_AE5.csv", row.names = 1)
+pca5 <- read.csv("./autoencoder_project/outputs/ZhuF_2020_species_PCA5.csv", row.names = 1) 
+
+# Helper: extract species label
+.extract_species <- function(taxon) {
+  sp <- ifelse(grepl("s__", taxon, fixed = TRUE),
+               sub(".*s__([^|;]+).*", "\\1", taxon),
+               taxon)
+  sp <- gsub("^s__", "", sp)
+  sp <- gsub("_", " ", sp)
+  trimws(sp)
+}
+
+# Extract the relative abundance
+abun <- curatedMetagenomicData("ZhuF_2020.relative_abundance", dryrun = FALSE)
+
+# Extract the assay matrix
+abun_mat <- assay(abun[[1]], "relative_abundance")
+# 480 x 171
+
+r_names <- rownames(abun_mat)
+taxa_names <- sub("^.*\\|", "", r_names)
+species_clean <- .extract_species(taxa_names)
+rownames(abun_mat) <- species_clean
+# 480 x 171
+
+length(intersect(rownames(ae5), rownames(abun_mat)))
+common_species <- intersect(rownames(ae5), rownames(abun_mat))
+# 323 sharing
+
+abun_mat_common <- abun_mat[common_species, , drop = FALSE]
+
+# Column-Normalize (column is sample)
+cs <- colSums(abun_mat_common, na.rm = TRUE)
+cs[cs == 0] <- 1
+abun_mat_norm <- sweep(abun_mat_common, 2, cs, FUN = "/")
+
+t_abun <- t(abun_mat_norm)
+# 171 subjects x 323 species
+
+######################### outcome ###############################
+outcome <- as.factor(abun$`2021-03-31.ZhuF_2020.relative_abundance`[[5]])
+# schizophrenia 90 vs. control 81
+```
+
+### Generating the p-value/z-value
+
+```{r, eval=FALSE}
+compute_pz_wilcox <- function(t_abun, outcome) {
+  stopifnot(nrow(t_abun) == length(outcome))
+
+  p_z_values <- sapply(colnames(t_abun), function(feature) {
+    features <- t_abun[, feature, drop = FALSE]
+    wilcox <- wilcox_test(features[, 1] ~ outcome)
+
+    c(
+      p_value = as.numeric(pvalue(wilcox)),
+      z_value = as.numeric(statistic(wilcox))
+    )
+  }, simplify = "matrix")
+  p_z_values <- as.data.frame(t(p_z_values))
+  p_z_values$feature <- rownames(p_z_values)
+  rownames(p_z_values) <- NULL
+
+  return(p_z_values)
+}
+
+p_z_values <- compute_pz_wilcox(t_abun, outcome)
+
+p_value <- p_z_values[,1]
+z_value <- p_z_values[,2]
+```
+
+
+### Load the processed data
+
+The processed data included: 
+- **z_value**: the z-statistics from wilcoxon text of each genera between gastrectomy vs control
+- **p_value**: the p-value calculated from z-statistics with two-sided
+- **outcome**: the outcome (gastrectomy or control) of this dataset  
+- **t_abun**: the relative abundance table of this schizophrenia dataset 
+
+- **ae5**: the 5-dimensional autoencoder 
+- **pca5**: the 5-dimensional PCA
+- **noise**: the randomly generated noise vector that following a standard normal distribution $~N(0, 1)$
+- **noise2**: the randomly generated noise vector that following a uniform distribution $~U(0, 1)$
+
+- **chai_zhu_ae5**: \code(chai) output with z_value and ae5 as inputs
+- **chai_zhu_pca5**: \code(chai) output with z_value and pca5 as inputs
+- **chai_zhu_noise**: \code(chai) output with z_value and noise as inputs
+- **chai_zhu_noise2**: \code(chai) output with z_value and noise2 as inputs
+
+- **zhu_ae**: the summary table saving the number of selections of every method at different q, with ae5 as side information.
+- **zhu_ae_long**: the long table version of zhu_ae for plot purpose.
+
+- **zhu_ae_pca**: the summary table saving the number of selections of every method at different q, with different side information (included ae5, pca5, noise, and noise2).
+- **zhu_ae_pca_long**: the long table version of zhu_ae_pca for plot purpose.
+
+
+```{r}
+load("./chai_env/Schizophrenia_env.RData") 
+```
+
+
+### Fit models
+```{r, eval=FALSE, message=FALSE, warning=FALSE}
+q_levels <- seq(0.01, 0.1, by = 0.01)
+
+################## random X #######################
+set.seed(123)
+# Standard normal noise: N(0, 1)
+noise <- rnorm(length(z_value))
+
+# Uniform noise on U(0, 1)
+noise2 <- runif(length(z_value))
+
+################## chai #######################
+set.seed(123) 
+chai_zhu_ae5 <- chai(z_value, ae5, B = 100)       # autoencoder
+chai_rejs_ae5 <- sapply(q_levels, function(q) {
+  length(clfdrselect(chai_zhu_ae5$clFDR, q, 1))
+})
+
+chai_zhu_pca5 <- chai(z_value, pca5, B = 100)     # pca
+chai_rejs_pca5 <- sapply(q_levels, function(q) {
+  length(clfdrselect(chai_zhu_pca5$clFDR, q, 1))
+})
+
+chai_zhu_noise <- chai(z_value, noise, B = 100)   # noise 1 (~N(0, 1))
+chai_rejs_noise <- sapply(q_levels, function(q) {
+  length(clfdrselect(chai_zhu_noise$clFDR, q, 1))
+})
+
+chai_zhu_noise2 <- chai(z_value, noise2, B = 100) # noise 2 (~U(0, 1))
+chai_rejs_noise2 <- sapply(q_levels, function(q) {
+  length(clfdrselect(chai_zhu_noise2$clFDR, q, 1))
+})
+
+################## Adapt-glm #######################
+# autoencoder
+x_ae5 <- data.frame(ae5)
+make_ns_formulas <- function(dfs) {
+  lapply(dfs, function(d)
+    as.formula(paste0("~ ns(AE1, df=", d, ") + ns(AE2, df=", d, ") + ns(AE3, df=", d, ") + 
+                      ns(AE4, df=", d, ") + ns(AE5, df=", d, ")"))
+  )
+}
+dfs <- c(2, 4, 6, 8)
+formula_ns_ae5 <- make_ns_formulas(dfs)
+
+glm_ns_ae5 <- adapt_glm(x_ae5, pvals = p_value, alphas=q_levels, 
+                        pi_formulas = formula_ns_ae5, mu_formulas = formula_ns_ae5)
+adapt_glm_ns_ae5 <- glm_ns_ae5$nrejs
+
+# pca
+x_pca5 <- data.frame(pca5)
+make_ns_formulas <- function(dfs) {
+  lapply(dfs, function(d)
+    as.formula(paste0("~ ns(PC1, df=", d, ") + ns(PC2, df=", d, ") + ns(PC3, df=", d, ") +
+                      ns(PC4, df=", d, ") + ns(PC5, df=", d, ")"))
+  )
+}
+dfs <- c(2, 4, 6, 8)
+formula_ns_pca5 <- make_ns_formulas(dfs)
+
+glm_ns_pca5 <- adapt_glm(x_pca5, pvals = p_value, alphas=q_levels,
+                         pi_formulas = formula_ns_pca5, mu_formulas = formula_ns_pca5)
+adapt_glm_ns_pca5 <- glm_ns_pca5$nrejs
+
+# ns - noise
+x_noise <- data.frame(noise)
+formula_ns_noise <- paste0("ns(noise, df = ", 2:8, ")")
+
+glm_ns_noise <- adapt_glm(x_noise, pvals = p_value, alphas=q_levels,
+                          pi_formulas = formula_ns_noise, mu_formulas = formula_ns_noise)
+adapt_glm_ns_noise <- glm_ns_noise$nrejs
+
+# ns - noise2
+x_noise2 <- data.frame(noise2)
+formula_ns_noise2 <- paste0("ns(noise2, df = ", 2:8, ")")
+
+glm_ns_noise2 <- adapt_glm(x_noise2, pvals = p_value, alphas=q_levels,
+                           pi_formulas = formula_ns_noise2, mu_formulas = formula_ns_noise2)
+adapt_glm_ns_noise2 <- glm_ns_noise2$nrejs
+
+################## Adapt-gmm-p #######################
+# autoencoder
+gmm_ns_p_ae5 <- adapt_gmm(x_ae5, pvals = p_value,  alphas=q_levels, 
+                          beta_formulas = formula_ns_ae5)
+adapt_gmm_p_ns_ae5 <- gmm_ns_p_ae5$nrejs
+
+# pca
+gmm_ns_p_pca5 <- adapt_gmm(x_pca5, pvals = p_value,  alphas=q_levels,
+                           beta_formulas = formula_ns_pca5)
+adapt_gmm_p_ns_pca5 <- gmm_ns_p_pca5$nrejs
+
+# ns - noise
+gmm_ns_p_noise <- adapt_gmm(x_noise, pvals = p_value,  alphas=q_levels,
+                            beta_formulas = formula_ns_noise)
+adapt_gmm_p_ns_noise <- gmm_ns_p_noise$nrejs
+
+# ns - noise2
+gmm_ns_p_noise2 <- adapt_gmm(x_noise2, pvals = p_value,  alphas=q_levels,
+                             beta_formulas = formula_ns_noise2)
+adapt_gmm_p_ns_noise2 <- gmm_ns_p_noise2$nrejs
+
+
+################## Adapt-gmm-z #######################
+# autoencoder
+gmm_ns_z_ae5 <- adapt_gmm(x_ae5, z = z_value, alphas=q_levels, 
+                          beta_formulas = formula_ns_ae5, testing = "two_sided")
+adapt_gmm_z_ns_ae5 <- gmm_ns_z_ae5$nrejs
+
+# pca
+gmm_ns_z_pca5 <- adapt_gmm(x_pca5, z = z_value, alphas=q_levels,
+                           beta_formulas = formula_ns_pca5, testing = "two_sided")
+adapt_gmm_z_ns_pca5 <- gmm_ns_z_pca5$nrejs
+
+
+# ns - noise
+gmm_ns_z_noise <- adapt_gmm(x_noise, z = z_value,  alphas=q_levels,
+                            beta_formulas = formula_ns_noise, testing = "two_sided")
+adapt_gmm_z_ns_noise <- gmm_ns_z_noise$nrejs
+
+# ns - noise2
+gmm_ns_z_noise2 <- adapt_gmm(x_noise2, z = z_value,  alphas=q_levels,
+                             beta_formulas = formula_ns_noise2, testing = "two_sided")
+adapt_gmm_z_ns_noise2 <- gmm_ns_z_noise2$nrejs
+
+
+################## OrderShapeEM #######################
+# Define a function that can fit the easily fit every column of side information into OrderShapeEM
+run_ordershape_by_col <- function(mat, dataset = c("ae5", "pca5")) {
+  dataset <- match.arg(dataset)
+  
+  res <- vector("list", ncol(mat))
+  names(res) <- paste0("ordershape_x", seq_len(ncol(mat)), "_", dataset)
+  
+  for (j in seq_len(ncol(mat))) {
+    message("Fitting OrderShapeEM for column ", j)
+    res[[j]] <- OrderShapeEM(
+      pvals     = p_value,
+      order.var = mat[, j],
+      OrderShapeEM.control(trace = TRUE)
+    )
+  }
+  res
+}
+
+# Define a function to count how many selections that OrderShapeEM made at each q level
+count_ordershape_selections <- function(os_list, q_levels) {
+  # os_list: list like ordershape_ae5 or ordershape_pca5
+  # returns a matrix: rows = q_levels, cols = each x1/x2/...
+  res <- sapply(os_list, function(os) {
+    # for one ordershape object
+    sapply(q_levels, function(q) sum(os$fdr <= q))
+  })
+  # sapply gives q_levels in rows; make that explicit:
+  rownames(res) <- paste0("q=", q_levels)
+  res
+}
+
+# autoencoder
+ordershape_ae5 <- run_ordershape_by_col(ae5, dataset = "ae5")
+ordershape_ae5  <- count_ordershape_selections(ordershape_ae5,  q_levels)
+
+# pca
+ordershape_pca5 <- run_ordershape_by_col(pca5, dataset = "pca5")
+ordershape_pca5 <- count_ordershape_selections(ordershape_pca5, q_levels)
+
+# noise
+ordershape_noise <- OrderShapeEM(pvals = p_value, order.var = noise,
+                                 OrderShapeEM.control(trace = TRUE))
+ordershapeem_noise <- sapply(q_levels, function(q) {
+  sum(ordershape_noise$fdr <= q)
+})
+
+# noise2
+ordershape_noise2 <- OrderShapeEM(pvals = p_value, order.var = noise2,
+                                  OrderShapeEM.control(trace = TRUE))
+ordershapeem_noise2 <- sapply(q_levels, function(q) {
+  sum(ordershape_noise2$fdr <= q)
+})
+
+################## FDRreg #######################
+set.seed(123)
+fdr_theo_ae5 <- FDRreg(z_value, as.matrix(ae5), nulltype = 'theoretical')
+rdrreg_ae5 <- sapply(q_levels, function(q) {
+  length(which(fdr_theo_ae5$FDR <= q))
+})
+
+fdr_theo_pca5 <- FDRreg(z_value, as.matrix(pca5), nulltype = 'theoretical')
+rdrreg_pca5 <- sapply(q_levels, function(q) {
+  length(which(fdr_theo_pca5$FDR <= q))
+})
+
+fdr_theo_noise <- FDRreg(z_value, as.matrix(noise), nulltype = 'theoretical')
+rdrreg_noise <- sapply(q_levels, function(q) {
+  length(which(fdr_theo_noise$FDR <= q))
+})
+
+fdr_theo_noise2 <- FDRreg(z_value, as.matrix(noise2), nulltype = 'theoretical')
+rdrreg_noise2 <- sapply(q_levels, function(q) {
+  length(which(fdr_theo_noise2$FDR <= q))
+})
+
+################# IHW ####################
+# Careful on IHW!!!!! May cause R terminated.
+# autoencoder
+ihw_x1_ae5 <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = ae5[,1], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+ihw_x2_ae5 <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = ae5[,2], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+ihw_x3_ae5 <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = ae5[,3], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+ihw_x4_ae5 <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = ae5[,4], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+ihw_x5_ae5 <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = ae5[,5], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+# pca
+ihw_x1_pca5 <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = pca5[,1], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+ihw_x2_pca5 <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = pca5[,2], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+ihw_x3_pca5 <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = pca5[,3], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+ihw_x4_pca5 <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = pca5[,4], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+ihw_x5_pca5 <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = pca5[,5], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+# noise
+ihw_noise <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = noise, alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+# noise2
+ihw_noise2 <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = noise2, alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+##################### BH ######################
+p_adjusted <- p.adjust(p_value, method = "BH")
+bh_rejs <- sapply(q_levels, function(q) {
+  length(which(p_adjusted <= q))
+})
+
+```
+
+```{r, eval=FALSE}
+############################# AE results only ###########################
+# combine results into data frame
+zhu_ae <- data.frame(
+  q = q_levels,
+  chai = chai_rejs_ae5,
+  adapt_glm = adapt_glm_ns_ae5,
+  adapt_gmm_p = adapt_gmm_p_ns_ae5,
+  adapt_gmm_z = adapt_gmm_z_ns_ae5,
+  OrderShapeEM_x1 = ordershape_ae5[, 1],
+  OrderShapeEM_x2 = ordershape_ae5[, 2],
+  OrderShapeEM_x3 = ordershape_ae5[, 3],
+  OrderShapeEM_x4 = ordershape_ae5[, 4],
+  OrderShapeEM_x5 = ordershape_ae5[, 5],
+  FDRreg = rdrreg_ae5, 
+  IHW_x1 = ihw_x1_ae5, 
+  IHW_x2 = ihw_x2_ae5, 
+  IHW_x3 = ihw_x3_ae5, 
+  IHW_x4 = ihw_x4_ae5, 
+  IHW_x5 = ihw_x5_ae5, 
+  BH = bh_rejs
+)
+
+# Converge into long table for plot purpose
+zhu_ae_long <- zhu_ae %>%
+  pivot_longer(
+    cols = -q,
+    names_to = "Method",
+    values_to = "Rejections"
+  ) %>%
+  mutate(Method = as.character(Method))
+
+############################# AE and PCA results ###########################
+zhu_ae_pca <- data.frame(
+  q = q_levels,
+  chai_ae = chai_rejs_ae5,
+  chai_pca = chai_rejs_pca5,
+  chai_noise1 = chai_rejs_noise,
+  chai_noise2 = chai_rejs_noise2,
+  adapt_glm_ae = adapt_glm_ns_ae5,
+  adapt_glm_pca = adapt_glm_ns_pca5,
+  adapt_glm_noise1 = adapt_glm_ns_noise,
+  adapt_glm_noise2 = adapt_glm_ns_noise2,
+  adapt_gmm_p_ae = adapt_gmm_p_ns_ae5,
+  adapt_gmm_p_pca = adapt_gmm_p_ns_pca5,
+  adapt_gmm_p_noise1 = adapt_gmm_p_ns_noise,
+  adapt_gmm_p_noise2 = adapt_gmm_p_ns_noise2,
+  adapt_gmm_z_ae = adapt_gmm_z_ns_ae5,
+  adapt_gmm_z_pca = adapt_gmm_z_ns_pca5,
+  adapt_gmm_z_noise1 = adapt_gmm_z_ns_noise,
+  adapt_gmm_z_noise2 = adapt_gmm_z_ns_noise2,
+  fdrreg_ae = rdrreg_ae5,
+  fdrreg_pca = rdrreg_pca5,
+  fdrreg_noise1 = rdrreg_noise,
+  fdrreg_noise2 = rdrreg_noise2,
+  bh = bh_rejs
+)
+
+# Converge into long table for plot purpose
+zhu_ae_pca_long <- zhu_ae_pca %>%
+  pivot_longer(
+    cols = -q,
+    names_to  = "name",
+    values_to = "Rejections"
+  ) %>%
+  mutate(
+    side = case_when(
+      grepl("_ae$",   name) ~ "ae",
+      grepl("_pca$",  name) ~ "pca",
+      grepl("_noise1$", name) ~ "noise1",
+      grepl("_noise2$", name) ~ "noise2",
+      TRUE                    ~ "bh"        # BH has no suffix
+    ),
+    Method = case_when(
+      side == "bh" ~ "bh",
+      TRUE         ~ sub("_(ae|pca|noise1|noise2)$", "", name)
+    )
+  )
+```
+
+### Visualization
+
+Define the plot function 
+```{r}
+# ---------- color helpers ----------
+blend_color <- function(col, target = "white", amount = 0.4) {
+  a <- grDevices::col2rgb(col) / 255
+  b <- grDevices::col2rgb(target) / 255
+  out <- (1 - amount) * a + amount * b
+  grDevices::rgb(out[1,], out[2,], out[3,])
+}
+
+variant_shades <- function(base_col, K = 12) {
+  grDevices::colorRampPalette(c(
+    blend_color(base_col, "white", 0.55),
+    base_col,
+    blend_color(base_col, "black", 0.25)
+  ))(K)
+}
+
+make_method_palette <- function(methods, K = 12) {
+  fixed <- c(
+    chai        = "red",
+    adapt_glm   = "#FF7F0E",
+    adapt_gmm_z = "#2CA02C",
+    adapt_gmm_p = "#9467BD",
+    FDRreg      = "#8C564B",
+    BH          = "black"
+  )
+
+  family_base <- c(
+    OrderShapeEM = "#1F77B4",  # blue family
+    IHW          = "#17BECF"   # teal family
+  )
+
+  ord_shades <- variant_shades(family_base["OrderShapeEM"], K = K)
+  ihw_shades <- variant_shades(family_base["IHW"],          K = K)
+
+  methods <- unique(as.character(methods))
+  pal <- setNames(rep("#7F7F7F", length(methods)), methods)  # fallback grey
+
+  for (m in methods) {
+    if (m %in% names(fixed)) {
+      pal[m] <- fixed[m]
+      next
+    }
+
+    base <- sub("_x\\d+$", "", m)
+    idx  <- suppressWarnings(as.integer(sub(".*_x", "", m)))
+
+    if (base %in% names(family_base)) {
+      if (is.na(idx)) {
+        pal[m] <- family_base[base]  # e.g. "OrderShapeEM" with no suffix
+      } else {
+        idx <- max(1L, min(idx, K))
+        pal[m] <- if (base == "OrderShapeEM") ord_shades[idx] else ihw_shades[idx]
+      }
+    }
+  }
+
+  pal
+}
+
+method_order <- function(methods) {
+  methods <- unique(as.character(methods))
+  core <- c("chai","adapt_glm","adapt_gmm_z","adapt_gmm_p","FDRreg")
+
+  sort_family <- function(base) {
+    fam <- methods[grepl(paste0("^", base, "(_x\\d+)?$"), methods)]
+    base_present <- base %in% fam
+    vars <- fam[grepl("_x\\d+$", fam)]
+    if (length(vars)) {
+      idx <- suppressWarnings(as.integer(sub(".*_x", "", vars)))
+      vars <- vars[order(idx)]
+    }
+    c(if (base_present) base else character(0), vars)
+  }
+
+  out <- c(core, sort_family("OrderShapeEM"), sort_family("IHW"), "BH")
+  out <- unique(out)
+  out[out %in% methods]
+}
+
+# ---------- plotting function (labels, no legend) ----------
+library(ggrepel)
+library(stringr)
+
+plot_rejections_vs_q <- function(long_table, # title = "Number of Discoveries vs q",
+                                 K_variants = 12, x_breaks = NULL, method_font = 5.5) {
+  
+  ord <- method_order(long_table$Method)
+  long_table <- long_table %>% mutate(Method = factor(Method, levels = ord))
+  pal <- make_method_palette(levels(long_table$Method), K = K_variants)
+  
+  endpoints <- long_table %>%
+    group_by(Method) %>%
+    filter(q == max(q, na.rm = TRUE)) %>%
+    slice_tail(n = 1) %>%
+    ungroup() %>%
+    mutate(label = as.character(Method))
+  
+  x_rng   <- range(long_table$q, na.rm = TRUE)
+  x_nudge <- diff(x_rng) * 0.03
+  
+  p <- ggplot(long_table, aes(x = q, y = Rejections, group = Method, color = Method)) +
+    geom_line(linewidth = 0.9, na.rm = TRUE) +
+    geom_point(size = 1.8, na.rm = TRUE) +
+    ggrepel::geom_text_repel(
+      data = endpoints,
+      aes(label = label),
+      size = method_font,
+      nudge_x = x_nudge,
+      hjust = 0,
+      direction = "y",
+      segment.size = 0.2,
+      box.padding = 0.15,
+      point.padding = 0.10,
+      min.segment.length = 0,
+      max.overlaps = Inf,
+      seed = 1,
+      show.legend = FALSE
+    ) +
+    scale_color_manual(values = pal, breaks = ord) +
+    labs( #title = title, 
+      x = "q level", y = "Number of Rejections") +
+    coord_cartesian(clip = "off") +
+    theme_minimal() +
+    theme(
+      legend.position = "none",
+      plot.margin = margin(5.5, 60, 5.5, 5.5),
+      axis.title.x = element_text(size = 14),
+      axis.title.y = element_text(size = 14),
+      axis.text.x  = element_text(size = 12),
+      axis.text.y  = element_text(size = 12)
+    )
+  
+  if (!is.null(x_breaks)) {
+    p <- p + scale_x_continuous(breaks = x_breaks, expand = expansion(mult = c(0.02, 0.18)))
+  } else {
+    p <- p + scale_x_continuous(expand = expansion(mult = c(0.02, 0.18)))
+  }
+  
+  p
+}
+```
+
+Line chart of number or selections by every method at different FDR q level. 
+
+```{r}
+p_zhu_ae <- plot_rejections_vs_q(zhu_ae_long,
+                              x_breaks = sort(unique(zhu_ae_long$q)))
+```
+
+```{r, fig.width=8, fig.height=5, out.width='60%', warning=FALSE}
+p_zhu_ae
+```
+
+
+```{r}
+zhu_ae_pca_long$side <- factor(zhu_ae_pca_long$side, levels = c("ae", "pca", "noise1", "noise2"))
+
+# Only methods with the three side-info types (drop BH panel)
+zhu_long_methods <- zhu_ae_pca_long %>%
+  filter(side != "bh", Method != "bh")
+
+# --- Put 'chai' as the first facet ----------------------------------------
+method_levels <- c("chai", setdiff(unique(as.character(zhu_long_methods$Method)), "chai"))
+
+zhu_long_methods <- zhu_long_methods %>%
+  mutate(Method = factor(Method, levels = method_levels))
+
+# --- End-of-line label positions (one per Method C side) -------------------
+endpoints <- zhu_long_methods %>%
+  arrange(Method, side, q) %>%
+  group_by(Method, side) %>%
+  slice_tail(n = 1) %>%
+  ungroup()
+
+dx <- diff(range(zhu_long_methods$q))
+
+# BH baseline (as before)
+bh_line <- zhu_ae_pca_long %>%
+  dplyr::filter(Method == "bh") %>%
+  dplyr::select(q, Rejections) %>%
+  tidyr::crossing(Method = method_levels) %>%
+  # IMPORTANT: make Method a factor with same levels
+  mutate(Method = factor(Method, levels = method_levels))
+
+# Endpoints for BH (one per Method)
+bh_endpoints <- bh_line %>%
+  group_by(Method) %>%
+  slice_max(q, with_ties = FALSE) %>%
+  ungroup()
+
+p_ae_pca <- ggplot(zhu_long_methods,
+                   aes(x = q, y = Rejections, color = side)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  geom_text_repel(
+    data = endpoints,
+    aes(label = side),
+    nudge_x      = dx * 0.03,
+    hjust        = 0,
+    direction    = "y",
+    segment.size = 0.2,
+    box.padding  = 0.1,
+    point.padding= 0.1,
+    show.legend  = FALSE
+  ) +
+  # BH dashed line
+  geom_line(
+    data        = bh_line,
+    aes(x = q, y = Rejections, group = 1),
+    inherit.aes = FALSE,
+    color       = "black",
+    linewidth   = 0.8,
+    linetype    = "dashed"
+  ) +
+  # "bh" label
+  geom_text(
+    data        = bh_endpoints,
+    aes(x = q, y = Rejections, label = "bh"),
+    inherit.aes = FALSE,
+    nudge_x     = dx * 0.03,
+    hjust       = 0,
+    vjust       = 0.5,
+    size        = 3,
+    color       = "black"
+  ) +
+  facet_wrap(~ Method) +  # <-- remove scales = "free_y"
+  scale_x_continuous(breaks = unique(zhu_long_methods$q)) +
+  scale_y_continuous(limits = c(0, max(zhu_long_methods$Rejections))) +
+  scale_color_manual(
+    values = c(
+      ae    = "red",
+      pca   = "blue",
+      noise1 = "grey50",
+      noise2 = "grey70"
+    )
+  ) +
+  labs(
+    # title  = "Number of Discoveries at different q level",
+    x      = "q level",
+    y      = "Number of Rejections",
+    color  = "Side information: "
+  ) +
+  coord_cartesian(clip = "off") +
+  expand_limits(x = max(zhu_long_methods$q) + dx * 0.05) +
+  theme_minimal() +
+  theme(
+    strip.text      = element_text(face = "bold"),
+    legend.position = "bottom",
+    plot.margin     = margin(5.5, 60, 5.5, 5.5)
+  )
+```
+
+```{r, fig.width=8, fig.height=5, out.width='100%', warning=FALSE}
+p_ae_pca
+```
+
+
+```{r, include=FALSE, eval=FALSE}
+# save(p_value, z_value, outcome, t_abun, 
+#      ae5, pca5, noise, noise2,
+#      chai_zhu_ae5, chai_zhu_pca5, chai_zhu_noise, chai_zhu_noise2, 
+#      zhu_ae, zhu_ae_long,
+#      zhu_ae_pca, zhu_ae_pca_long,
+#      file = "./chai_env/Schizophrenia_env.RData")
+
+# ggsave("./plots/Zhu/Zhu_AE_updated.png", plot = p_zhu_ae, width = 8, height = 5, dpi = 300)
+
+# pdf("./plots/Zhu/Zhu_AE_updated.pdf", width = 8, height = 5)
+# plot(p_zhu_ae)
+# dev.off()
+
+
+# ggsave("./plots/Zhu/Zhu_AE5_vs_PCA5_vs_noise.png", plot = p_ae_pca, width = 8, height = 5, dpi = 300)
+
+# pdf("./plots/Zhu/Zhu_AE5_vs_PCA5_vs_noise.pdf", width = 8, height = 5)
+# plot(p_ae_pca)
+# dev.off()
+```

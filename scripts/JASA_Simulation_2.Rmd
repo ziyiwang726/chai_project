@@ -1,0 +1,584 @@
+---
+title: "JASA_Simulation_2"
+author: "Ziyi Wang"
+date: "2026-03-23"
+output: html_document
+---
+# Simulation 2 - Two dimensional x 
+sim z
+
+### Load Packages/Functions
+
+```{r setup, include=TRUE, warning=FALSE}
+suppressPackageStartupMessages({
+  library(knitr)
+  library(mvtnorm)
+  library(mixtools)
+  library(devtools)
+  library(KScorrect)
+  library(adaptMT)
+  library(AdaPTGMM)
+  library(splines2)
+  library(dplyr)
+  library(ggplot2)
+  library(tidyr)
+  library(coin)
+  library(ggrepel)
+  library(IHW)
+  library(FDRreg)
+  library(OrderShapeEM)
+  library(chai)
+})
+
+# devtools::load_all("C:/Ziyi Wang/chai_package/chai")
+```
+
+### Simulation generating and fit the models
+
+Note: this chunk is time-consuming. Specifically, for each seed (100 randomly generated seeds in total), one simulation dataset was generated and then analyzed using \code{chai} and each benchmark method. For every method, we recorded the number of selections, FDP, and power at all $q$-level from 0.01 to 0.10, together with the corresponding seed. 
+
+You can directly run next chuck to load all the results.
+
+```{r, eval=FALSE}
+set.seed(1)
+# seeds <- sample(1:10000, 99)
+seeds <- sample(1:10000, 9)
+
+seeds <- c(seeds, 123)    # Add seed 123 for checking purpose
+
+q_grid <- seq(0.01, 0.1, by = 0.01)
+
+results_list <- list()   # saving results
+runtime_list <- list()   # saving computational time
+
+add_runtime <- function(runtime_df, seed, method, fit_time, success) {
+  runtime_df[nrow(runtime_df) + 1, ] <- list(seed, method, fit_time, success)
+  runtime_df
+}
+
+for (s in seq_along(seeds)) {
+  set.seed(seeds[s])
+  
+  n = 1000
+  n0 <- 950
+  n1 <- 25
+  
+  z0 <- rnorm(n0, mean = 0, sd = 1)
+  x0 <- rnorm(n0, mean = 0, sd = 1)
+  y0 <- rnorm(n0, mean = 0, sd = 1)
+  
+  z1 <- rnorm(n1, mean = 2, sd = 0.5)
+  x1 <- rnorm(n1, mean = 2, sd = 1)
+  y1 <- rnorm(n1, mean = 3, sd = 1)
+  
+  z2 <- rnorm(n1, mean = -2, sd = 0.5)
+  x2 <- rnorm(n1, mean = -2, sd = 1)
+  y2 <- rnorm(n1, mean = -3, sd = 1)
+  
+  z <- c(z0, z1, z2)
+  x <- c(x0, x1, x2)
+  y <- c(y0, y1, y2)
+  
+  X <- cbind(x, y)
+
+  gt <- seq((n0+1), n) # Ground truth for alternative
+  
+  x_df <- data.frame(X)
+  formula_ns <- list("~ns(x, df = 2) + ns(y, df = 2)", 
+                     "~ns(x, df = 4) + ns(y, df = 4)", 
+                     "~ns(x, df = 6) + ns(y, df = 6)")
+  # p <- pnorm(z, lower.tail = FALSE)
+  p <- 2 * (1 - pnorm(abs(z)))
+
+  # Apply models and collect performance
+  perf <- data.frame(
+    Seed = integer(),
+    q    = numeric(),
+    Method   = character(),
+    Selected = numeric(),
+    FDP      = numeric(),
+    Power    = numeric(),
+    stringsAsFactors = FALSE
+  )
+  
+  runtime <- data.frame(
+    Seed = integer(),
+    Method = character(),
+    FitTime_sec = numeric(),
+    Success = logical(),
+    stringsAsFactors = FALSE
+  )
+
+  # 1. CHAI
+  fit_time <- system.time({
+    res_chai <- chai(z, X, B = 100)
+  })["elapsed"]
+  
+  runtime <- add_runtime(runtime, seeds[s], "chai", as.numeric(fit_time), !is.null(res_chai))
+  
+  for (qq in seq_along(q_grid)) {
+      select <- clfdrselect(res_chai, q = q_grid[qq])
+      p1  <- performance(gt, select, z = res_chai$z,
+                         bh_level = q_grid[qq], one.sided = FALSE)
+      # chai
+      perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "chai", p1[[4]], p1[[1]], p1[[2]])
+      # BH
+      perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "BH",   p1[[13]], p1[[8]], p1[[9]])
+    }
+  
+  # 2. adapt_glm
+  fit_time <- system.time({
+    res_glm <- adapt_glm(
+      x_df, pvals = p, alphas = q_grid,
+      pi_formulas = formula_ns, mu_formulas = formula_ns
+    )
+  })["elapsed"]
+  
+  runtime <- add_runtime(runtime, seeds[s], "adapt_glm", as.numeric(fit_time), !is.null(res_glm))
+  
+  empty <- is.null(res_glm) || (!is.list(res_glm$rejs))
+  for (qq in seq_along(q_grid)) {
+    if (!empty && lengths(res_glm$rejs)[qq] > 0L){
+     p2 <- performance(gt, res_glm$rejs[[qq]], z = z,
+                        bh_level = q_grid[qq], one.sided = FALSE)
+     perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "adapt_glm", p2[[4]], p2[[1]], p2[[2]])
+     
+    } else {
+      perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "adapt_glm", 0, NA, NA)
+    }
+  }
+  
+  # 3. adapt_gmm_z
+  fit_time <- system.time({
+    res_gmm_z <- adapt_gmm(
+      x_df, z = z, alphas = q_grid,
+      beta_formulas = formula_ns, testing = "two_sided"
+    )
+  })["elapsed"]
+  
+  runtime <- add_runtime(runtime, seeds[s], "adapt_gmm_z", as.numeric(fit_time), !is.null(res_gmm_z))
+  
+  for (qq in seq_along(q_grid)) {
+      # idx <- match(qq, alphas)  # 0.05 -> 5, 0.06 -> 6, ..., 0.10 -> 10
+      p3  <- performance(gt, res_gmm_z$rejs[[qq]], z = z,
+                         bh_level = q_grid[qq], one.sided = FALSE)
+      perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "adapt_gmm_z", p3[[4]], p3[[1]], p3[[2]])
+    }
+  
+  # 4. adapt_gmm_p
+  fit_time <- system.time({
+    res_gmm_p <- adapt_gmm(
+      x_df, pvals = p, alphas = q_grid,
+      beta_formulas = formula_ns, testing = "two_sided"
+    )
+  })["elapsed"]
+  
+  runtime <- add_runtime(runtime, seeds[s], "adapt_gmm_p", as.numeric(fit_time), !is.null(res_gmm_p))
+
+  for (qq in seq_along(q_grid)) {
+      # idx <- match(qq, alphas)
+      p4  <- performance(gt, res_gmm_p$rejs[[qq]], z = z,
+                         bh_level = q_grid[qq], one.sided = FALSE)
+      perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "adapt_gmm_p", p4[[4]], p4[[1]], p4[[2]])
+    }
+
+
+  # 5. OrderShapeEM
+  # First x
+  res_osem_x1 <- NULL
+  
+  fit_time_x1 <- system.time({
+    res_osem_x1 <- tryCatch(
+      OrderShapeEM(pvals = p, order.var = X[, 1], OrderShapeEM.control(trace = TRUE)),
+      error = function(e) {
+        message(paste("OrderShapeEM_x1 failed at seed", seeds[s], ":", e$message))
+        NULL
+      }
+    )
+  })["elapsed"]
+  
+  runtime <- add_runtime(
+    runtime_df = runtime,
+    seed       = seeds[s],
+    method     = "OrderShapeEM_x1",
+    fit_time   = as.numeric(fit_time_x1),
+    success    = !is.null(res_osem_x1)
+  )
+  
+  if (!is.null(res_osem_x1)) {
+    for (qq in seq_along(q_grid)) {
+      p5_1 <- performance(gt, which(res_osem_x1$fdr <= q_grid[qq]), z = z, 
+                          bh_level = q_grid[qq], one.sided = FALSE)
+      
+      perf[nrow(perf) + 1, ] <- list(seeds[s], q_grid[qq], "OrderShapeEM_x1",
+                                     p5_1[[4]], p5_1[[1]], p5_1[[2]])
+    }
+  } else {
+    for (qq in seq_along(q_grid)) {
+      perf[nrow(perf) + 1, ] <- list(seeds[s], q_grid[qq], "OrderShapeEM_x1",
+                                     NA, NA, NA)
+    }
+  }
+
+  # Second x
+  res_osem_x2 <- NULL
+  
+  fit_time_x2 <- system.time({
+    res_osem_x2 <- tryCatch(
+      OrderShapeEM(pvals = p, order.var = X[, 2], OrderShapeEM.control(trace = TRUE)),
+      error = function(e) {
+        message(paste("OrderShapeEM_x2 failed at seed", seeds[s], ":", e$message))
+        NULL
+      }
+    )
+  })["elapsed"]
+  
+  runtime <- add_runtime(
+    runtime_df = runtime,
+    seed       = seeds[s],
+    method     = "OrderShapeEM_x2",
+    fit_time   = as.numeric(fit_time_x2),
+    success    = !is.null(res_osem_x2)
+  )
+  
+  if (!is.null(res_osem_x2)) {
+    for (qq in seq_along(q_grid)) {
+      p5_2 <- performance(gt, which(res_osem_x2$fdr <= q_grid[qq]), z = z, 
+                          bh_level = q_grid[qq], one.sided = FALSE)
+      
+      perf[nrow(perf) + 1, ] <- list(seeds[s], q_grid[qq], "OrderShapeEM_x2",
+                                     p5_2[[4]], p5_2[[1]], p5_2[[2]])
+    }
+  } else {
+    for (qq in seq_along(q_grid)) {
+      perf[nrow(perf) + 1, ] <- list(seeds[s], q_grid[qq], "OrderShapeEM_x2",
+                                     NA, NA, NA)
+    }
+  }
+
+  # 6. FDRreg
+  fit_time <- system.time({
+    res_fdrreg <- FDRreg(z, as.matrix(X), nulltype = "theoretical")
+  })["elapsed"]
+  
+  runtime <- add_runtime(runtime, seeds[s], "FDRreg", as.numeric(fit_time), !is.null(res_fdrreg))
+  
+  for (qq in seq_along(q_grid)) {
+    p6 <- performance(gt, which(res_fdrreg$FDR <= q_grid[qq]), z = z,
+                      bh_level = q_grid[qq], one.sided = FALSE)
+    perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "FDRreg", p6[[4]], p6[[1]], p6[[2]])
+  }
+  
+  # 7. IHW
+  # First x
+# IHW: first x
+  res_ihw_x1_list <- vector("list", length(q_grid))
+  
+  fit_time_ihw_x1 <- system.time({
+    for (qq in seq_along(q_grid)) {
+      res_ihw_x1_list[[qq]] <- tryCatch(
+        ihw(pvalues    = p, covariates = X[, 1], alpha = q_grid[qq], nbins = 5),
+        error = function(e) {
+          message(paste("IHW_x1 failed at seed", seeds[s], "q =", q_grid[qq], ":", e$message))
+          NULL
+        }
+      )
+    }
+  })["elapsed"]
+  
+  runtime <- add_runtime(
+    runtime_df = runtime,
+    seed       = seeds[s],
+    method     = "IHW_x1",
+    fit_time   = as.numeric(fit_time_ihw_x1),
+    success    = all(!sapply(res_ihw_x1_list, is.null))
+  )
+  
+  for (qq in seq_along(q_grid)) {
+    if (!is.null(res_ihw_x1_list[[qq]])) {
+      p7_1 <- performance(gt, which(adj_pvalues(res_ihw_x1_list[[qq]]) <= q_grid[qq]),
+                          z = z, bh_level = q_grid[qq], one.sided = FALSE)
+      
+      perf[nrow(perf) + 1, ] <- list(seeds[s], q_grid[qq], "IHW_x1",
+                                     p7_1[[4]], p7_1[[1]], p7_1[[2]])
+    } else {
+      perf[nrow(perf) + 1, ] <- list(seeds[s], q_grid[qq], "IHW_x1",
+                                     NA, NA, NA)
+    }
+  }
+
+  # Second x
+  res_ihw_x2_list <- vector("list", length(q_grid))
+  
+  fit_time_ihw_x2 <- system.time({
+    for (qq in seq_along(q_grid)) {
+      res_ihw_x2_list[[qq]] <- tryCatch(
+        ihw(pvalues = p, covariates = X[, 2], alpha = q_grid[qq], nbins = 5),
+        error = function(e) {
+          message(paste("IHW_x2 failed at seed", seeds[s], "q =", q_grid[qq], ":", e$message))
+          NULL
+        }
+      )
+    }
+  })["elapsed"]
+  
+  runtime <- add_runtime(
+    runtime_df = runtime,
+    seed       = seeds[s],
+    method     = "IHW_x2",
+    fit_time   = as.numeric(fit_time_ihw_x2),
+    success    = all(!sapply(res_ihw_x2_list, is.null))
+  )
+  
+  for (qq in seq_along(q_grid)) {
+    if (!is.null(res_ihw_x2_list[[qq]])) {
+      p7_2 <- performance(gt, which(adj_pvalues(res_ihw_x2_list[[qq]]) <= q_grid[qq]), 
+                          z = z, bh_level = q_grid[qq], one.sided = FALSE)
+      
+      perf[nrow(perf) + 1, ] <- list(seeds[s], q_grid[qq], "IHW_x2",
+                                     p7_2[[4]], p7_2[[1]], p7_2[[2]])
+    } else {
+      perf[nrow(perf) + 1, ] <- list(seeds[s], q_grid[qq], "IHW_x2",
+                                     NA, NA, NA)
+    }
+  }
+  
+  
+  # Get the results
+  results_list[[length(results_list) + 1]] <- perf
+  runtime_list[[length(runtime_list) + 1]] <- runtime
+}
+
+# Combine and calculate average
+results_2 <- dplyr::bind_rows(results_list) |>
+  mutate(
+    Selected = as.numeric(Selected),
+    FDP      = as.numeric(FDP),
+    Power    = as.numeric(Power)
+  )
+
+runtime_2 <- dplyr::bind_rows(runtime_list) |>
+  dplyr::mutate(FitTime_sec = as.numeric(FitTime_sec))
+
+runtime_summary <- runtime_2 |>
+  dplyr::group_by(Method) |>
+  dplyr::summarise(
+    mean_fit_time   = mean(FitTime_sec, na.rm = TRUE),
+    sd_fit_time     = sd(FitTime_sec, na.rm = TRUE),
+    median_fit_time = median(FitTime_sec, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+```
+
+#### Load simulation 2's results 
+Load simulation 2 results and calculate the average across 100 repeats.
+
+```{r}
+results_2 <- readRDS("./chai_env/simZ_all_results_with_zero.rds")
+
+summary_2 <- results_2 %>%
+  group_by(Method, q) %>%
+  summarise(
+    mean_Selected = mean(Selected),
+    mean_FDP      = mean(FDP),
+    mean_Power    = mean(Power),
+    .groups = "drop"
+  )
+
+summary_2 %>% filter(q == 0.05)
+
+
+simZ_long <- summary_2 %>%
+  mutate(
+    mean_FDP   = ifelse(is.nan(mean_FDP), NA, mean_FDP),
+    mean_Power = ifelse(is.nan(mean_Power), NA, mean_Power)
+  ) %>%
+  pivot_longer(cols = c(mean_FDP, mean_Power),
+               names_to = "Metric", values_to = "Value") %>%
+  mutate(Metric = recode(Metric,
+                         mean_FDP = "FDP",
+                         mean_Power = "Power"))
+```
+
+### Define the plot functions to ensure consistent color assignments across different methods.
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+# ---------- color helpers ----------
+blend_color <- function(col, target = "white", amount = 0.4) {
+  a <- grDevices::col2rgb(col) / 255
+  b <- grDevices::col2rgb(target) / 255
+  out <- (1 - amount) * a + amount * b
+  grDevices::rgb(out[1,], out[2,], out[3,])
+}
+
+variant_shades <- function(base_col, K = 12) {
+  grDevices::colorRampPalette(c(
+    blend_color(base_col, "white", 0.55),
+    base_col,
+    blend_color(base_col, "black", 0.25)
+  ))(K)
+}
+
+make_method_palette <- function(methods, K = 12) {
+  fixed <- c(
+    chai        = "red",
+    adapt_glm   = "#FF7F0E",
+    adapt_gmm_z = "#2CA02C",
+    adapt_gmm_p = "#9467BD",
+    FDRreg      = "#8C564B",
+    BH          = "black"
+  )
+
+  family_base <- c(
+    OrderShapeEM = "#1F77B4",  # blue family
+    IHW          = "#17BECF"   # teal family
+  )
+
+  ord_shades <- variant_shades(family_base["OrderShapeEM"], K = K)
+  ihw_shades <- variant_shades(family_base["IHW"],          K = K)
+
+  methods <- unique(as.character(methods))
+  pal <- setNames(rep("#7F7F7F", length(methods)), methods)  # fallback grey
+
+  for (m in methods) {
+    if (m %in% names(fixed)) {
+      pal[m] <- fixed[m]
+      next
+    }
+
+    base <- sub("_x\\d+$", "", m)
+    idx  <- suppressWarnings(as.integer(sub(".*_x", "", m)))
+
+    if (base %in% names(family_base)) {
+      if (is.na(idx)) {
+        pal[m] <- family_base[base]  # e.g. "OrderShapeEM" with no suffix
+      } else {
+        idx <- max(1L, min(idx, K))
+        pal[m] <- if (base == "OrderShapeEM") ord_shades[idx] else ihw_shades[idx]
+      }
+    }
+  }
+
+  pal
+}
+
+method_order <- function(methods) {
+  methods <- unique(as.character(methods))
+  core <- c("chai","adapt_glm","adapt_gmm_z","adapt_gmm_p","FDRreg")
+
+  sort_family <- function(base) {
+    fam <- methods[grepl(paste0("^", base, "(_x\\d+)?$"), methods)]
+    base_present <- base %in% fam
+    vars <- fam[grepl("_x\\d+$", fam)]
+    if (length(vars)) {
+      idx <- suppressWarnings(as.integer(sub(".*_x", "", vars)))
+      vars <- vars[order(idx)]
+    }
+    c(if (base_present) base else character(0), vars)
+  }
+
+  out <- c(core, sort_family("OrderShapeEM"), sort_family("IHW"), "BH")
+  out <- unique(out)
+  out[out %in% methods]
+}
+
+# ---------- plotting function (labels, no legend) ----------
+library(ggrepel)
+library(stringr)
+
+plot_metric <- function(long_table, metric_name, 
+                        ylab, title, K_variants = 12, 
+                        fdp_y = 0.2, method_font = 5.5){
+  
+  dat <- dplyr::filter(long_table, Metric == metric_name) %>%
+    mutate(Method = as.character(Method))
+
+  ord <- method_order(dat$Method)
+  dat <- dat %>% mutate(Method = factor(Method, levels = ord))
+  pal <- make_method_palette(levels(dat$Method), K = K_variants)
+
+  # endpoints for labels
+  endpoints <- dat %>%
+    group_by(Method) %>%
+    filter(q == max(q, na.rm = TRUE)) %>%
+    slice_tail(n = 1) %>%
+    ungroup() %>%
+    mutate(
+      # option A: wrap long names
+      label = as.character(Method)
+      # label = str_wrap(label, width = 12)
+    )
+
+  x_rng <- range(dat$q, na.rm = TRUE)
+  x_nudge <- diff(x_rng) * 0.03  # more room to the right
+
+  p <- ggplot(dat, aes(x = q, y = Value, group = Method, color = Method)) +
+    geom_line(linewidth = 0.9, na.rm = TRUE) +
+    geom_point(size = 1.6, na.rm = TRUE) +
+
+    # repel labels to avoid overlap
+    ggrepel::geom_text_repel(
+      data = endpoints,
+      aes(label = label),
+      size = method_font,
+      nudge_x = x_nudge,
+      hjust = 0,
+      direction = "y",
+      box.padding = 0.25,
+      point.padding = 0.15,
+      segment.size = 0.25,
+      min.segment.length = 0,
+      max.overlaps = Inf,
+      seed = 1,
+      show.legend = FALSE
+    ) +
+
+    scale_color_manual(values = pal, breaks = ord) +
+    scale_x_continuous(
+      breaks = seq(0.01, 0.10, 0.01),
+      expand = expansion(mult = c(0.02, 0.18))  # add right padding for labels
+    ) +
+    coord_cartesian(
+      ylim = c(0, 1),
+      clip = "off"   # <-- critical: do not clip labels
+    ) +
+    labs(x = "q level", y = ylab, title = title) +
+    theme_minimal() +
+    theme(
+      legend.position = "none",
+      plot.margin = margin(5.5, 60, 5.5, 5.5),  # <-- more right margin
+      axis.title.x = element_text(size = 14),
+      axis.title.y = element_text(size = 14),
+      axis.text.x  = element_text(size = 12),
+      axis.text.y  = element_text(size = 12)
+    )
+
+  if (metric_name == "FDP") {
+    p <- p +
+      geom_abline(slope = 1, intercept = 0, linetype = "dashed", linewidth = 1.2) +
+      coord_cartesian(ylim = c(0, fdp_y))
+  }
+
+  p
+}
+```
+
+### Visualization
+
+```{r}
+p_fdp   <- plot_metric(simZ_long, "FDP", "Mean FDP", "FDP vs q", fdp_y = 0.2)
+p_power <- plot_metric(simZ_long, "Power", "Mean Power", "Power vs q")
+
+library(patchwork)
+combo <- p_fdp + p_power # + plot_annotation(title = "Method Performance vs q")
+
+# ggsave("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/plots/Simulations/SimZ_fdr_power_updated_zero.png", plot = combo, width = 14, height = 5, dpi = 300)
+```
+
+```{r, fig.width=14, fig.height=5, out.width='100%', warning=FALSE}
+combo
+```
