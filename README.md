@@ -109,4 +109,4 @@ This line chart shows the number of features selected by **chai** and other benc
 
 This plot shows the number of selections within same method using different side information at different target FDR level ($q$).
 
-<img src="figures/Zhu_AE5_vs_PCA5_vs_noise.png" width="60%">
+<img src="figures/Zhu_AE5_vs_PCA5_vs_noise.png" width="80%">
