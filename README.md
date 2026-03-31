@@ -63,7 +63,8 @@ This line chart shows the number of rejected hypotheses selected by **chai** and
 For the full application and visualization of this real dataset, please see: [Gastrectomy](https://ziyiwang726.github.io/chai_project/reports/JASA_Realdata_Gastrectomy.html).
 
 #### Results
-Plot A below is the line chart that shows the number of genera selected by **chai** and other benchmark methods at different target FDR level ($q$) in this post-gastrectomy dataset. Plot B is the scatter plot of the Canonical correlation coefficient vs. z-statistics, colored by whether it selected by **chai** and/or **BH**. 
+Plot A below is the line chart that shows the number of genera selected by **chai** and other benchmark methods with canonical correlations between each genus and the metabolite profiles as side information, at different target FDR level ($q$) in this post-gastrectomy dataset. Plot B is the scatter plot of the Canonical correlation coefficient vs. z-statistics, colored by whether it selected by **chai** and/or **BH**. 
+
 ![Gastrectomy](figures/Erawijantari_comb.png)
 
 ### 2. 16S rRNA gene sequence data: responders vs. non-responders in a melanoma cohort
@@ -77,6 +78,7 @@ We tried three different analysis configurations:
 
 #### Results
 - `(i)`: Wilcoxon z-statistics with phylogeny-derived PCoA covariates as X
+
 <img src="figures/16s_wilcoxz_pcoa_family_updated.png" width="60%" alt="Melanoma (i)">
 
 - `(ii)`: DESeq2-derived signed Wald statistics with PCoA covariates as X
@@ -98,3 +100,13 @@ We tried three different analysis configurations:
 
 ### 3. Shotgun metagenomic sequencing data: schizophrenia vs. healthy individuals
 For the full application and visualization of this real dataset, please see: [Schizophrenia](https://ziyiwang726.github.io/chai_project/reports/JASA_Realdata_Schizophrenia.html).
+
+#### Results
+
+This line chart shows the number of features selected by **chai** and other benchmark methods with Autoencoder-derived pathway covariates, at different target FDR level ($q$).
+
+<img src="figures/Zhu_AE_updated.png" width="60%">
+
+This plot shows the number of selections within same method using different side information at different target FDR level ($q$).
+
+<img src="figures/Zhu_AE5_vs_PCA5_vs_noise.png" width="60%">
