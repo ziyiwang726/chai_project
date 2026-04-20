@@ -4,13 +4,68 @@ library(ape)
 library(CATMicrobiome)
 library(phyloseq)
 library(coin)
+library(dplyr)
+library(stringr)
+library(tidyr)
+library(ggplot2)
+library(ggrepel)
+library(viridisLite)
+
+get_script_path <- function() {
+  cmd_args <- commandArgs(trailingOnly = FALSE)
+  idx <- grep("^--file=", cmd_args)
+  if (length(idx)) return(normalizePath(sub("^--file=", "", cmd_args[idx[1]])))
+  ofile <- tryCatch(sys.frames()[[1]]$ofile, error = function(e) NULL)
+  if (!is.null(ofile)) return(normalizePath(ofile))
+  NA_character_
+}
+
+script_path <- get_script_path()
+project_root <- if (!is.na(script_path)) dirname(dirname(script_path)) else normalizePath(getwd())
+project_r_libs <- file.path(project_root, "r_libs")
+if (dir.exists(project_r_libs)) {
+  .libPaths(c(normalizePath(project_r_libs), .libPaths()))
+}
+output_dir <- file.path(project_root, "plots", "Gopalakrishnan")
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
+clean_taxon <- function(x) {
+  x %>%
+    as.character() %>%
+    str_replace("^.*?__", "") %>%
+    str_replace_all("\\[|\\]", "") %>%
+    str_squish()
+}
+
+tip_group_levels <- c("chai_only", "BH_only", "both", "neither")
+tip_group_labels <- c(
+  chai_only = "Only in chai",
+  BH_only = "Only in BH",
+  both = "In both",
+  neither = "Neither"
+)
+tip_group_palette <- c(
+  chai_only = "#E69F00",
+  BH_only = "#0072B2",
+  both = "#CC79A7",
+  neither = "#666666"
+)
+base_tip_label_cex <- 1.15
+circular_tip_label_size <- 3.6
+base_legend_cex <- 1.05
+circular_legend_text_size <- 13
+circular_legend_title_size <- 14
+
+sel_otus <- character(0)
 
 otuPath <- system.file("extdata","d1OTUtable.csv",
                        package = "CATMicrobiome")
 otutable <- read.csv(otuPath,header=TRUE,row.names = 1)
 
-taxonomyPath <- system.file("extdata","d1Taxonomy.csv",
-                            package = "CATMicrobiome")
+taxonomyPath <- file.path(project_root, "Gopalakrishnan", "LLMCode", "d1Taxonomy.csv")
+if (!file.exists(taxonomyPath)) {
+  stop("Expected taxonomy CSV not found: ", taxonomyPath)
+}
 taxonomy <- read.csv(taxonomyPath,header=TRUE,row.names = 1)
 
 metaPath <- system.file("extdata","d1Meta.csv",
@@ -148,20 +203,73 @@ library(splines)
 library(IHW)
 library(FDRreg)
 
-source("chai.R")
-source("color_helper.R")
+source(file.path(project_root, "Gopalakrishnan", "code", "conditionalParam.R"))
+source(file.path(project_root, "Gopalakrishnan", "code", "naiveRemoveOneObs.R"))
+source(file.path(project_root, "Gopalakrishnan", "code", "rGaussianMix.R"))
+source(file.path(project_root, "Gopalakrishnan", "code", "utils.R"))
+source(file.path(project_root, "Gopalakrishnan", "code", "chai.R"))
+source(file.path(project_root, "Gopalakrishnan", "code", "clFDRselect.R"))
+source(file.path(project_root, "Gopalakrishnan", "code", "color_helper.R"))
+if (!exists("lFDRselect")) {
+  lFDRselect <- clfdrselect
+}
 
 
 ################## chai #######################
 set.seed(123)
-chai_family_pcoa <- chai(z_value, family_pcoa, M = 100)
+chai_family_pcoa <- chai(z_value, family_pcoa, B = 1000)
 
-length(lFDRselect(chai_family_pcoa$lFDR, 0.05, 1)) # 15
-length(lFDRselect(chai_family_pcoa$lFDR, 0.1, 1))  # 31
+lfdr_family_pcoa <- if (!is.null(chai_family_pcoa$lFDR)) chai_family_pcoa$lFDR else chai_family_pcoa$clFDR
+length(lFDRselect(lfdr_family_pcoa, 0.05, 1))
+length(lFDRselect(lfdr_family_pcoa, 0.1, 1))
+sel_q05_family_pcoa <- lFDRselect(lfdr_family_pcoa, 0.05, 1)
+sel_q10_family_pcoa <- lFDRselect(lfdr_family_pcoa, 0.10, 1)
+ord_family_pcoa <- order(lfdr_family_pcoa)
+avgFDR_family_pcoa <- cumsum(lfdr_family_pcoa[ord_family_pcoa]) / seq_along(ord_family_pcoa)
+avgFDR_lookup_family_pcoa <- rep(NA_real_, length(lfdr_family_pcoa))
+avgFDR_lookup_family_pcoa[ord_family_pcoa] <- avgFDR_family_pcoa
+rank_lookup_family_pcoa <- integer(length(lfdr_family_pcoa))
+rank_lookup_family_pcoa[ord_family_pcoa] <- seq_along(ord_family_pcoa)
+
+family_pcoa_table <- as.data.frame(tax_table(family), stringsAsFactors = FALSE)
+family_pcoa_table$otu <- rownames(family_pcoa_table)
+family_pcoa_table$family_clean <- clean_taxon(family_pcoa_table$family)
+family_pcoa_table$PCoA1 <- family_pcoa[, 1]
+family_pcoa_table$PCoA2 <- family_pcoa[, 2]
+family_pcoa_table$p_value <- as.numeric(p_value)
+family_pcoa_table$z_value <- as.numeric(z_value)
+family_pcoa_table$clFDR <- as.numeric(lfdr_family_pcoa)
+family_pcoa_table$clFDR_rank <- rank_lookup_family_pcoa
+family_pcoa_table$avgFDR_at_rank <- avgFDR_lookup_family_pcoa
+family_pcoa_table <- family_pcoa_table %>% arrange(clFDR)
+
+chai_selected_family_pcoa_q005 <- family_pcoa_table[sel_q05_family_pcoa, , drop = FALSE] %>% arrange(clFDR)
+chai_selected_family_pcoa_q010 <- family_pcoa_table[sel_q10_family_pcoa, , drop = FALSE] %>% arrange(clFDR)
+chai_selected_family_pcoa_summary <- bind_rows(
+  chai_selected_family_pcoa_q005 %>% mutate(q = 0.05),
+  chai_selected_family_pcoa_q010 %>% mutate(q = 0.10)
+) %>%
+  dplyr::select(q, everything())
+
+write.csv(
+  chai_selected_family_pcoa_q005,
+  file.path(output_dir, "chai_selected_family_pcoa_q005.csv"),
+  row.names = FALSE
+)
+write.csv(
+  chai_selected_family_pcoa_q010,
+  file.path(output_dir, "chai_selected_family_pcoa_q010.csv"),
+  row.names = FALSE
+)
+write.csv(
+  chai_selected_family_pcoa_summary,
+  file.path(output_dir, "chai_selected_family_pcoa_summary.csv"),
+  row.names = FALSE
+)
 
 
 # Visualization
-chai_pcoa_sel <- lFDRselect(chai_family_pcoa$lFDR, 0.05, 1)
+chai_pcoa_sel <- lFDRselect(lfdr_family_pcoa, 0.05, 1)
 df <- data.frame(z_value, family_pcoa) %>%
   dplyr::mutate(
     grp = dplyr::case_when(
@@ -325,7 +433,7 @@ q_levels <- alphas
 
 # chai
 chai_rejs <- sapply(q_levels, function(q) {
-  length(lFDRselect(chai_family_pcoa$lFDR, q, 1))
+  length(lFDRselect(lfdr_family_pcoa, q, 1))
 })
 
 # adapt_glm
@@ -413,7 +521,8 @@ gopa_16s_long <- gopa_sum_16s_family %>%
 
 
 plot_rejections_vs_q <- function(long_table, title = "Number of Discoveries vs q",
-                                 K_variants = 12, x_breaks = NULL) {
+                                 K_variants = 12, x_breaks = NULL,
+                                 y_limits = NULL) {
 
   ord <- method_order(long_table$Method)
   long_table <- long_table %>% mutate(Method = factor(Method, levels = ord))
@@ -448,7 +557,7 @@ plot_rejections_vs_q <- function(long_table, title = "Number of Discoveries vs q
     ) +
     scale_color_manual(values = pal, breaks = ord) +
     labs(title = title, x = "q level", y = "Number of Rejections") +
-    coord_cartesian(clip = "off") +
+    coord_cartesian(ylim = y_limits, clip = "off") +
     theme_minimal() +
     theme(
       legend.position = "none",
@@ -466,11 +575,19 @@ plot_rejections_vs_q <- function(long_table, title = "Number of Discoveries vs q
 
 p_gopa_16s_pcoa <- plot_rejections_vs_q(gopa_16s_long,
                                    title = "Number of Discoveries vs q, on Wilcoxon z-statistics",
-                                   x_breaks = sort(unique(gopa_16s_long$q)))
+                                   x_breaks = sort(unique(gopa_16s_long$q)),
+                                   y_limits = c(0, 44))
 
-pdf("./plots/Gopalakrishnan/16s_wilcoxz_pcoa_family_updated.pdf", width = 8, height = 4)
+pdf(file.path(output_dir, "16s_wilcoxz_pcoa_family_updated.pdf"), width = 8, height = 4)
 plot(p_gopa_16s_pcoa)
 dev.off()
+save(
+  gopa_sum_16s_family,
+  gopa_16s_long,
+  p_gopa_16s_pcoa,
+  file = file.path(output_dir, "16s_wilcoxz_pcoa_family_updated_plot_data.RData"),
+  compress = "xz"
+)
 
 
 # # into long format
@@ -599,17 +716,18 @@ ggplot(data.frame(DES_p), aes(DES_p)) +
 ############################ Fit model ############################
 ################## chai #######################
 set.seed(123)
-chai_DES_pcoa <- chai(DES_stat, family_pcoa, R = 100)
+chai_DES_pcoa <- chai(DES_stat, family_pcoa, B = 1000)
 
-length(lFDRselect(chai_DES_pcoa$lFDR, 0.05, 1)) # 14
-length(lFDRselect(chai_DES_pcoa$lFDR, 0.1, 1))  # 23
+lfdr_DES_pcoa <- if (!is.null(chai_DES_pcoa$lFDR)) chai_DES_pcoa$lFDR else chai_DES_pcoa$clFDR
+length(lFDRselect(lfdr_DES_pcoa, 0.05, 1))
+length(lFDRselect(lfdr_DES_pcoa, 0.1, 1))
 
 # Quickly check which family taxa were been picked
-chai_found <- tax_table(family)[rownames(tax_table(family)) %in% rownames(family_pcoa)[lFDRselect(chai_DES_pcoa$lFDR, 0.05, 1)], ]
+chai_found <- tax_table(family)[rownames(tax_table(family)) %in% rownames(family_pcoa)[lFDRselect(lfdr_DES_pcoa, 0.05, 1)], ]
 # write.csv(chai_found, "C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/plots/Gopalakrishnan/chai_found_DES_q05_family.csv", row.names = TRUE)
 
 # Visualization
-chai_DES_sel <- lFDRselect(chai_DES_pcoa$lFDR, 0.05, 1)
+chai_DES_sel <- lFDRselect(lfdr_DES_pcoa, 0.05, 1)
 df_DES <- data.frame(DES_stat, family_pcoa) %>%
   dplyr::mutate(
     grp = dplyr::case_when(
@@ -623,19 +741,14 @@ df_DES <- data.frame(DES_stat, family_pcoa) %>%
 ggplot(df_DES, aes(x = family_pcoa[,1], y = family_pcoa[,2], color = grp)) +
   geom_point(alpha = 0.7, size = 2) +
   scale_color_manual(
-    values = c(
-      chai_only = "red",
-      BH_only = "blue",
-      both = "green",
-      neither = "black"
-    ),
-    breaks = c("chai_only", "BH_only", "both", "neither"),
-    labels = c("Only in chai", "Only in BH", "In both", "Neither")
+    values = tip_group_palette,
+    breaks = tip_group_levels,
+    labels = unname(tip_group_labels[tip_group_levels])
   ) +
   theme_minimal() +
   labs(
     title = "PCoA of Phylogenatic Tree Structure Space Map",
-    subtitle = "Points colored by findings",
+    subtitle = "Points colored by chai vs BH findings at q = 0.05",
     x = "PCoA Dimension 1",
     y = "PCoA Dimension 2",
     color = "Group"
@@ -734,7 +847,7 @@ q_levels <- alphas
 
 # chai
 chai_DES_rejs <- sapply(q_levels, function(q) {
-  length(lFDRselect(chai_DES_pcoa$lFDR, q, 1))
+  length(lFDRselect(lfdr_DES_pcoa, q, 1))
 })
 
 # adapt_glm
@@ -818,15 +931,23 @@ gopa_16s_DES_long <- gopa_sum_16s_DES %>%
     names_to = "Method",
     values_to = "Rejections"
   ) %>%
-  mutate(Method = as.character(Method))
+  mutate(Method = as.character(Method)) %>%
+  filter(Method != "DESeq2")
 
 p_gopa_16s_pcoa_DES <- plot_rejections_vs_q(gopa_16s_DES_long,
                                         title = "Number of Discoveries vs q, on DESeq2 statistics",
                                         x_breaks = sort(unique(gopa_16s_DES_long$q)))
 
-pdf("./plots/Gopalakrishnan/16s_DES_pcoa_family_updated.pdf", width = 8, height = 4)
+pdf(file.path(output_dir, "16s_DES_pcoa_family_updated.pdf"), width = 8, height = 4)
 plot(p_gopa_16s_pcoa_DES)
 dev.off()
+save(
+  gopa_sum_16s_DES,
+  gopa_16s_DES_long,
+  p_gopa_16s_pcoa_DES,
+  file = file.path(output_dir, "16s_DES_pcoa_family_updated_plot_data.RData"),
+  compress = "xz"
+)
 
 
 # save(gopa_sum_16s_family, gopa_sum_16s_DES, file = "./chai_env/Gopalakrishnan_16s_tables.RData", compress = "xz")
@@ -837,7 +958,7 @@ dev.off()
 # Wilcoxon PCoA
 # Explore the selections
 # Visualization related to chai results
-chai_sel_pcoa <- lFDRselect(chai_family_pcoa$lFDR, 0.05, 1)
+chai_sel_pcoa <- lFDRselect(lfdr_family_pcoa, 0.05, 1)
 
 sel_otus_pcoa <- names(z_value)[chai_sel_pcoa]   # selected OTU IDs
 intersect(sel_otus, sel_otus_pcoa) # Picked by both pcoa and LLM
@@ -906,7 +1027,7 @@ plot(tr_all, show.tip.label = FALSE, cex = 0.7, tip.color = tip_cols,
 
 # add cleaned labels on top (so you see taxa names)
 tiplabels(text = unname(lbl_all[tr_all$tip.label]) , tip = 1:length(tr_all$tip.label),
-          frame = "none", adj = 0, cex = 0.7, col = tip_cols)
+          frame = "none", adj = 0, cex = base_tip_label_cex, col = tip_cols)
 
 # Circular tree
 library(dplyr)
@@ -916,6 +1037,7 @@ library(ggtreeExtra)
 library(ggnewscale)
 
 rank_to_show <- "family"
+bh_otus <- names(z_value)[bh]
 
 anno_pcao <- tax_all %>%
   # tibble::rownames_to_column("OTU") %>%
@@ -1056,28 +1178,36 @@ in_bh  <- tr_all$tip.label %in% sel_otus_BH
 
 in_sel <- tr_all$tip.label %in% sel_otus_DES
 
-tip_cols <- ifelse(in_sel & in_bh, "green",
-                   ifelse(in_sel & !in_bh, "red",
-                          ifelse(!in_sel & in_bh, "blue", "black")))
+tip_group <- ifelse(in_sel & in_bh, "both",
+                    ifelse(in_sel & !in_bh, "chai_only",
+                           ifelse(!in_sel & in_bh, "BH_only", "neither")))
+tip_cols <- unname(tip_group_palette[tip_group])
 
 # plot with original OTU labels
-plot(tr_all, show.tip.label = FALSE, cex = 0.7, tip.color = tip_cols,
-     main = "Phylogenetic tree with selected families by chai using PCoA")
+pdf(file.path(output_dir, "16s_DES_BH_PCoA_phylo_tree.pdf"), width = 12, height = 10)
+plot(
+  tr_all,
+  show.tip.label = FALSE,
+  cex = 0.7,
+  tip.color = tip_cols,
+  main = "Phylogenetic tree with selected families by chai on DESeq2 z with PCoA (BH, q = 0.05)"
+)
 
 # add cleaned labels on top (so you see taxa names)
 tiplabels(text = unname(lbl_all[tr_all$tip.label]) , tip = 1:length(tr_all$tip.label),
           frame = "none", adj = 0, cex = 0.7, col = tip_cols)
 
 legend("bottomright",
-       legend = c("Only in chai", "Only in DESeq2", "In both", "Neither"),
-       col    = c("red", "blue", "green", "black"),
+       legend = unname(tip_group_labels[tip_group_levels]),
+       col    = unname(tip_group_palette[tip_group_levels]),
        pch    = 16,
        bty    = "n",
-       cex    = 0.8,        # smaller text
+       cex    = base_legend_cex,
        pt.cex = 0.9,        # point size
        x.intersp = 0.5,     # tighten gap between point and text
        y.intersp = 0.2,     # tighten vertical spacing between rows
        inset = 0.02)
+dev.off()
 
 
 # Circular tree
@@ -1107,6 +1237,8 @@ anno_DES <- tax_all %>%
   dplyr::select(OTU, tip_label, phylum_clean, tip_color) %>%
   distinct(OTU, .keep_all = TRUE) 
 
+anno_DES$tip_color <- factor(anno_DES$tip_color, levels = tip_group_levels)
+
 tr <- ape::as.phylo(tr_all)
 p <- ggtree(tr, layout = "circular", size = 0.5)
 
@@ -1125,24 +1257,27 @@ p2 <- p1 +
 p3 <- p2 +
   geom_tiplab(
     aes(label = tip_label, color = tip_color),
-    size = 2,
+    size = circular_tip_label_size,
     offset = 0.02, 
     show.legend = FALSE
   ) +
   scale_color_manual(
     name   = "Tip label group",
-    values = c(chai_only="red", BH_only="blue", both="green", neither="black"),
-    breaks = c("chai_only", "BH_only", "both", "neither"),
-    labels = c("Only in chai", "Only in DESeq2", "In both", "Neither"),
+    values = tip_group_palette,
+    breaks = tip_group_levels,
+    labels = unname(tip_group_labels[tip_group_levels]),
     drop   = FALSE
   ) +
-  labs(title = "Phylogenetic tree with selected families by chai on DESeq2 z with PCoA") +
-  theme(legend.position = "right")
+  labs(title = "Phylogenetic tree with selected families by chai on DESeq2 z with PCoA (BH, q = 0.05)") +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = circular_legend_text_size),
+    legend.title = element_text(size = circular_legend_title_size)
+  )
 
 legend_df <- data.frame(
   x = NA_real_, y = NA_real_,
-  tip_color = factor(c("chai_only","BH_only","both","neither"),
-                     levels = c("chai_only","BH_only","both","neither"))
+  tip_color = factor(tip_group_levels, levels = tip_group_levels)
 )
 
 p4 <- p3 +
@@ -1152,9 +1287,15 @@ p4 <- p3 +
     inherit.aes = FALSE,
     size = 3
   ) +
-  guides(color = guide_legend(override.aes = list(alpha = 1))) +
-  theme(legend.position = "right")
-
-# pdf("./plots/Gopalakrishnan/16s_DESeq2_PCoA_phylo_tree.pdf", width = 8, height = 6.5)
-# plot(p4)
-# dev.off()
+  guides(color = guide_legend(override.aes = list(alpha = 1, size = 4))) +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = circular_legend_text_size),
+    legend.title = element_text(size = circular_legend_title_size)
+  )
+ggsave(
+  file.path(output_dir, "16s_DES_BH_PCoA_phylo_tree_circular.pdf"),
+  p4,
+  width = 12,
+  height = 12
+)

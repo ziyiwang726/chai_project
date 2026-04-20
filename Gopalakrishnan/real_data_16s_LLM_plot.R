@@ -121,8 +121,12 @@ otuPath <- system.file("extdata","d1OTUtable.csv",
                        package = "CATMicrobiome")
 otutable <- read.csv(otuPath,header=TRUE,row.names = 1)
 
-taxonomyPath <- system.file("extdata","d1Taxonomy.csv",
-                            package = "CATMicrobiome")
+taxonomyPathLocal <- file.path(script_dir, "LLMCode", "d1Taxonomy.csv")
+taxonomyPath <- if (file.exists(taxonomyPathLocal)) {
+  taxonomyPathLocal
+} else {
+  system.file("extdata","d1Taxonomy.csv", package = "CATMicrobiome")
+}
 taxonomy <- read.csv(taxonomyPath,header=TRUE,row.names = 1)
 
 metaPath <- system.file("extdata","d1Meta.csv",

@@ -70,6 +70,24 @@ parse_env_list <- function(name, default_values) {
   values
 }
 
+parse_env_seed <- function(name, default_value = 123L) {
+  raw_value <- Sys.getenv(name, unset = as.character(default_value))
+  seed_value <- suppressWarnings(as.integer(raw_value))
+  if (is.na(seed_value)) {
+    stop("Invalid integer seed for ", name, ": ", raw_value)
+  }
+  seed_value
+}
+
+parse_env_count <- function(name, default_value) {
+  raw_value <- Sys.getenv(name, unset = as.character(default_value))
+  count_value <- suppressWarnings(as.integer(raw_value))
+  if (is.na(count_value) || count_value < 1L) {
+    stop("Invalid positive integer for ", name, ": ", raw_value)
+  }
+  count_value
+}
+
 provider_dir_name <- function(provider) {
   switch(
     provider,
@@ -80,11 +98,23 @@ provider_dir_name <- function(provider) {
   )
 }
 
-provider_aux_filename <- function(provider, aux_source, aux_mode) {
+selection_target_folder <- function(target_rank) {
+  switch(
+    tolower(target_rank),
+    family = "selectionTargetFamily",
+    genus = "selectionTargetGenus",
+    species = "selectionTargetSpecies",
+    otu = "selectionTargetOTU",
+    stop("Unsupported target rank for auxiliary file lookup: ", target_rank)
+  )
+}
+
+provider_aux_filename <- function(provider, target_rank, aux_source, aux_mode) {
+  target_label <- if (tolower(target_rank) == "otu") "OTU" else tolower(target_rank)
   if (provider == "openai") {
-    sprintf("d1Taxonomy_OTU_ABCD_%s_and_below_%s_openai.csv", aux_source, aux_mode)
+    sprintf("d1Taxonomy_%s_ABCD_%s_and_below_%s_openai.csv", target_label, aux_source, aux_mode)
   } else {
-    sprintf("d1Taxonomy_OTU_ABCD_%s_and_below_%s.csv", aux_source, aux_mode)
+    sprintf("d1Taxonomy_%s_ABCD_%s_and_below_%s.csv", target_label, aux_source, aux_mode)
   }
 }
 
@@ -97,13 +127,26 @@ get_chai_lfdr <- function(chai_fit) {
 script_path <- get_script_path()
 script_dir <- if (!is.na(script_path)) dirname(script_path) else normalizePath(getwd())
 provider <- normalize_provider(Sys.getenv("LLM_PROVIDER", unset = "combined"))
-enable_fdrreg <- tolower(Sys.getenv("LLM_ENABLE_FDRREG", unset = "false")) %in%
+enable_fdrreg <- tolower(Sys.getenv("LLM_ENABLE_FDRREG", unset = "true")) %in%
   c("1", "true", "yes")
+run_seed <- parse_env_seed("LLM_SEED", 123L)
+chai_simulations <- parse_env_count("LLM_CHAI_B", 1000L)
+options(chai.seed = run_seed)
+set.seed(run_seed)
 worker_cores <- get_worker_cores()
 
-shared_cache_root <- file.path(script_dir, "cache", "featureSelectionLines", "shared", "target_levels")
-provider_cache_root <- file.path(script_dir, "cache", "featureSelectionLines", provider)
-provider_plot_root <- file.path(script_dir, "plots", "featureSelectionLines", provider)
+shared_cache_root <- Sys.getenv(
+  "LLM_SHARED_CACHE_ROOT",
+  unset = file.path(script_dir, "cache", "featureSelectionLines", "shared", "target_levels")
+)
+provider_cache_root <- Sys.getenv(
+  "LLM_CACHE_ROOT",
+  unset = file.path(script_dir, "cache", "featureSelectionLines", provider)
+)
+provider_plot_root <- Sys.getenv(
+  "LLM_PLOT_ROOT",
+  unset = file.path(script_dir, "plots", "featureSelectionLines", provider)
+)
 dir.create(shared_cache_root, recursive = TRUE, showWarnings = FALSE)
 dir.create(provider_cache_root, recursive = TRUE, showWarnings = FALSE)
 dir.create(provider_plot_root, recursive = TRUE, showWarnings = FALSE)
@@ -175,7 +218,12 @@ compute_pz_wilcox <- function(t_abun, outcome) {
 
 build_ps <- function() {
   otu_path <- system.file("extdata", "d1OTUtable.csv", package = "CATMicrobiome")
-  tax_path <- system.file("extdata", "d1Taxonomy.csv", package = "CATMicrobiome")
+  tax_path_local <- file.path(script_dir, "LLMCode", "d1Taxonomy.csv")
+  tax_path <- if (file.exists(tax_path_local)) {
+    tax_path_local
+  } else {
+    system.file("extdata", "d1Taxonomy.csv", package = "CATMicrobiome")
+  }
   meta_path <- system.file("extdata", "d1Meta.csv", package = "CATMicrobiome")
   tree_path <- system.file("extdata", "d1Tree.tree", package = "CATMicrobiome")
 
@@ -209,6 +257,18 @@ build_rank_ps <- function(ps, rank) {
 rank_display_name <- function(rank) {
   rank_norm <- tolower(rank)
   switch(rank_norm, otu = "OTU", tools::toTitleCase(rank_norm))
+}
+
+aux_rank_order <- c("phylum", "class", "order", "family", "genus", "species")
+
+normalize_target_rank <- function(target_rank) {
+  if (tolower(target_rank) == "otu") "species" else tolower(target_rank)
+}
+
+is_valid_aux_combo <- function(target_rank, aux_source) {
+  target_idx <- match(normalize_target_rank(target_rank), aux_rank_order)
+  aux_idx <- match(tolower(aux_source), aux_rank_order)
+  !is.na(target_idx) && !is.na(aux_idx) && aux_idx <= target_idx
 }
 
 make_main_df <- function(t_abun, pz_df, ps_obj, rank) {
@@ -310,14 +370,14 @@ make_aux_tax_level <- function(aux_otu, level, aux_covariates) {
     mutate(taxon_key = clean_taxon(.data[[level_col]]))
 }
 
-resolve_aux_file <- function(provider, aux_source, aux_mode) {
+resolve_aux_file <- function(provider, target_rank, aux_source, aux_mode) {
   file.path(
     script_dir,
     "sideCov",
     provider_dir_name(provider),
     aux_mode,
-    "selectionTargetOTU",
-    provider_aux_filename(provider, aux_source, aux_mode)
+    selection_target_folder(target_rank),
+    provider_aux_filename(provider, target_rank, aux_source, aux_mode)
   )
 }
 
@@ -410,7 +470,7 @@ plot_rejections_vs_q <- function(long_table, title) {
       point.padding = 0.1,
       min.segment.length = 0,
       max.overlaps = Inf,
-      seed = 1,
+      seed = run_seed,
       show.legend = FALSE
     ) +
     scale_color_manual(values = pal, breaks = ord, drop = FALSE) +
@@ -459,7 +519,7 @@ run_combo <- function(ps, provider, rank, aux_source, aux_mode, q_levels) {
 
   main_df <- make_main_df(t_abun = t_abun, pz_df = pz, ps_obj = rank_ps, rank = rank_norm)
 
-  aux_file <- resolve_aux_file(provider, aux_source_norm, aux_mode)
+  aux_file <- resolve_aux_file(provider, rank_norm, aux_source_norm, aux_mode)
   if (!file.exists(aux_file)) stop("Missing aux file: ", aux_file)
   aux_otu <- readr::read_csv(aux_file, show_col_types = FALSE)
 
@@ -493,15 +553,23 @@ run_combo <- function(ps, provider, rank, aux_source, aux_mode, q_levels) {
 
   if (length(z) < 10) stop("Too few complete rows for target rank ", rank, ".")
 
+  varying_model_covariates <- model_covariates[vapply(X, function(col) {
+    finite_vals <- col[is.finite(col)]
+    length(unique(finite_vals)) > 1
+  }, logical(1))]
+
   p_adjusted <- p.adjust(p, method = "BH")
   bh_sel <- which(p_adjusted <= 0.05)
 
   chai_fit <- tryCatch(
     load_or_fit(
-      file.path(combo_cache_root, paste0("cache_chai_target_", rank_norm, "_aux_", aux_source_norm, ".rds")),
+      file.path(
+        combo_cache_root,
+        paste0("cache_chai_target_", rank_norm, "_aux_", aux_source_norm, "_B_", chai_simulations, ".rds")
+      ),
       function() {
-        set.seed(123)
-        chai(z, X, B = 100)
+        set.seed(run_seed)
+        chai(z, X, B = chai_simulations)
       },
       valid_fun = function(obj) {
         lfdr <- tryCatch(get_chai_lfdr(obj), error = function(e) NULL)
@@ -578,20 +646,26 @@ run_combo <- function(ps, provider, rank, aux_source, aux_mode, q_levels) {
   )
 
   fdr_theo <- if (enable_fdrreg && requireNamespace("FDRreg", quietly = TRUE)) {
-    tryCatch(
-      load_or_fit(
-        file.path(combo_cache_root, paste0("cache_fdrreg_target_", rank_norm, "_aux_", aux_source_norm, ".rds")),
-        function() {
-          set.seed(123)
-          FDRreg::FDRreg(z, as.matrix(X), nulltype = "theoretical")
+    if (!length(varying_model_covariates)) {
+      message("Skipping FDRreg for ", rank_norm, " / ", aux_source_norm, " / ", aux_mode,
+              " because all covariates are constant.")
+      NULL
+    } else {
+      tryCatch(
+        load_or_fit(
+          file.path(combo_cache_root, paste0("cache_fdrreg_target_", rank_norm, "_aux_", aux_source_norm, "_drop_constant.rds")),
+          function() {
+            set.seed(run_seed)
+            FDRreg::FDRreg(z, as.matrix(X[, varying_model_covariates, drop = FALSE]), nulltype = "theoretical")
+          }
+        ),
+        error = function(e) {
+          warning("FDRreg failed for target ", rank, " / aux ", aux_source, ". Error: ",
+                  conditionMessage(e))
+          NULL
         }
-      ),
-      error = function(e) {
-        warning("FDRreg failed for target ", rank, " / aux ", aux_source, ". Error: ",
-                conditionMessage(e))
-        NULL
-      }
-    )
+      )
+    }
   } else {
     NULL
   }
@@ -685,14 +759,18 @@ run_combo <- function(ps, provider, rank, aux_source, aux_mode, q_levels) {
     chai_selected_q10 = if (!is.null(chai_fit)) length(lFDRselect(chai_lfdr, 0.10, 1)) else NA_integer_,
     chai_selected_q15 = if (!is.null(chai_fit)) length(lFDRselect(chai_lfdr, 0.15, 1)) else NA_integer_,
     chai_selected_q20 = if (!is.null(chai_fit)) length(lFDRselect(chai_lfdr, 0.20, 1)) else NA_integer_,
-    bh_selected_q05 = length(bh_sel)
+    bh_selected_q05 = length(bh_sel),
+    fdrreg_selected_q05 = if (!is.null(fdr_theo)) sum(fdr_theo$FDR <= 0.05) else NA_integer_,
+    fdrreg_selected_q10 = if (!is.null(fdr_theo)) sum(fdr_theo$FDR <= 0.10) else NA_integer_,
+    fdrreg_selected_q15 = if (!is.null(fdr_theo)) sum(fdr_theo$FDR <= 0.15) else NA_integer_,
+    fdrreg_selected_q20 = if (!is.null(fdr_theo)) sum(fdr_theo$FDR <= 0.20) else NA_integer_
   )
 }
 
 ps <- build_ps()
 q_levels <- seq(0.01, 0.20, by = 0.01)
 default_aux_modes <- c("unweighted", "weighted")
-default_aux_sources <- c("class", "order", "family", "genus", "species")
+default_aux_sources <- c("phylum", "class", "order", "family", "genus", "species")
 default_target_ranks <- c("family", "genus", "species", "otu")
 
 aux_modes <- parse_env_list("LLM_AUX_MODES", default_aux_modes)
@@ -700,13 +778,22 @@ aux_sources <- parse_env_list("LLM_AUX_SOURCES", default_aux_sources)
 target_ranks <- parse_env_list("LLM_TARGET_RANKS", default_target_ranks)
 warm_shared_target_caches(ps, target_ranks)
 
-message("Using ", worker_cores, " worker process(es) for feature-selection line plots.")
+message(
+  "Using random seed ", run_seed,
+  ", CHAI B=", chai_simulations,
+  ", and ", worker_cores, " worker process(es) for feature-selection line plots."
+)
 run_grid <- expand.grid(
   aux_mode = aux_modes,
   aux_source = aux_sources,
   rank = target_ranks,
   stringsAsFactors = FALSE
 )
+run_grid <- run_grid[
+  mapply(is_valid_aux_combo, run_grid$rank, run_grid$aux_source),
+  ,
+  drop = FALSE
+]
 
 run_one_combo <- function(i) {
   row <- run_grid[i, ]
@@ -735,10 +822,19 @@ summary_df <- bind_rows(summary_rows)
 summary_file <- file.path(provider_plot_root, "chai_cluster_summary.csv")
 if (file.exists(summary_file)) {
   existing_summary <- readr::read_csv(summary_file, show_col_types = FALSE)
-  summary_df <- bind_rows(existing_summary, summary_df) %>%
+  summary_df <- bind_rows(summary_df, existing_summary) %>%
     distinct(provider, aux_mode, aux_source, target_rank, .keep_all = TRUE)
 }
+valid_summary_keys <- run_grid %>%
+  transmute(
+    provider = provider,
+    aux_mode = aux_mode,
+    aux_source = tolower(aux_source),
+    target_rank = tolower(rank)
+  ) %>%
+  distinct()
 summary_df <- summary_df %>%
+  semi_join(valid_summary_keys, by = c("provider", "aux_mode", "aux_source", "target_rank")) %>%
   arrange(aux_mode, target_rank, aux_source)
 readr::write_csv(summary_df, summary_file)
 print(summary_df)

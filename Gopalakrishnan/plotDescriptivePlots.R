@@ -43,9 +43,26 @@ rank_display_name <- function(rank) {
   )
 }
 
+aux_rank_order <- c("phylum", "class", "order", "family", "genus", "species")
+
+normalize_target_rank <- function(target_rank) {
+  if (tolower(target_rank) == "otu") "species" else tolower(target_rank)
+}
+
+is_valid_aux_combo <- function(target_rank, aux_source) {
+  target_idx <- match(normalize_target_rank(target_rank), aux_rank_order)
+  aux_idx <- match(tolower(aux_source), aux_rank_order)
+  !is.na(target_idx) && !is.na(aux_idx) && aux_idx <= target_idx
+}
+
 build_ps <- function() {
   otu_path <- system.file("extdata", "d1OTUtable.csv", package = "CATMicrobiome")
-  tax_path <- system.file("extdata", "d1Taxonomy.csv", package = "CATMicrobiome")
+  tax_path_local <- file.path(script_dir, "LLMCode", "d1Taxonomy.csv")
+  tax_path <- if (file.exists(tax_path_local)) {
+    tax_path_local
+  } else {
+    system.file("extdata", "d1Taxonomy.csv", package = "CATMicrobiome")
+  }
   meta_path <- system.file("extdata", "d1Meta.csv", package = "CATMicrobiome")
   tree_path <- system.file("extdata", "d1Tree.tree", package = "CATMicrobiome")
 
@@ -289,6 +306,10 @@ aux_files <- list.files(
   full.names = TRUE
 )
 aux_files <- aux_files[str_detect(aux_files, "selectionTarget")]
+aux_files <- aux_files[vapply(aux_files, function(path) {
+  meta <- parse_aux_metadata(path)
+  is_valid_aux_combo(meta$target_rank, meta$aux_source)
+}, logical(1))]
 
 if (!length(aux_files)) {
   stop("No auxiliary files found under ", input_root)

@@ -4,6 +4,8 @@ import time
 from Bio import Entrez
 import xml.etree.ElementTree as ET
 
+from low_abundance_phyla import compute_low_abundance_phyla, normalize_taxon_name
+
 # --- CONFIGURATION ---
 Entrez.email = os.getenv("NCBI_EMAIL", "your.email@example.com")  # NCBI requires your email
 API_KEY = os.getenv("NCBI_API_KEY")  # Optional: improves rate limits
@@ -17,12 +19,29 @@ articles_df = pd.read_csv('unique_articles_ranked.csv')
 taxa_df = pd.read_csv('taxa_ids_filtered.csv')
 
 # Skip ranks that should not enter full-text scan / literature summarization.
-EXCLUDED_RANKS = {"kingdom", "superkingdom", "domain", "phylum"}
+EXCLUDED_RANKS = {"kingdom", "superkingdom", "domain"}
+LOW_ABUNDANCE_PHYLA = {
+    normalize_taxon_name(name).lower()
+    for name in compute_low_abundance_phyla()
+}
 if "taxon_rank" in taxa_df.columns:
     before_n = len(taxa_df)
     ranks = taxa_df["taxon_rank"].astype(str).str.strip().str.lower()
-    taxa_df = taxa_df.loc[~ranks.isin(EXCLUDED_RANKS)].copy()
-    print(f"Excluded {before_n - len(taxa_df)} taxa by rank filter: {sorted(EXCLUDED_RANKS)}")
+    current_names = (
+        taxa_df["current_scientific_name"]
+        if "current_scientific_name" in taxa_df.columns
+        else pd.Series([""] * len(taxa_df), index=taxa_df.index)
+    )
+    non_phylum_keep = ~ranks.isin(EXCLUDED_RANKS | {"phylum"})
+    phylum_keep = ranks.eq("phylum") & (
+        taxa_df["taxon"].astype(str).map(lambda x: normalize_taxon_name(x).lower()).isin(LOW_ABUNDANCE_PHYLA)
+        | current_names.astype(str).map(lambda x: normalize_taxon_name(x).lower()).isin(LOW_ABUNDANCE_PHYLA)
+    )
+    taxa_df = taxa_df.loc[non_phylum_keep | phylum_keep].copy()
+    print(
+        f"Excluded {before_n - len(taxa_df)} taxa by rank filter: "
+        f"{sorted(EXCLUDED_RANKS)} plus phyla not in low-abundance set"
+    )
 
 # --- HELPER FUNCTIONS ---
 

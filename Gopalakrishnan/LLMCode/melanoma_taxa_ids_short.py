@@ -63,6 +63,8 @@ import pandas as pd
 import requests
 from xml.etree import ElementTree as ET
 
+from low_abundance_phyla import compute_low_abundance_phyla, normalize_taxon_name
+
 DEFAULT_OUTPUT_CSV = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     ".runtime",
@@ -721,12 +723,22 @@ def filter_pmids_by_context(pmids, context):
     return [p for p in pmids if p in pmid_set]
 
 # -------------------- Main --------------------
-def should_skip_rank(rank, skip_ranks):
+def should_skip_rank(rank, skip_ranks, original_name="", current_name="", allowed_low_abundance_phyla=None):
     """
     Skip selected taxonomy ranks before PubMed search/LLM pipeline.
     If kingdom is requested, superkingdom/domain are also skipped.
     """
     r = (rank or "").strip().lower()
+    allowed_low_abundance_phyla = allowed_low_abundance_phyla or set()
+
+    if r == "phylum":
+        candidates = {
+            normalize_taxon_name(original_name).lower(),
+            normalize_taxon_name(current_name).lower(),
+        }
+        candidates.discard("")
+        return not bool(candidates & allowed_low_abundance_phyla)
+
     if r in skip_ranks:
         return True
     if "kingdom" in skip_ranks and r in {"superkingdom", "domain"}:
@@ -744,13 +756,28 @@ def main():
                     help="Max PubMed hits per query per taxon (before filtering)")
     ap.add_argument(
         "--skip-ranks",
-        default="kingdom,phylum",
-        help="Comma-separated ranks to skip for literature search (default: kingdom,phylum)",
+        default="kingdom",
+        help="Comma-separated ranks to skip for literature search (default: kingdom; low-abundance phyla are handled separately)",
+    )
+    ap.add_argument(
+        "--phylum-threshold",
+        type=float,
+        default=float(os.getenv("LOW_ABUNDANCE_PHYLA_THRESHOLD", "0.10")),
+        help="Include only phyla below this overall relative-abundance threshold (default: 0.10)",
     )
     args = ap.parse_args()
 
     skip_ranks = {x.strip().lower() for x in str(args.skip_ranks).split(",") if x.strip()}
     print(f"Skipping PubMed search for ranks: {sorted(skip_ranks)}")
+    allowed_low_abundance_phyla = {
+        normalize_taxon_name(name).lower()
+        for name in compute_low_abundance_phyla(threshold=args.phylum_threshold)
+    }
+    print(
+        "Including low-abundance phyla only (< "
+        f"{args.phylum_threshold:.2f} of total phylum abundance): "
+        f"{sorted(allowed_low_abundance_phyla)}"
+    )
 
     df = pd.read_csv(args.in_csv)
     if df.shape[1] > 1:
@@ -783,7 +810,13 @@ def main():
               f"rank={rank}, blast_name={blast_name}); "
               f"{len(aliases)} aliases (for taxonomy scoring only)")
 
-        if should_skip_rank(rank, skip_ranks):
+        if should_skip_rank(
+            rank,
+            skip_ranks,
+            original_name=taxon,
+            current_name=current_name,
+            allowed_low_abundance_phyla=allowed_low_abundance_phyla,
+        ):
             skipped_by_rank += 1
             print(f"  -> skipped due to excluded rank: {rank}")
             continue

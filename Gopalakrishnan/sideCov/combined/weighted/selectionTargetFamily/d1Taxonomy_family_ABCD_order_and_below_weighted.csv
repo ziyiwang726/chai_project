@@ -6,12 +6,13 @@
 "Bacteria","Proteobacteria","Gammaproteobacteria","Aeromonadales","Aeromonadaceae",0,0,0
 "Bacteria","Proteobacteria","Betaproteobacteria","Burkholderiales","Alcaligenaceae",0,0,0
 "Bacteria","Tenericutes","Mollicutes","Anaeroplasmatales","Anaeroplasmataceae",0,0,0
-"Bacteria","Lentisphaerae","unclassified Lentisphaerae","Bacteria","Bacteria",0,0,0
 "Bacteria","Bacteroidetes","Bacteroidia","Bacteroidales","Bacteroidaceae",-1.6843963790233,0,0
 "Bacteria","Bacteroidetes","Bacteroidia","Bacteroidales","Barnesiellaceae",-2.96773792534179,0,0
 "Bacteria","Actinobacteria","Actinobacteria","Bifidobacteriales","Bifidobacteriaceae",0,0,0
 "Bacteria","Proteobacteria","Alphaproteobacteria","Rhizobiales","Brucellaceae",0,0,0
 "Bacteria","Proteobacteria","Epsilonproteobacteria","Campylobacterales","Campylobacteraceae",0,0,0
+"Bacteria","Cyanobacteria","Candidatus Melainabacteria","Candidatus Gastranaerophilales","Candidatus Gastranaerophilaceae",0,0,0
+"Bacteria","Tenericutes","Mollicutes","Candidatus Izemoplasmatales","Candidatus Izemoplasmataceae",0,0,0
 "Bacteria","Firmicutes","Bacilli","Lactobacillales","Carnobacteriaceae",0,0,0
 "Bacteria","Verrucomicrobia","Opitutae","Cerasicoccales","Cerasicoccaceae",1.95996398454005,0,0
 "Bacteria","Cyanobacteria","Chloroplast","Chlorophyta","Chlamydomonadaceae",0,0,0
@@ -27,7 +28,6 @@
 "Bacteria","Proteobacteria","Gammaproteobacteria","Enterobacteriales","Enterobacteriaceae",-2.05374891063182,0,0
 "Bacteria","Firmicutes","Bacilli","Lactobacillales","Enterococcaceae",0,0,0
 "Bacteria","Firmicutes","Erysipelotrichi","Erysipelotrichales","Erysipelotrichaceae",0,0,0
-"Bacteria","Firmicutes","Clostridia","Clostridiales","EtOH8",0,0,0
 "Bacteria","Firmicutes","Clostridia","Clostridiales","Eubacteriaceae",0,0,0
 "Bacteria","Fusobacteria","Fusobacteriia","Fusobacteriales","Fusobacteriaceae",0,0,0
 "Bacteria","Firmicutes","Bacilli","Gemellales","Gemellaceae",0,0,0
@@ -37,10 +37,11 @@
 "Bacteria","Fusobacteria","Fusobacteriia","Fusobacteriales","Leptotrichiaceae",0,0,0
 "Bacteria","Firmicutes","Bacilli","Lactobacillales","Leuconostocaceae",1.95996398454005,0,0
 "Archaea","Euryarchaeota","Methanobacteria","Methanobacteriales","Methanobacteriaceae",0,0,0
-"Archaea","Euryarchaeota","Thermoplasmata","E2","Methanomassiliicoccaceae",0,0,0
+"Archaea","Euryarchaeota","Thermoplasmata","Methanomassiliicoccales","Methanomassiliicoccaceae",0,0,0
 "Bacteria","Actinobacteria","Actinobacteria","Actinomycetales","Micrococcaceae",0,0,0
 "Bacteria","Firmicutes","Clostridia","Clostridiales","Mogibacteriaceae",0,0,0
 "Bacteria","Proteobacteria","Gammaproteobacteria","Pseudomonadales","Moraxellaceae",-1.95996398454005,0,0
+"Bacteria","Bacteroidetes","Bacteroidia","Bacteroidales","Muribaculaceae",0,0,0
 "Bacteria","Proteobacteria","Betaproteobacteria","Neisseriales","Neisseriaceae",0,0,0
 "Bacteria","Bacteroidetes","Bacteroidia","Bacteroidales","Odoribacteraceae",-1.96859166918659,0,0
 "Bacteria","Proteobacteria","Betaproteobacteria","Burkholderiales","Oxalobacteraceae",0,0,0
@@ -54,7 +55,6 @@
 "Bacteria","Proteobacteria","Gammaproteobacteria","Pseudomonadales","Pseudomonadaceae",0,0,0
 "Bacteria","Bacteroidetes","Bacteroidia","Bacteroidales","Rikenellaceae",0,0,0
 "Bacteria","Firmicutes","Clostridia","Clostridiales","Ruminococcaceae",1.95996398454005,0,0
-"Bacteria","Bacteroidetes","Bacteroidia","Bacteroidales","S24-7",0,0,0
 "Bacteria","Bacteroidetes","Sphingobacteriia","Sphingobacteriales","Sphingobacteriaceae",0,0,0
 "Bacteria","Firmicutes","Bacilli","Bacillales","Staphylococcaceae",0,0,0
 "Bacteria","Firmicutes","Bacilli","Lactobacillales","Streptococcaceae",0,0,0
@@ -69,11 +69,10 @@
 "Bacteria","Lentisphaerae","Lentisphaeria","Victivallales","Victivallaceae",0,0,0
 "Bacteria","Bacteroidetes","Flavobacteriia","Flavobacteriales","Weeksellaceae",0,0,0
 "Bacteria","Proteobacteria","Alphaproteobacteria","Rickettsiales","mitochondria",0,0,0
+"Bacteria","Lentisphaerae","unclassified Lentisphaerae","unclassified Bacteria","unclassified Bacteria",0,0,0
 "Bacteria","Firmicutes","Clostridia","Clostridiales","unclassified Clostridiales",0,0,0
 "Bacteria","Tenericutes","RF3","ML615J-28","unclassified ML615J-28",0,0,0
 "Bacteria","Proteobacteria","Alphaproteobacteria","RF32","unclassified RF32",0,0,0
-"Bacteria","Tenericutes","Mollicutes","RF39","unclassified RF39",0,0,0
 "Bacteria","Firmicutes","Clostridia","SHA-98","unclassified SHA-98",0,0,0
 "Bacteria","Bacteroidetes","Sphingobacteriia","Sphingobacteriales","unclassified Sphingobacteriales",0,0,0
 "Bacteria","Cyanobacteria","Chloroplast","Streptophyta","unclassified Streptophyta",0,0,0
-"Bacteria","Cyanobacteria","4C0d-2","YS2","unclassified YS2",0,0,0

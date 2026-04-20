@@ -29,7 +29,7 @@ from taxon_result_utils import (
 )
 
 # --- Configuration ---
-INPUT_FILE = "taxon_article_fulltext_matrix.csv"
+INPUT_FILE = os.getenv("LLM_INPUT_FILE", "taxon_article_fulltext_matrix.csv")
 OUTPUT_FILE = os.getenv("LLM_OUTPUT_FILE", with_provider_tag("taxon_article_matrix_filled.csv"))
 FALLBACK_PREV_FILE = os.getenv("LLM_FALLBACK_PREV_FILE", with_provider_tag("taxon_article_matrix_filled_fixed.csv"))
 TAXON_INFO_FILE = "taxa_ids_filtered.csv"
@@ -587,15 +587,14 @@ def main():
     for idx in range(start_index, len(article_cols)):
         col = article_cols[idx]
 
-        # Never re-scan article columns that were already processed in previous outputs.
-        if col in scanned_cols:
-            flagged = df[col].astype(str).str.strip().isin(["1", "1.0"])
-            if flagged.any():
-                # Clear remaining flags so future runs also skip these cells.
-                df.loc[flagged, col] = ""
-            continue
-
         mask = df[col].astype(str).str.strip().isin(["1", "1.0"])
+
+        # Skip previously scanned article columns only when nothing new remains flagged.
+        if col in scanned_cols and not mask.any():
+            continue
+        if col in scanned_cols and mask.any():
+            print(f"[{idx+1}/{len(article_cols)}] {col}: reusing prior scan, processing {int(mask.sum())} newly flagged cells")
+
         target_indices = df.index[mask].tolist()
         if not target_indices:
             continue

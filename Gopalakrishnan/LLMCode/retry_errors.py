@@ -34,7 +34,7 @@ USAGE_TRACKER_FILE = os.getenv(
     "OPENAI_COST_TRACKER_FILE",
     runtime_path("cost", f"{LLM_PROVIDER}_cost_tracker.json"),
 )
-ORIGINAL_FILE = "taxon_article_fulltext_matrix.csv"
+ORIGINAL_FILE = os.getenv("LLM_ORIGINAL_FILE", "taxon_article_fulltext_matrix.csv")
 FILLED_FILE = os.getenv("LLM_FILLED_FILE", with_provider_tag("taxon_article_matrix_filled.csv"))
 OUTPUT_FILE = os.getenv("LLM_OUTPUT_FILE", FILLED_FILE)
 TAXON_INFO_FILE = "taxa_ids_filtered.csv"

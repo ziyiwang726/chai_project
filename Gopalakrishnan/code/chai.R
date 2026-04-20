@@ -5,7 +5,7 @@
 #' @param K_vec An integer value or a range specifying the numbers of mixture components.
 #' Suggest use 2 or above.
 #' If there is a vector/range, the model will automatically select the "best" based on BIC.
-#' The default is K_vec = 2:6.
+#' The default is K_vec = 2:10.
 #' @param B An integer value indicating the total number of samples the model generate to estimate the \eqn{\pi_0(x)}.
 #' The default is B = 100. More details please see the original paper.
 #'
@@ -42,7 +42,7 @@
 #' gt <- seq((n0+1), n)
 #'
 #' # Fit the model
-#' res <- chai(z, X, K_vec = 2:6, B = 100)
+#' res <- chai(z, X, K_vec = 2:10, B = 100)
 #'
 #' # Check the rejection indices
 #' clfdrselect(res$clFDR, q = 0.05)
@@ -53,7 +53,17 @@
 
 #' @export
 
-fit_mclust_with_fallback <- function(df, K_vec = 2:6, timeout_sec = 30, jitter_sd = 1e-6) {
+get_chai_seed <- function(default = 123L) {
+  option_seed <- getOption("chai.seed", default)
+  seed_value <- suppressWarnings(as.integer(option_seed))
+  if (is.na(seed_value)) {
+    default
+  } else {
+    seed_value
+  }
+}
+
+fit_mclust_with_fallback <- function(df, K_vec = 2:10, timeout_sec = 30, jitter_sd = 1e-6) {
   fit <- NULL
   fit_error <- NULL
 
@@ -97,7 +107,7 @@ fit_mclust_with_fallback <- function(df, K_vec = 2:6, timeout_sec = 30, jitter_s
     scaled
   }))
 
-  set.seed(123)
+  set.seed(get_chai_seed())
   for (col_name in names(df_stable)) {
     df_stable[[col_name]] <- df_stable[[col_name]] + stats::rnorm(nrow(df_stable), sd = jitter_sd)
   }
@@ -105,7 +115,7 @@ fit_mclust_with_fallback <- function(df, K_vec = 2:6, timeout_sec = 30, jitter_s
   mclust::Mclust(df_stable, G = K_vec)
 }
 
-chai <- function(z, X, K_vec = 2:6, B = 100) {
+chai <- function(z, X, K_vec = 2:10, B = 100) {
   # require(mclust); require(locfdr); require(admix); require(mvtnorm)
 
   df <- data.frame(as.data.frame(X))
@@ -129,7 +139,7 @@ chai <- function(z, X, K_vec = 2:6, B = 100) {
     cp <- conditionalParamsForX_custom(xVec, np$pi, np$mu, np$Sigma)
     post_w[i,] <- cp$post_weights
 
-    set.seed(123)
+    set.seed(get_chai_seed())
     rMix1 <- rGaussianMix(n = B, cp$post_weights, cp$cond_means, sqrt(cp$cond_vars))
 
     admixMod <- admix::admix_model(knownComp_dist = "norm",

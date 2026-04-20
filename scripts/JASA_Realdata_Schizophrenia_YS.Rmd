@@ -1,0 +1,279 @@
+---
+title: "JASA_Realdata_Schizophrenia"
+author: "Ziyi Wang"
+date: "2026-03-16"
+output: html_document
+---
+## Load Packages/Functions
+```{r setup, include=FALSE}
+library(knitr)
+library(locfdr)
+library(CATMicrobiome)
+library(admix)
+library(mvtnorm)
+library(mixtools)
+library(devtools)
+library(KScorrect)
+library(mclust)
+library(adaptMT)
+library(AdaPTGMM)
+library(splines2)
+library(splines)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(coin)
+library(ggrepel)
+library(viridisLite)
+library(IHW)
+library(FDRreg)
+library(OrderShapeEM)
+
+devtools::load_all("C:/Ziyi Wang/chai_package/chai")
+setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
+
+```
+
+## Real data
+### Schizophrenia - The third real data
+##### Load the data and pre-processing the data
+```{r}
+suppressPackageStartupMessages({
+  library(curatedMetagenomicData)
+  library(SummarizedExperiment)
+  library(data.table)
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+  library(ggrepel)
+  library(GGally)
+})
+
+ae5  <- read.csv("C:/Ziyi Wang/autoencoder_project/outputs/ZhuF_2020_species_AE5.csv", row.names = 1) 
+pca5 <- read.csv("C:/Ziyi Wang/autoencoder_project/outputs/ZhuF_2020_species_PCA5.csv", row.names = 1) 
+
+# Helper: extract species label
+.extract_species <- function(taxon) {
+  sp <- ifelse(grepl("s__", taxon, fixed = TRUE),
+               sub(".*s__([^|;]+).*", "\\1", taxon),
+               taxon)
+  sp <- gsub("^s__", "", sp)
+  sp <- gsub("_", " ", sp)
+  trimws(sp)
+}
+
+# Extract the relative abundance
+abun <- curatedMetagenomicData("ZhuF_2020.relative_abundance", dryrun = FALSE)
+
+# Extract the assay matrix
+abun_mat <- assay(abun[[1]], "relative_abundance")
+# 480 x 171
+
+r_names <- rownames(abun_mat)
+taxa_names <- sub("^.*\\|", "", r_names)
+species_clean <- .extract_species(taxa_names)
+rownames(abun_mat) <- species_clean
+# 480 x 171
+
+length(intersect(rownames(ae5), rownames(abun_mat)))
+common_species <- intersect(rownames(ae5), rownames(abun_mat))
+# 323 sharing
+
+abun_mat_common <- abun_mat[common_species, , drop = FALSE]
+
+# Column-Normalize (column is sample)
+cs <- colSums(abun_mat_common, na.rm = TRUE)
+cs[cs == 0] <- 1
+abun_mat_norm <- sweep(abun_mat_common, 2, cs, FUN = "/")
+
+t_abun <- t(abun_mat_norm)
+# 171 subjects x 323 species
+
+######################### outcome ###############################
+outcome <- as.factor(abun$`2021-03-31.ZhuF_2020.relative_abundance`[[5]])
+# schizophrenia 90 vs. control 81
+```
+
+##### Generating the p-value/z-value
+
+```{r}
+p_z_values <- compute_pz_wilcox(t_abun, outcome)
+
+p_value <- p_z_values[,1]
+z_value <- p_z_values[,2]
+```
+
+##### Fit models
+```{r}
+q_levels <- seq(0.01, 0.1, by = 0.01)
+################## random X #######################
+set.seed(123)
+# Standard normal noise: N(0, 1)
+noise <- rnorm(length(z_value))
+
+# Uniform noise on [0, 1]
+noise2 <- runif(length(z_value))
+
+################## chai #######################
+set.seed(123) 
+chai_zhu_ae5 <- chai(z_value, ae5, B = 100)       # autoencoder
+chai_rejs_ae5 <- sapply(q_levels, function(q) {
+  length(clfdrselect(chai_zhu_ae5$clFDR, q, 1))
+})
+
+chai_zhu_pca5 <- chai(z_value, pca5, M = 100)     # pca
+chai_rejs_pca5 <- sapply(q_levels, function(q) {
+  length(clfdrselect(chai_zhu_pca5$clFDR, q, 1))
+})
+
+chai_zhu_noise <- chai(z_value, noise, M = 100)   # noise 1 (~N(0, 1))
+chai_rejs_noise <- sapply(q_levels, function(q) {
+  length(clfdrselect(chai_zhu_noise$clFDR, q, 1))
+})
+
+chai_zhu_noise2 <- chai(z_value, noise2, M = 100) # noise 2 (~U(0, 1))
+chai_rejs_noise2 <- sapply(q_levels, function(q) {
+  length(clfdrselect(chai_zhu_noise2$clFDR, q, 1))
+})
+
+################## Adapt-glm #######################
+# autoencoder
+x_ae5 <- data.frame(ae5)
+make_ns_formulas <- function(dfs) {
+  lapply(dfs, function(d)
+    as.formula(paste0("~ ns(AE1, df=", d, ") + ns(AE2, df=", d, ") + ns(AE3, df=", d, ") + 
+                      ns(AE4, df=", d, ") + ns(AE5, df=", d, ")"))
+  )
+}
+dfs <- c(2, 4, 6, 8)
+formula_ns_ae5 <- make_ns_formulas(dfs)
+
+glm_ns_ae5 <- adapt_glm(x_ae5, pvals = p_value, alphas=q_levels, 
+                        pi_formulas = formula_ns_ae5, mu_formulas = formula_ns_ae5)
+adapt_glm_ns_ae5 <- glm_ns_ae5$nrejs
+
+################## Adapt-gmm-p #######################
+# autoencoder
+gmm_ns_p_ae5 <- adapt_gmm(x_ae5, pvals = p_value,  alphas=q_levels, 
+                          beta_formulas = formula_ns_ae5)
+adapt_gmm_p_ns_ae5 <- gmm_ns_p_ae5$nrejs
+
+################## Adapt-gmm-z #######################
+gmm_ns_z_ae5 <- adapt_gmm(x_ae5, z = z_value, alphas=q_levels, 
+                          beta_formulas = formula_ns_ae5, testing = "two_sided")
+adapt_gmm_z_ns_ae5 <- gmm_ns_z_ae5$nrejs
+
+################## OrderShapeEM #######################
+# mat: ae5_common
+run_ordershape_by_col <- function(mat, dataset = c("ae5", "pca5")) {
+  dataset <- match.arg(dataset)
+  
+  res <- vector("list", ncol(mat))
+  names(res) <- paste0("ordershape_x", seq_len(ncol(mat)), "_", dataset)
+  
+  for (j in seq_len(ncol(mat))) {
+    message("Fitting OrderShapeEM for column ", j)
+    res[[j]] <- OrderShapeEM(
+      pvals     = p_value,
+      order.var = mat[, j],
+      OrderShapeEM.control(trace = TRUE)
+    )
+  }
+  res
+}
+
+## For ae5_common (5 columns)
+ordershape_ae5 <- run_ordershape_by_col(ae5, dataset = "ae5")
+
+count_ordershape_selections <- function(os_list, q_levels) {
+  # os_list: list like ordershape_ae5 or ordershape_pca5
+  # returns a matrix: rows = q_levels, cols = each x1/x2/...
+  res <- sapply(os_list, function(os) {
+    # for one ordershape object
+    sapply(q_levels, function(q) sum(os$fdr <= q))
+  })
+  # sapply gives q_levels in rows; make that explicit:
+  rownames(res) <- paste0("q=", q_levels)
+  res
+}
+ordershape_ae5  <- count_ordershape_selections(ordershape_ae5,  q_levels)
+
+################## FDRreg #######################
+set.seed(123)
+fdr_theo_ae5 <- FDRreg(z_value, as.matrix(ae5), nulltype = 'theoretical')
+rdrreg_ae5 <- sapply(q_levels, function(q) {
+  length(which(fdr_theo_ae5$FDR <= q))
+})
+
+################# IHW ####################
+# Careful on IHW!!!!! May cause R terminated.
+ihw_x1_ae5 <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = ae5[,1], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+ihw_x2_ae5 <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = ae5[,2], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+ihw_x3_ae5 <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = ae5[,3], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+ihw_x4_ae5 <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = ae5[,4], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+ihw_x5_ae5 <- sapply(q_levels, function(q) {
+  ihw <- ihw(pvalues = p_value, covariates = ae5[,5], alpha = q, nbins = 5)
+  rejections(ihw)
+})
+
+##################### BH ######################
+bh_rejs <- sapply(q_levels, function(q) {
+  length(which(p_adjusted <= q))
+})
+
+
+# combine into data frame
+zhu_sum_ae5 <- data.frame(
+  q = q_levels,
+  chai = chai_rejs_ae5,
+  adapt_glm = adapt_glm_ns_ae5,
+  adapt_gmm_p = adapt_gmm_p_ns_ae5,
+  adapt_gmm_z = adapt_gmm_z_ns_ae5,
+  OrderShapeEM_x1 = ordershape_ae5[, 1],
+  OrderShapeEM_x2 = ordershape_ae5[, 2],
+  OrderShapeEM_x3 = ordershape_ae5[, 3],
+  OrderShapeEM_x4 = ordershape_ae5[, 4],
+  OrderShapeEM_x5 = ordershape_ae5[, 5],
+  FDRreg = rdrreg_ae5, 
+  IHW_x1 = ihw_x1_ae5, 
+  IHW_x2 = ihw_x2_ae5, 
+  IHW_x3 = ihw_x3_ae5, 
+  IHW_x4 = ihw_x4_ae5, 
+  IHW_x5 = ihw_x5_ae5, 
+  BH = bh_rejs
+)
+
+# long table
+zhu_ae <- zhu_sum_ae5 %>%
+  pivot_longer(
+    cols = -q,
+    names_to = "Method",
+    values_to = "Rejections"
+  ) %>%
+  mutate(Method = as.character(Method))
+```
+
+##### Visualization
+
+```{r}
+p_zhu_ae <- plot_rejections_vs_q(zhu_ae,
+                              title = "Number of Discoveries vs q, with Autoencoder",
+                              x_breaks = sort(unique(zhu_ae$q)))
+```
+

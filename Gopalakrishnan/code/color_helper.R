@@ -80,7 +80,8 @@ method_order <- function(methods) {
 
 
 plot_rejections_vs_q <- function(long_table, title = "Number of Discoveries vs q",
-                                 K_variants = 12, x_breaks = NULL) {
+                                 K_variants = 12, x_breaks = NULL,
+                                 label_nudge_multipliers = NULL) {
 
   ord <- method_order(long_table$Method)
   long_table <- long_table %>% mutate(Method = factor(Method, levels = ord))
@@ -96,13 +97,25 @@ plot_rejections_vs_q <- function(long_table, title = "Number of Discoveries vs q
   x_rng   <- range(long_table$q, na.rm = TRUE)
   x_nudge <- diff(x_rng) * 0.03
 
+  endpoints <- endpoints %>%
+    mutate(label_nudge_x = x_nudge)
+
+  if (!is.null(label_nudge_multipliers) && length(label_nudge_multipliers)) {
+    for (pattern in names(label_nudge_multipliers)) {
+      matches <- grepl(pattern, endpoints$label)
+      if (any(matches)) {
+        endpoints$label_nudge_x[matches] <- x_nudge * label_nudge_multipliers[[pattern]]
+      }
+    }
+  }
+
   p <- ggplot(long_table, aes(x = q, y = Rejections, group = Method, color = Method)) +
     geom_line(linewidth = 0.9, na.rm = TRUE) +
     geom_point(size = 1.8, na.rm = TRUE) +
     ggrepel::geom_text_repel(
       data = endpoints,
       aes(label = label),
-      nudge_x = x_nudge,
+      nudge_x = endpoints$label_nudge_x,
       hjust = 0,
       direction = "y",
       segment.size = 0.2,

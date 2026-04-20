@@ -79,17 +79,18 @@ tax_info2 <- tax_info %>%
   )
 
 score_cols <- c("A", "B", "C")
+aux_rank_order <- c("phylum", "class", "order", "family", "genus", "species")
 
 make_otu_table <- function(tsub, d1_tax, type = c("class", "order", "family", "genus", "species")) {
   type <- match.arg(type)
 
   lvl_seq <- switch(
     type,
-    class = c("species", "genus", "family", "order", "class"),
-    order = c("species", "genus", "family", "order"),
-    family = c("species", "genus", "family"),
-    genus = c("species", "genus"),
-    species = c("species")
+    class = c("species", "genus", "family", "order", "class", "phylum"),
+    order = c("species", "genus", "family", "order", "class", "phylum"),
+    family = c("species", "genus", "family", "order", "class", "phylum"),
+    genus = c("species", "genus", "family", "order", "class", "phylum"),
+    species = c("species", "genus", "family", "order", "class", "phylum")
   )
 
   lookups <- lapply(score_cols, function(col_name) setNames(tsub[[col_name]], tsub$taxon))
@@ -131,16 +132,35 @@ selection_target_folder <- function(target) {
   )
 }
 
-search_ranks <- function(target) {
-  fallback_order <- c("species", "genus", "family", "order", "class")
-  start_rank <- if (tolower(target) == "otu") "species" else tolower(target)
-  start_idx <- match(start_rank, fallback_order)
-  if (is.na(start_idx)) return(character())
-  fallback_order[start_idx:length(fallback_order)]
+normalize_target_rank <- function(target) {
+  if (tolower(target) == "otu") "species" else tolower(target)
+}
+
+is_valid_aux_combo <- function(target, aux_source) {
+  target_idx <- match(normalize_target_rank(target), aux_rank_order)
+  aux_idx <- match(tolower(aux_source), aux_rank_order)
+  !is.na(target_idx) && !is.na(aux_idx) && aux_idx <= target_idx
+}
+
+search_ranks <- function(target, aux_source) {
+  target_rank <- normalize_target_rank(target)
+  target_idx <- match(target_rank, aux_rank_order)
+  aux_idx <- match(tolower(aux_source), aux_rank_order)
+
+  if (is.na(target_idx) || is.na(aux_idx)) return(character())
+
+  # "aux_source and below" means the target rank plus only the allowed
+  # coarser fallback ranks up to aux_source. If aux_source is finer than the
+  # target rank, keep the search at the target rank only.
+  if (aux_idx > target_idx) {
+    return(target_rank)
+  }
+
+  rev(aux_rank_order[aux_idx:target_idx])
 }
 
 build_rank_lookups <- function(tab_ranked) {
-  lookup_ranks <- c("class", "order", "family", "genus", "species")
+  lookup_ranks <- c("phylum", "class", "order", "family", "genus", "species")
   out <- setNames(vector("list", length(score_cols)), score_cols)
 
   for (col_name in names(out)) {
@@ -188,8 +208,8 @@ fallback_value <- function(row_df, col_name, ranks_to_search, lookups) {
   0
 }
 
-make_target_table <- function(tab_ranked, target) {
-  ranks_to_search <- search_ranks(target)
+make_target_table <- function(tab_ranked, target, aux_source) {
+  ranks_to_search <- search_ranks(target, aux_source)
   if (!length(ranks_to_search)) return(NULL)
 
   out <- base_target_table(target)
@@ -228,18 +248,14 @@ write_sidecov_table <- function(df, suffix, target, aux_source) {
 
 write_all_sidecov_tables <- function(tab_ranked, suffix) {
   targets <- c("family", "genus", "species", "otu")
-  aux_sources <- c("class", "order", "family", "genus", "species")
+  aux_sources <- c("phylum", "class", "order", "family", "genus", "species")
 
   cat("\n[CHECKPOINT] Writing sideCov outputs for", suffix, "to", sidecov_root, "...\n")
 
-  target_tables <- setNames(
-    lapply(targets, function(target) make_target_table(tab_ranked, target)),
-    targets
-  )
-
   for (target in targets) {
     for (aux_source in aux_sources) {
-      tbl <- target_tables[[target]]
+      if (!is_valid_aux_combo(target, aux_source)) next
+      tbl <- make_target_table(tab_ranked, target, aux_source)
       if (is.null(tbl)) next
       write_sidecov_table(tbl, suffix, target, aux_source)
     }
@@ -259,7 +275,7 @@ run_mode <- function(input_csv, suffix) {
     left_join(tax_info2 %>% select(taxon, rank_level), by = "taxon")
 
   tab_class <- tab_ranked %>%
-    filter(!is.na(rank_level), rank_level >= rank_idx["class"]) %>%
+    filter(!is.na(rank_level), rank_level >= rank_idx["phylum"]) %>%
     select(taxon, all_of(score_cols))
 
   tab_order <- tab_ranked %>%
