@@ -68,7 +68,7 @@ Plot A below is the line chart that shows the number of genera selected by **cha
 ![Gastrectomy](figures/Erawijantari_comb.png)
 
 ### 2. 16S rRNA gene sequence data: responders vs. non-responders in a melanoma cohort
-For the full application and visualization of this real dataset, please see: [Melanoma with PCoA](https://ziyiwang726.github.io/chai_project/reports/JASA_Realdata_Melanoma_PCoA.html) and [Melanoma with LLM](https://ziyiwang726.github.io/chai_project/reports/JASA_Realdata_Melanoma_LLM.html)
+For the full application and visualization of this real dataset, please see: [Melanoma with PCoA](https://ziyiwang726.github.io/chai_project/reports/JASA_Realdata_Melanoma_PCoA.html)
 
 We tried three different analysis configurations:
 
@@ -96,7 +96,7 @@ We tried three different analysis configurations:
 
 - `(iii)`: Wilcoxon z-statistics with the LLM-derived 3 covariates as X
 
-<img src="figures/16s_wilcoxz_LLM_family_updated.png" width="60%">
+<img src="figures/16s_wilcoxz_LLM_family_updated_YS.png" width="60%">
 
 ### 3. Shotgun metagenomic sequencing data: schizophrenia vs. healthy individuals
 For the full application and visualization of this real dataset, please see: [Schizophrenia](https://ziyiwang726.github.io/chai_project/reports/JASA_Realdata_Schizophrenia.html).
