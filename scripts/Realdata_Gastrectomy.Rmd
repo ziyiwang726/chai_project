@@ -1,5 +1,5 @@
 ---
-title: "JASA_Realdata_Gastrectomy"
+title: "Realdata_Gastrectomy"
 author: "Ziyi Wang"
 date: "2026-03-16"
 output: html_document
@@ -36,11 +36,6 @@ suppressPackageStartupMessages({
 })
 ```
 
-```{r, include=FALSE}
-# Set the working direction
-setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
-```
-
 ### Load the data and pre-processing the data
 
 **Note**: The pro-processing part and model fitting chunk could be time-consuming. We saved the processed data together with the organized results after fitting the models. When knitting this HTML file, we loaded the **Gastrectomy_env.RData** file directly and generated the plots from it. 
@@ -49,11 +44,11 @@ However, for verification or reproducibility, you can also run each pre-processi
 
 ```{r, eval=FALSE}
 # Load the data
-mtb <- read.delim("./Erawijantari/mtb.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
+mtb <- read.delim("./data/Erawijantari/mtb.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
 
-genera_counts <- read.delim("./Erawijantari/genera.counts.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
+genera_counts <- read.delim("./data/Erawijantari/genera.counts.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
 
-metadata <- read.delim("./Erawijantari/metadata.tsv", header = TRUE, stringsAsFactors = FALSE)
+metadata <- read.delim("./data/Erawijantari/metadata.tsv", header = TRUE, stringsAsFactors = FALSE)
 
 table(metadata$Study.Group)
 
@@ -144,7 +139,7 @@ The processed data included:
 
 
 ```{r}
-load("./chai_env/Gastrectomy_env.RData") 
+load("./data/chai_env/Gastrectomy_env.RData") 
 ```
 
 
@@ -569,22 +564,6 @@ Eraw_comb <- p_eraw_cca  + cca_sel +
 ```{r, fig.width=14, fig.height=5, out.width='100%', warning=FALSE}
 Eraw_comb
 ```
-
-
-```{r, include=FALSE, eval=FALSE}
-# save(genera_abun, outcome, p_value, z_value, mtb_top50, cancor,
-#      chai_cca, eraw_sum, eraw_long,
-#      file = "./chai_env/Gastrectomy_env.RData")
-
-# ggsave("./plots/Erawijantari/Erawijantari_cca_updated.png", plot = p_eraw_cca, width = 8, height = 5, dpi = 300)
-
-# pdf("./plots/Erawijantari/Erawijantari_cca_z.pdf", width = 8, height = 5)
-# plot(cca_sel)
-# dev.off()
-
-# pdf("./plots/Erawijantari/Erawijantari_comb.pdf", width = 14, height = 5)
-# plot(Eraw_comb)
-# dev.off()
 
 # ggsave("./plots/Erawijantari/Erawijantari_comb.png", plot = Eraw_comb, width = 14, height = 5, dpi = 300)
 ```
