@@ -1,5 +1,5 @@
 ---
-title: "JASA_Realdata_Schizophrenia"
+title: "Realdata_Schizophrenia"
 author: "Ziyi Wang"
 date: "2026-03-16"
 output: html_document
