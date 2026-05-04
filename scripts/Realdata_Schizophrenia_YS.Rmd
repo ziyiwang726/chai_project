@@ -1,5 +1,5 @@
 ---
-title: "JASA_Realdata_Schizophrenia"
+title: "Realdata_Schizophrenia"
 author: "Ziyi Wang"
 date: "2026-03-16"
 output: html_document
@@ -28,10 +28,7 @@ library(viridisLite)
 library(IHW)
 library(FDRreg)
 library(OrderShapeEM)
-
-devtools::load_all("C:/Ziyi Wang/chai_package/chai")
-setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
-
+library(chai)
 ```
 
 ## Real data
@@ -49,8 +46,8 @@ suppressPackageStartupMessages({
   library(GGally)
 })
 
-ae5  <- read.csv("C:/Ziyi Wang/autoencoder_project/outputs/ZhuF_2020_species_AE5.csv", row.names = 1) 
-pca5 <- read.csv("C:/Ziyi Wang/autoencoder_project/outputs/ZhuF_2020_species_PCA5.csv", row.names = 1) 
+ae5  <- read.csv("./data/Zhu_autoencoder/outputs/ZhuF_2020_species_AE5.csv", row.names = 1) 
+pca5 <- read.csv("./data/Zhu_autoencoder/outputs/ZhuF_2020_species_PCA5.csv", row.names = 1) 
 
 # Helper: extract species label
 .extract_species <- function(taxon) {
