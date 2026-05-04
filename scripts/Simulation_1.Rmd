@@ -1,5 +1,5 @@
 ---
-title: "JASA_simulation 1"
+title: "Simulation 1"
 author: "Ziyi Wang"
 date: "2026-02-07"
 output: html_document
@@ -34,12 +34,6 @@ library(IHW)
 library(FDRreg)
 library(OrderShapeEM)
 library(chai)
-
-# setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
-
-# ggsave("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/plots/Simulations/SimA_fixa_1_2.png", plot = a_1_2, width = 14, height = 9, units = "in", dpi = 300)
-
-# devtools::load_all("C:/Ziyi Wang/chai_package/chai")
 ```
 
 ### Simulation generating and fit the models
@@ -236,10 +230,7 @@ Load simulation 1 results and calculate the average across 100 repeats.
 
 ```{r}
 # Load results
-results_1 <- readRDS("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/chai_env/simA_all_results_with_zero.rds")
-
-# # Load summary results
-# summary_1 <- readRDS("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/chai_env/simA_summary_with_zero.rds")
+results_1 <- readRDS("./data/chai_env/simA_all_results_with_zero.rds")
 
 # Calculate the average of selections, FDP and power.
 summary_1 <- results_1 %>%
@@ -539,19 +530,12 @@ combo <- wrap_plots(
 ) 
   # + plot_annotation(title = "Method Performance vs q")
 
-# combo
-
 a_1_2 <- wrap_plots(
   c(list(a1_fdp, a2_fdp), list(a1_pow, a2_pow)),
   nrow = 2, ncol = 2,
   byrow = FALSE
 )
   # + plot_annotation(title = "Method Performance vs q")
-# a_1_2
-
-# ggsave("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/plots/Simulations/SimA_fixa_fdr_power_updated_zero.png", plot = combo, width = 14, height = 18, units = "in", dpi = 300)
-# 
-# ggsave("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/plots/Simulations/SimA_fixa_1_2_zero.png", plot = a_1_2, width = 14, height = 9, units = "in", dpi = 300)
 
 ```
 
@@ -626,9 +610,6 @@ combo_q <- wrap_plots(
   byrow = FALSE
 ) 
   # + plot_annotation(title = "Method Performance vs a")
-
-# ggsave("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/plots/Simulations/SimA_fixq_fdr_power_updated_zero.png", plot = combo_q, width = 14, height = 12, units = "in", dpi = 300)
-
 ```
 
 ```{r, fig.width=14, fig.height=12, out.width='100%', warning=FALSE}
