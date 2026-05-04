@@ -1,5 +1,5 @@
 ---
-title: "JASA_Realdata_Gastrectomy"
+title: "Realdata_Gastrectomy"
 author: "Ziyi Wang"
 date: "2026-03-16"
 output: html_document
@@ -29,10 +29,7 @@ library(viridisLite)
 library(IHW)
 library(FDRreg)
 library(OrderShapeEM)
-
-devtools::load_all("C:/Ziyi Wang/chai_package/chai")
-# setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
-
+library(chai)
 ```
 
 ## Real data
@@ -40,11 +37,11 @@ devtools::load_all("C:/Ziyi Wang/chai_package/chai")
 ##### Load the data and pre-processing the data
 ```{r}
 # Load the data
-mtb <- read.delim("./Erawijantari/mtb.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
+mtb <- read.delim("./data/Erawijantari/mtb.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
 
-genera_counts <- read.delim("./Erawijantari/genera.counts.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
+genera_counts <- read.delim("./data/Erawijantari/genera.counts.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
 
-metadata <- read.delim("./Erawijantari/metadata.tsv", header = TRUE, stringsAsFactors = FALSE)
+metadata <- read.delim("./data/Erawijantari/metadata.tsv", header = TRUE, stringsAsFactors = FALSE)
 
 table(metadata$Study.Group)
 
