@@ -1,5 +1,5 @@
 ---
-title: "JASA_simulations"
+title: "Simulations"
 author: "Ziyi Wang"
 date: "2026-02-07"
 output: html_document
@@ -29,8 +29,7 @@ library(viridisLite)
 library(IHW)
 library(FDRreg)
 library(OrderShapeEM)
-
-devtools::load_all("C:/Ziyi Wang/chai_package/chai")
+library(chai)
 ```
 
 ## Simulations
