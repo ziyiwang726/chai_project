@@ -1,5 +1,5 @@
 ---
-title: "JASA_Simulation_2"
+title: "Simulation_2"
 author: "Ziyi Wang"
 date: "2026-03-23"
 output: html_document
@@ -30,7 +30,6 @@ suppressPackageStartupMessages({
   library(chai)
 })
 
-# devtools::load_all("C:/Ziyi Wang/chai_package/chai")
 ```
 
 ### Simulation generating and fit the models
@@ -375,7 +374,7 @@ runtime_summary <- runtime_2 |>
 Load simulation 2 results and calculate the average across 100 repeats.
 
 ```{r}
-results_2 <- readRDS("./chai_env/simZ_all_results_with_zero.rds")
+results_2 <- readRDS("./data/chai_env/simZ_all_results_with_zero.rds")
 
 summary_2 <- results_2 %>%
   group_by(Method, q) %>%
@@ -576,7 +575,6 @@ p_power <- plot_metric(simZ_long, "Power", "Mean Power", "Power vs q")
 library(patchwork)
 combo <- p_fdp + p_power # + plot_annotation(title = "Method Performance vs q")
 
-# ggsave("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/plots/Simulations/SimZ_fdr_power_updated_zero.png", plot = combo, width = 14, height = 5, dpi = 300)
 ```
 
 ```{r, fig.width=14, fig.height=5, out.width='100%', warning=FALSE}
