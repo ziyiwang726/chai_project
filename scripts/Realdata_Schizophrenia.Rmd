@@ -763,25 +763,3 @@ p_ae_pca <- ggplot(zhu_long_methods,
 p_ae_pca
 ```
 
-
-```{r, include=FALSE, eval=FALSE}
-# save(p_value, z_value, outcome, t_abun, 
-#      ae5, pca5, noise, noise2,
-#      chai_zhu_ae5, chai_zhu_pca5, chai_zhu_noise, chai_zhu_noise2, 
-#      zhu_ae, zhu_ae_long,
-#      zhu_ae_pca, zhu_ae_pca_long,
-#      file = "./chai_env/Schizophrenia_env.RData")
-
-# ggsave("./plots/Zhu/Zhu_AE_updated.png", plot = p_zhu_ae, width = 8, height = 5, dpi = 300)
-
-# pdf("./plots/Zhu/Zhu_AE_updated.pdf", width = 8, height = 5)
-# plot(p_zhu_ae)
-# dev.off()
-
-
-# ggsave("./plots/Zhu/Zhu_AE5_vs_PCA5_vs_noise.png", plot = p_ae_pca, width = 8, height = 5, dpi = 300)
-
-# pdf("./plots/Zhu/Zhu_AE5_vs_PCA5_vs_noise.pdf", width = 8, height = 5)
-# plot(p_ae_pca)
-# dev.off()
-```
