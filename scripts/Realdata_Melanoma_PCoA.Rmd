@@ -1,5 +1,5 @@
 ---
-title: "JASA_Realdata_Melanoma_PCoA"
+title: "Realdata_Melanoma_PCoA"
 author: "Ziyi Wang"
 date: "2026-03-30"
 output: html_document
@@ -33,11 +33,6 @@ suppressPackageStartupMessages({
   library(chai)
 })
 
-```
-
-```{r, include=FALSE}
-# Set the working direction
-setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
 ```
 
 ### Load the raw data and pre-processing the data
@@ -150,7 +145,7 @@ The processed data included:
 
 
 ```{r}
-load("./chai_env/Gopalakrishnan_16s_PCoA_env.RData") 
+load("./data/chai_env/Gopalakrishnan_16s_PCoA_env.RData") 
 ```
 
 
@@ -663,27 +658,6 @@ p4 <- p3 +
 p4
 ```
 
-
-```{r, include=FALSE, eval=FALSE}
-# save(z_value, p_value, family_pcoa, t_abun, outcome, family,
-#      chai_family_pcoa, gopa_fam_16s, gopa_fam_16s_long,
-#      chai_family_pcoa_DES, gopa_fam_16s_DES, gopa_fam_16s_DES_long,
-#      file = "./chai_env/Gopalakrishnan_16s_PCoA_env.RData")
-
-
-# ggsave("./plots/Gopalakrishnan/16s_wilcoxz_pcoa_family_updated.png", plot = p_PCoA, width = 8, height = 5, dpi = 300)
-
-# ggsave("./plots/Gopalakrishnan/16s_DES_pcoa_family_updated.png", plot = p_PCoA_DES, width = 8, height = 5, dpi = 300)
-
-# ggsave("./plots/Gopalakrishnan/16s_DESeq2_PCoA_phylo_tree.png", plot = p4, width = 8, height = 8, dpi = 300)
-
-# library(patchwork)
-# combo <- p_PCoA + p_PCoA_DES + p_LLM +
-#   plot_annotation(tag_levels = "A")
-
-# pdf("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/plots/Gopalakrishnan/linechart_combo.pdf", width = 24, height = 5)
-# plot(combo)
-# dev.off()
 
 ```
 
