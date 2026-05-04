@@ -27,7 +27,7 @@ To install the `chai` package, please visit: **[chai](https://github.com/ziyiwan
   Contains all related figures.
 
 ## Simulation 1 - One dimensional auxiliary-information
-For the generation and visualization of **Simulation 1**, please see: [Simulation 1](https://ziyiwang726.github.io/chai_project/reports/JASA_Simulation_1.html).  
+For the generation and visualization of **Simulation 1**, please see: [Simulation 1](https://ziyiwang726.github.io/chai_project/reports/Simulation_1.html).  
 
 #### Simulation setting
 Briefly, this simulation considers a multiple testing setting with 1,000 hypotheses, including 950 null hypotheses and two non-null groups with positive and negative signals. 
@@ -43,7 +43,7 @@ Here is the line chart of **chai** and other benchmark methods in simulation 1 w
 ![Simulation 1 - FDR and power](figures/SimA_fixa_1_2_zero.png)
 
 ## Simulation 2 - Two dimensional auxiliary-information
-For the generation and visualization of **Simulation 2**, please see: [Simulation 2](https://ziyiwang726.github.io/chai_project/reports/JASA_Simulation_2.html).  
+For the generation and visualization of **Simulation 2**, please see: [Simulation 2](https://ziyiwang726.github.io/chai_project/reports/Simulation_2.html).  
 
 #### Simulation setting
 This simulation also considers a multiple testing setting with 1,000 hypotheses, including 950 null hypotheses and two non-null groups with positive (25) and negative signals (25). 
@@ -60,7 +60,7 @@ This line chart shows the number of rejected hypotheses selected by **chai** and
 ## Real data
 
 ### 1. Shotgun metagenomic sequencing data: gastrectomy vs. healthy individuals
-For the full application and visualization of this real dataset, please see: [Gastrectomy](https://ziyiwang726.github.io/chai_project/reports/JASA_Realdata_Gastrectomy.html).
+For the full application and visualization of this real dataset, please see: [Gastrectomy](https://ziyiwang726.github.io/chai_project/reports/Realdata_Gastrectomy.html).
 
 #### Results
 Plot A below is the line chart that shows the number of genera selected by **chai** and other benchmark methods with canonical correlations between each genus and the metabolite profiles as side information, at different target FDR level ($q$) in this post-gastrectomy dataset. Plot B is the scatter plot of the Canonical correlation coefficient vs. z-statistics, colored by whether it selected by **chai** and/or **BH**. 
@@ -68,7 +68,7 @@ Plot A below is the line chart that shows the number of genera selected by **cha
 ![Gastrectomy](figures/Erawijantari_comb.png)
 
 ### 2. 16S rRNA gene sequence data: responders vs. non-responders in a melanoma cohort
-For the full application and visualization of this real dataset, please see: [Melanoma with PCoA](https://ziyiwang726.github.io/chai_project/reports/JASA_Realdata_Melanoma_PCoA.html)
+For the full application and visualization of this real dataset, please see: [Melanoma with PCoA](https://ziyiwang726.github.io/chai_project/reports/Realdata_Melanoma_PCoA.html)
 
 We tried three different analysis configurations:
 
@@ -99,7 +99,7 @@ We tried three different analysis configurations:
 <img src="figures/16s_wilcoxz_LLM_fam_classandbelow_YS.png" width="60%">
 
 ### 3. Shotgun metagenomic sequencing data: schizophrenia vs. healthy individuals
-For the full application and visualization of this real dataset, please see: [Schizophrenia](https://ziyiwang726.github.io/chai_project/reports/JASA_Realdata_Schizophrenia.html).
+For the full application and visualization of this real dataset, please see: [Schizophrenia](https://ziyiwang726.github.io/chai_project/reports/Realdata_Schizophrenia.html).
 
 #### Results
 
