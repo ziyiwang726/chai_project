@@ -36,11 +36,6 @@ suppressPackageStartupMessages({
 })
 ```
 
-```{r, include=FALSE}
-# Set the working direction
-setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
-```
-
 ### Load the data and pre-processing the data
 
 **Note**: The pro-processing part and model fitting chunk could be time-consuming. We saved the processed data together with the organized results after fitting the models. When knitting this HTML file, we loaded the **Schizophrenia_env.RData** file directly and generated the plots from it. 
@@ -48,8 +43,8 @@ setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
 However, for verification or reproducibility, you can also run each pre-processing chunk and/or model-fitting chunk one by one, while skiping the chunk that loads the .RData file. This should produce the same results.
 
 ```{r, eval=FALSE, message=FALSE, warning=FALSE}
-ae5  <- read.csv("./autoencoder_project/outputs/ZhuF_2020_species_AE5.csv", row.names = 1)
-pca5 <- read.csv("./autoencoder_project/outputs/ZhuF_2020_species_PCA5.csv", row.names = 1) 
+ae5  <- read.csv("./data/Zhu_autoencoder/outputs/ZhuF_2020_species_AE5.csv", row.names = 1)
+pca5 <- read.csv("./data/Zhu_autoencoder/outputs/ZhuF_2020_species_PCA5.csv", row.names = 1) 
 
 # Helper: extract species label
 .extract_species <- function(taxon) {
@@ -148,7 +143,7 @@ The processed data included:
 
 
 ```{r}
-load("./chai_env/Schizophrenia_env.RData") 
+load("./data/chai_env/Schizophrenia_env.RData") 
 ```
 
 
