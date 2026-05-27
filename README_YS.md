@@ -28,10 +28,60 @@ To install the `chai` package, please visit: **[chai](https://github.com/ziyiwan
 
 ## Setup Notes
 
-- On macOS, install the official GNU Fortran toolchain from the R for macOS tools page before installing source-built R packages such as `FDRreg`:
+### 1. Install the `chai` R package
+
+The simulations and real-data scripts depend on the `chai` package, which is **not** included here. Install it from GitHub:
+
+```r
+devtools::install_github("ziyiwang726/chai")
+```
+
+The "main" Rmd files (e.g. `scripts/Realdata_Gastrectomy.Rmd`) call `library(chai)` and assume an installed copy. The "_YS" Rmd files (e.g. `scripts/Realdata_Gastrectomy_YS.Rmd`) also call `library(chai)` upstream; the only Rmd that still uses `devtools::load_all(...)` against a local source checkout is `scripts/JASA_Realdata_Melanoma_YS.Rmd`. To run that one, either:
+
+- clone https://github.com/ziyiwang726/chai as a sibling of this project (so it lives at `../chai`), or
+- export `CHAI_PKG_PATH=/path/to/chai` before launching R/RStudio.
+
+### 2. Install the other R packages
+
+```r
+source("Gopalakrishnan/install_packages.R")
+```
+
+This script handles CRAN, Bioconductor, and GitHub-only dependencies (`CATMicrobiome`, `AdaPTGMM`, `adaptMT`, `FDRreg`, `OrderShapeEM`). Restart R after it finishes.
+
+On macOS, install the official GNU Fortran toolchain from the R for macOS tools page before installing source-built packages such as `FDRreg`:
   https://mac.r-project.org/tools/
 
-- Current CRAN R builds expect the GNU Fortran runtime under `/opt/gfortran`. If it is missing, packages that link against Fortran libraries may fail during installation.
+Current CRAN R builds expect the GNU Fortran runtime under `/opt/gfortran`. If it is missing, packages that link against Fortran libraries may fail during installation. The install script will detect this and print the exact `curl ... && sudo installer ...` command to run.
+
+### 3. Working directory and data layout
+
+All scripts expect to be run/knit **from the project root**. Data is laid out as:
+
+```
+data/Erawijantari/      # mtb.tsv, genera.counts.tsv, metadata.tsv
+data/Zhu_autoencoder/   # ZhuF_2020_species_pathway.csv
+data/Zhu_autoencoder/outputs/  # ZhuF_2020_species_AE5.csv, ZhuF_2020_species_PCA5.csv
+data/chai_env/          # cached simulation .rds files (e.g. simA_all_results_with_zero.rds)
+```
+
+The melanoma 16S OTU table, taxonomy, metadata, and tree are loaded from the `CATMicrobiome` GitHub package via `system.file("extdata", ...)`, so no extra download is needed once that package is installed.
+
+### 4. Known gaps in the YS scripts
+
+The `_YS.Rmd` files are working drafts kept alongside the "main" Rmd files. A few sections still reference inputs that are not yet shipped in this repository — most notably:
+
+- `scripts/JASA_Realdata_Melanoma_YS.Rmd` reads `./LLM_from_Yushu/d1Taxonomy_OTU_ABCD_class_and_below.csv`. The equivalent shipped file is `Gopalakrishnan/sideCov/combined/weighted/selectionTargetOTU/d1Taxonomy_OTU_ABCD_class_and_below_weighted.csv` (point the `read_csv(...)` call at it, or copy the file into `LLM_from_Yushu/`).
+
+The "main" `Realdata_*.Rmd` files do not have this gap; they `load("./chai_env/<dataset>_env.RData")` to pick up pre-computed results, so you only need that `.RData` archive (not shipped — re-create it by knitting the YS variant once).
+
+### 5. Source code layout
+
+The R helper functions used by `chai` and by the analysis scripts live in `Gopalakrishnan/code/`. Earlier copies were duplicated under a top-level `code/` directory; that directory has now been removed and any incremental fixes (extra input validation, `+Inf` log-prob handling, NA/Inf checks for mixing weights) merged into the canonical `Gopalakrishnan/code/` versions.
+
+### 6. LLM pipeline (Gopalakrishnan/LLMCode/) for external users
+
+The literature-evidence pipeline under `Gopalakrishnan/LLMCode/` calls Anthropic / OpenAI / Gemini APIs. Copy `Gopalakrishnan/LLMCode/.env.example` to `Gopalakrishnan/LLMCode/.env` and fill in a key for whichever provider you plan to use; you do **not** need a Cornell key. See `Gopalakrishnan/LLMCode/README.md` for run commands.
 
 ## Simulation 1 - One dimensional auxiliary-information
 For the generation and visualization of **Simulation 1**, please see: [Simulation 1](reports/JASA_Simulation_1.html).  

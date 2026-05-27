@@ -5,6 +5,9 @@ conditionalParamsForX_custom <- function(xVec,         # length q
   K <- length(piVec)
   q <- nrow(muMat)-1
   stopifnot(length(xVec) == q)
+  if (anyNA(piVec) || any(!is.finite(piVec)) || any(piVec < 0) || sum(piVec) <= 0) {
+    stop("piVec must be finite, non-negative, and sum to a positive value.", call. = FALSE)
+  }
 
   make_posdef <- function(S, eps = 1e-6) {
     S_sym <- (S + t(S)) / 2
@@ -25,12 +28,6 @@ conditionalParamsForX_custom <- function(xVec,         # length q
     stop("SigmaList must be a 3‑D array or a list of covariance matrices.")
   }
 
-  # # Test if the sigma_xx is positive definite -> TRUE/FALSE
-  # is_posdef <- function(S) {
-  #   ev <- eigen(S, symmetric = TRUE, only.values = TRUE)$values
-  #   all(ev > 1e-8)
-  # }
-  #
   # Posterior weights p(k | x) ∝ pi_k * N_q(x | mu_xk, Sigma_xxk)
   logNumer <- numeric(K)
   for (k in seq_len(K)) {
@@ -47,19 +44,26 @@ conditionalParamsForX_custom <- function(xVec,         # length q
     }
   }
 
-  # log-sum-exp for stability
-  finite_idx <- is.finite(logNumer)
-  if (!any(finite_idx)) {
-    post_w <- rep(1 / K, K)
+  # If one or more components dominate with +Inf log-prob, assign mass to them uniformly.
+  pos_inf <- is.infinite(logNumer) & (logNumer > 0)
+  if (any(pos_inf)) {
+    post_w <- numeric(K)
+    post_w[pos_inf] <- 1 / sum(pos_inf)
   } else {
-    m <- max(logNumer[finite_idx])
-    numerator <- rep(0, K)
-    numerator[finite_idx] <- exp(logNumer[finite_idx] - m)
-    numerator_sum <- sum(numerator)
-    if (!is.finite(numerator_sum) || numerator_sum <= 0) {
+    # log-sum-exp for stability
+    finite_idx <- is.finite(logNumer)
+    if (!any(finite_idx)) {
       post_w <- rep(1 / K, K)
     } else {
-      post_w <- numerator / numerator_sum
+      m <- max(logNumer[finite_idx])
+      numerator <- rep(0, K)
+      numerator[finite_idx] <- exp(logNumer[finite_idx] - m)
+      numerator_sum <- sum(numerator)
+      if (!is.finite(numerator_sum) || numerator_sum <= 0) {
+        post_w <- rep(1 / K, K)
+      } else {
+        post_w <- numerator / numerator_sum
+      }
     }
   }
 

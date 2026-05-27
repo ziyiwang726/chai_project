@@ -30,8 +30,11 @@ library(IHW)
 library(FDRreg)
 library(OrderShapeEM)
 
-devtools::load_all("C:/Ziyi Wang/chai_package/chai")
-setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
+# Point CHAI_PKG_PATH (env var) at your local chai package source,
+# or edit the default below. The default assumes chai is a sibling
+# directory of this project. Knit from the project root.
+chai_pkg <- Sys.getenv("CHAI_PKG_PATH", "../chai")
+devtools::load_all(chai_pkg)
 
 ```
 

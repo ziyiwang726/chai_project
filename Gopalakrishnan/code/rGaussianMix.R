@@ -9,6 +9,9 @@
 rGaussianMix <- function(n, pi, mu, sigma) {
   # Check inputs
   K <- length(pi)
+  if (!is.numeric(pi) || anyNA(pi) || any(!is.finite(pi)) || any(pi < 0)) {
+    stop("Mixing proportions must be finite and non-negative.")
+  }
   if (abs(sum(pi) - 1) > 1e-8) stop("Mixing proportions must sum to 1.")
   if (!(length(mu) == K && length(sigma) == K)) {
     stop("mu and sigma must have the same length as pi.")

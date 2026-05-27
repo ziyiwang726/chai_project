@@ -443,6 +443,28 @@ fit_ordershape <- function(p, covariate, covariate_name) {
   )
 }
 
+build_selection_table <- function(df_model_complete, selected_idx, method, q_value) {
+  selected_idx <- as.integer(selected_idx)
+  base_cols <- c(
+    "otu_rep", "rank_value", "taxon_key",
+    "p_main", "z_main", "xA", "xB", "xC",
+    "p_adjusted", "clFDR"
+  )
+
+  out <- tibble::as_tibble(df_model_complete[, base_cols, drop = FALSE])
+  out <- out[0, , drop = FALSE]
+  if (!length(selected_idx)) {
+    out$method <- character(0)
+    out$q <- numeric(0)
+    return(out[, c("method", "q", base_cols)])
+  }
+
+  out <- tibble::as_tibble(df_model_complete[selected_idx, base_cols, drop = FALSE])
+  out$method <- method
+  out$q <- q_value
+  out[, c("method", "q", base_cols)]
+}
+
 plot_rejections_vs_q <- function(long_table, title) {
   ord <- method_order(long_table$Method)
   long_table <- long_table %>% mutate(Method = factor(Method, levels = ord))
@@ -547,6 +569,7 @@ run_combo <- function(ps, provider, rank, aux_source, aux_mode, q_levels) {
   p <- df_model$p_main
   X <- as.data.frame(df_model[, model_covariates, drop = FALSE])
   keep <- complete.cases(z, p, X)
+  df_model_complete <- df_model[keep, , drop = FALSE]
   z <- z[keep]
   p <- p[keep]
   X <- X[keep, , drop = FALSE]
@@ -583,6 +606,8 @@ run_combo <- function(ps, provider, rank, aux_source, aux_mode, q_levels) {
     }
   )
   chai_lfdr <- if (!is.null(chai_fit)) get_chai_lfdr(chai_fit) else rep(NA_real_, length(z))
+  df_model_complete$p_adjusted <- p_adjusted
+  df_model_complete$clFDR <- chai_lfdr
 
   formula_ns <- lapply(c(2, 4, 6), function(df_value) build_ns_formula(X, df_value))
 
@@ -730,6 +755,12 @@ run_combo <- function(ps, provider, rank, aux_source, aux_mode, q_levels) {
     mode_plot_root,
     sprintf("feature_selection_target_%s_aux_%s_%s.pdf", rank_norm, aux_source_norm, aux_mode)
   )
+  detailed_data_root <- file.path(mode_plot_root, "detailedData")
+  dir.create(detailed_data_root, recursive = TRUE, showWarnings = FALSE)
+  out_rdata <- file.path(
+    detailed_data_root,
+    sprintf("feature_selection_target_%s_aux_%s_%s.RData", rank_norm, aux_source_norm, aux_mode)
+  )
   p_rank <- plot_rejections_vs_q(
     rank_long,
     title = paste0(
@@ -745,6 +776,56 @@ run_combo <- function(ps, provider, rank, aux_source, aux_mode, q_levels) {
     )
   )
   ggsave(out_pdf, p_rank, width = 10, height = 5)
+
+  chai_selected_q05 <- build_selection_table(
+    df_model_complete,
+    if (!is.null(chai_fit)) lFDRselect(chai_lfdr, 0.05, 1) else integer(0),
+    "CHAI",
+    0.05
+  )
+  chai_selected_q10 <- build_selection_table(
+    df_model_complete,
+    if (!is.null(chai_fit)) lFDRselect(chai_lfdr, 0.10, 1) else integer(0),
+    "CHAI",
+    0.10
+  )
+  bh_selected_q05 <- build_selection_table(
+    df_model_complete,
+    which(p_adjusted <= 0.05),
+    "BH",
+    0.05
+  )
+  bh_selected_q10 <- build_selection_table(
+    df_model_complete,
+    which(p_adjusted <= 0.10),
+    "BH",
+    0.10
+  )
+  selected_features_long <- bind_rows(
+    chai_selected_q05,
+    chai_selected_q10,
+    bh_selected_q05,
+    bh_selected_q10
+  )
+  selection_metadata <- list(
+    provider = provider,
+    aux_mode = aux_mode,
+    aux_source = aux_source_norm,
+    target_rank = rank_norm,
+    aux_file = normalizePath(aux_file, mustWork = FALSE),
+    output_pdf = normalizePath(out_pdf, mustWork = FALSE),
+    q_values = c(0.05, 0.10),
+    methods = c("CHAI", "BH")
+  )
+  save(
+    selection_metadata,
+    selected_features_long,
+    chai_selected_q05,
+    chai_selected_q10,
+    bh_selected_q05,
+    bh_selected_q10,
+    file = out_rdata
+  )
 
   tibble::tibble(
     provider = provider,
@@ -820,11 +901,6 @@ if (.Platform$OS.type == "unix" && worker_cores > 1) {
 
 summary_df <- bind_rows(summary_rows)
 summary_file <- file.path(provider_plot_root, "chai_cluster_summary.csv")
-if (file.exists(summary_file)) {
-  existing_summary <- readr::read_csv(summary_file, show_col_types = FALSE)
-  summary_df <- bind_rows(summary_df, existing_summary) %>%
-    distinct(provider, aux_mode, aux_source, target_rank, .keep_all = TRUE)
-}
 valid_summary_keys <- run_grid %>%
   transmute(
     provider = provider,
@@ -833,8 +909,14 @@ valid_summary_keys <- run_grid %>%
     target_rank = tolower(rank)
   ) %>%
   distinct()
+if (file.exists(summary_file)) {
+  existing_summary <- readr::read_csv(summary_file, show_col_types = FALSE)
+  preserved_summary <- existing_summary %>%
+    anti_join(valid_summary_keys, by = c("provider", "aux_mode", "aux_source", "target_rank"))
+  summary_df <- bind_rows(summary_df, preserved_summary) %>%
+    distinct(provider, aux_mode, aux_source, target_rank, .keep_all = TRUE)
+}
 summary_df <- summary_df %>%
-  semi_join(valid_summary_keys, by = c("provider", "aux_mode", "aux_source", "target_rank")) %>%
   arrange(aux_mode, target_rank, aux_source)
 readr::write_csv(summary_df, summary_file)
 print(summary_df)

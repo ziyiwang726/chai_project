@@ -14,6 +14,37 @@ The streamlined execution paths are:
 - Limited retry auto-detection in `retry_errors.py` to unresolved entries only.
 - Added robust PMC title parsing (namespace-agnostic XML) to avoid false "PMCID invalid or no title" exclusions.
 
+## Configuration (API keys)
+
+Copy `.env.example` to `.env` in this folder and fill in the keys you have. `.env` is gitignored — never commit real keys.
+
+### External users (standard public APIs)
+
+You only need a key for the provider you plan to use. Leave `OPENAI_BASE_URL` / `API_BASE_URI` unset; the pipeline will then call the official public endpoints (`api.openai.com`, `api.anthropic.com`, Google Generative Language) via their respective SDKs.
+
+```bash
+# pick one
+export LLM_PROVIDER=openai     OPENAI_API_KEY=sk-...
+export LLM_PROVIDER=claude     ANTHROPIC_API_KEY=sk-ant-...
+export LLM_PROVIDER=gemini     GEMINI_API_KEY=...
+```
+
+NCBI access also requires `NCBI_EMAIL` (and optionally `NCBI_API_KEY` for higher rate limits).
+
+### Cornell users (LiteLLM proxy, one key for all three)
+
+If you have a Cornell LiteLLM key, set both `OPENAI_BASE_URL` and the key, then choose a proxy-prefixed model:
+
+```bash
+export OPENAI_BASE_URL=https://api.ai.it.cornell.edu
+export CORNELL_API_KEY=...   # or OPENAI_API_KEY=...
+export LLM_PROVIDER=openai LLM_MODEL=openai.gpt-5.4
+# or  LLM_PROVIDER=claude LLM_MODEL=anthropic.claude-4.6-opus
+# or  LLM_PROVIDER=gemini LLM_MODEL=google.gemini-3.1-pro-preview
+```
+
+When `OPENAI_BASE_URL` is set, the same proxy key is reused for all three providers.
+
 ## Recommended Run Modes
 
 ### A) Full run
@@ -28,26 +59,6 @@ The streamlined execution paths are:
 This skips upstream taxonomy + PubMed ID discovery and starts from downstream files.
 The resume path now re-applies `filter_taxa_ids.py` to the edited `taxa_ids_filtered.csv`
 before rebuilding `unique_articles_ranked.csv`.
-
-### Cornell proxy switching
-If you are using the Cornell LiteLLM proxy, set `OPENAI_BASE_URL=https://api.ai.it.cornell.edu` and switch models with `LLM_PROVIDER` + `LLM_MODEL`.
-
-```bash
-export LLM_PROVIDER=openai
-export LLM_MODEL=openai.gpt-5.4
-```
-
-```bash
-export LLM_PROVIDER=gemini
-export LLM_MODEL=google.gemini-3.1-pro-preview
-```
-
-```bash
-export LLM_PROVIDER=claude
-export LLM_MODEL=anthropic.claude-4.6-opus
-```
-
-With the proxy configured, the same Cornell key can be used for all three providers.
 
 ### C) Skip LLM calls
 ```bash
