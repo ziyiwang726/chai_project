@@ -1,0 +1,15 @@
+"feature_id","kingdom","phylum","class","order","family","genus","genus_clean","clFDR"
+"OTU_806","k__Bacteria","p__Firmicutes","c__Clostridia","o__Clostridiales","f__Dehalobacteriaceae","g__unclassified Dehalobacteriaceae","unclassified Dehalobacteriaceae",0.552747932218098
+"OTU_695","k__Bacteria","p__Firmicutes","c__Clostridia","o__Clostridiales","f__Ruminococcaceae","g__Ruminiclostridium","Ruminiclostridium",0.58081164820664
+"OTU_298","k__Bacteria","p__Proteobacteria","c__Gammaproteobacteria","o__Pseudomonadales","f__Pseudomonadaceae","g__Pseudomonas","Pseudomonas",0.595511349121698
+"OTU_995","k__Bacteria","p__Proteobacteria","c__Gammaproteobacteria","o__Pseudomonadales","f__Moraxellaceae","g__Enhydrobacter","Enhydrobacter",0.615879646300155
+"OTU_970","k__Bacteria","p__Proteobacteria","c__Gammaproteobacteria","o__Enterobacteriales","f__Enterobacteriaceae","g__Pantoea","Pantoea",0.634814011088668
+"OTU_208","k__Bacteria","p__Proteobacteria","c__Gammaproteobacteria","o__Enterobacteriales","f__Enterobacteriaceae","g__Proteus","Proteus",0.635080114599139
+"OTU_1328","k__Bacteria","p__Proteobacteria","c__Gammaproteobacteria","o__Enterobacteriales","f__Enterobacteriaceae","g__Citrobacter","Citrobacter",0.640416998878288
+"OTU_1308","k__Bacteria","p__Proteobacteria","c__Gammaproteobacteria","o__Aeromonadales","f__Aeromonadaceae","g__unclassified Aeromonadaceae","unclassified Aeromonadaceae",0.647101412648248
+"OTU_42","k__Bacteria","p__Bacteroidetes","c__Bacteroidia","o__Bacteroidales","f__Porphyromonadaceae","g__Dysgonomonas","Dysgonomonas",0.816321932033736
+"OTU_259","k__Bacteria","p__Lentisphaerae","c__Lentisphaeria","o__Victivallales","f__Victivallaceae","g__unclassified Victivallaceae","unclassified Victivallaceae",0.847896334753299
+"OTU_198","k__Bacteria","p__Bacteroidetes","c__Bacteroidia","o__Bacteroidales","f__Odoribacteraceae","g__Butyricimonas","Butyricimonas",0.862610680625607
+"OTU_52","k__Bacteria","p__Firmicutes","c__Clostridia","o__Clostridiales","f__Lachnospiraceae","g__Lachnospira","Lachnospira",0.949198359055659
+"OTU_222","k__Bacteria","p__Firmicutes","c__Clostridia","o__Clostridiales","f__Lachnospiraceae","g__Anaerostipes","Anaerostipes",1.02705164505598
+"OTU_175","k__Bacteria","p__Firmicutes","c__Bacilli","o__Lactobacillales","f__Lactobacillaceae","g__Lactobacillus","Lactobacillus",6.34682304938564

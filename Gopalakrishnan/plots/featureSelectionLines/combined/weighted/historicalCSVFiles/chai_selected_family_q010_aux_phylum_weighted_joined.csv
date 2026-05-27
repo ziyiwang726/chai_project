@@ -1,0 +1,24 @@
+"phylum","class","order","family","A","B","C","clFDR"
+"Cyanobacteria","Chloroplast","Streptophyta","unclassified Streptophyta",0,0,0,0.0617937944162201
+"Actinobacteria","Actinobacteria","Actinomycetales","Micrococcaceae",0,0,0,0.0692245434142846
+"Firmicutes","Clostridia","Clostridiales","Clostridiaceae",0,0,0,0.0700787220776215
+"Tenericutes","Mollicutes","Candidatus Izemoplasmatales","Candidatus Izemoplasmataceae",0,0,0,0.0733594141877
+"Fusobacteria","Fusobacteriia","Fusobacteriales","Fusobacteriaceae",0,0,0,0.0746822006371156
+"Bacteroidetes","Bacteroidia","Bacteroidales","Porphyromonadaceae",0,0,0,0.076664288638767
+"Firmicutes","Clostridia","Clostridiales","Dehalobacteriaceae",0,0,0,0.0786200648225102
+"Firmicutes","Bacilli","Lactobacillales","Lactobacillaceae",0,0,0,0.0787018401366174
+"Bacteroidetes","Bacteroidia","Bacteroidales","Muribaculaceae",0,0,0,0.0908674069220649
+"Firmicutes","Clostridia","SHA-98","unclassified SHA-98",0,0,0,0.0919025573859347
+"Firmicutes","Clostridia","Clostridiales","Eubacteriaceae",0,0,0,0.0932850483300908
+"Firmicutes","Erysipelotrichi","Erysipelotrichales","Erysipelotrichaceae",0,0,0,0.0978211290058299
+"Firmicutes","Clostridia","Clostridiales","unclassified Clostridiales",0,0,0,0.0978211290058299
+"Firmicutes","Bacilli","Lactobacillales","Enterococcaceae",0,0,0,0.10155692018586
+"Firmicutes","Clostridia","Clostridiales","Tissierellaceae",0,0,0,0.109927509311408
+"Proteobacteria","Alphaproteobacteria","Rickettsiales","mitochondria",0,0,0,0.115606405204005
+"Firmicutes","Bacilli","Turicibacterales","Turicibacteraceae",0,0,0,0.11759881369667
+"Proteobacteria","Alphaproteobacteria","RF32","unclassified RF32",0,0,0,0.119161585361095
+"Firmicutes","Bacilli","Gemellales","Gemellaceae",0,0,0,0.123727966128067
+"Tenericutes","Mollicutes","Anaeroplasmatales","Anaeroplasmataceae",0,0,0,0.131319499535258
+"Euryarchaeota","Thermoplasmata","Methanomassiliicoccales","Methanomassiliicoccaceae",0,0,0,0.131319499535258
+"Synergistetes","Synergistia","Synergistales","Synergistaceae",0,0,0,0.131319499535258
+"Tenericutes","RF3","ML615J-28","unclassified ML615J-28",0,0,0,0.131319499535258

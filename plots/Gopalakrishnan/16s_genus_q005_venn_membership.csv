@@ -1,0 +1,65 @@
+"genus","PCoA +
+Wilcoxon","PCoA +
+DESeq2","LLM +
+Wilcoxon"
+"02d06",TRUE,FALSE,FALSE
+"Acidaminococcus",TRUE,FALSE,FALSE
+"Adlercreutzia",TRUE,FALSE,TRUE
+"Aggregatibacter",TRUE,FALSE,FALSE
+"Anaeroplasma",TRUE,FALSE,FALSE
+"Anaerostipes",FALSE,TRUE,FALSE
+"Atopobium",TRUE,FALSE,FALSE
+"Bacteroides",FALSE,FALSE,TRUE
+"Bifidobacterium",TRUE,FALSE,FALSE
+"Bilophila",TRUE,FALSE,FALSE
+"Brachybacterium",TRUE,FALSE,FALSE
+"Butyricicoccus",TRUE,FALSE,FALSE
+"Butyricimonas",FALSE,TRUE,FALSE
+"Christensenella",TRUE,FALSE,FALSE
+"Citrobacter",TRUE,TRUE,FALSE
+"Cloacibacillus",TRUE,FALSE,FALSE
+"Clostridium",TRUE,FALSE,FALSE
+"Coriobacterium",TRUE,FALSE,FALSE
+"Corynebacterium",TRUE,FALSE,FALSE
+"Dialister",TRUE,FALSE,FALSE
+"Dorea",TRUE,FALSE,FALSE
+"Dysgonomonas",FALSE,TRUE,FALSE
+"Eggerthella",TRUE,FALSE,FALSE
+"Enhydrobacter",FALSE,TRUE,FALSE
+"Faecalibacterium",FALSE,FALSE,TRUE
+"Gardnerella",TRUE,FALSE,FALSE
+"Helicobacter",TRUE,FALSE,FALSE
+"Holdemania",TRUE,FALSE,FALSE
+"Lachnospira",TRUE,TRUE,FALSE
+"Lactobacillus",FALSE,TRUE,FALSE
+"Lactonifactor",TRUE,FALSE,FALSE
+"Methanobrevibacter",TRUE,FALSE,FALSE
+"Ochrobactrum",TRUE,FALSE,FALSE
+"Oribacterium",TRUE,FALSE,FALSE
+"Pantoea",FALSE,TRUE,FALSE
+"Parabacteroides",FALSE,FALSE,TRUE
+"Peptostreptococcus",TRUE,FALSE,FALSE
+"Proteocatella",TRUE,FALSE,FALSE
+"Proteus",FALSE,TRUE,FALSE
+"Pseudobutyrivibrio",TRUE,FALSE,FALSE
+"Pseudomonas",FALSE,TRUE,FALSE
+"Ruminiclostridium",FALSE,TRUE,FALSE
+"Rummeliibacillus",TRUE,FALSE,FALSE
+"Scardovia",TRUE,FALSE,FALSE
+"Slackia",TRUE,FALSE,FALSE
+"Sporobacter",TRUE,FALSE,FALSE
+"Staphylococcus",TRUE,FALSE,FALSE
+"Streptococcus",TRUE,FALSE,FALSE
+"unclassified Actinomycetaceae",TRUE,FALSE,FALSE
+"unclassified Aeromonadaceae",FALSE,TRUE,FALSE
+"unclassified Dehalobacteriaceae",FALSE,TRUE,FALSE
+"unclassified Enterococcaceae",TRUE,FALSE,FALSE
+"unclassified Erysipelotrichaceae",TRUE,FALSE,FALSE
+"unclassified Fusobacteriaceae",TRUE,FALSE,FALSE
+"unclassified Paraprevotellaceae",TRUE,FALSE,FALSE
+"unclassified Peptococcaceae",TRUE,FALSE,FALSE
+"unclassified Streptophyta",TRUE,FALSE,FALSE
+"unclassified Veillonellaceae",TRUE,FALSE,FALSE
+"unclassified Victivallaceae",FALSE,TRUE,FALSE
+"Veillonella",TRUE,FALSE,FALSE
+"Victivallis",TRUE,FALSE,FALSE

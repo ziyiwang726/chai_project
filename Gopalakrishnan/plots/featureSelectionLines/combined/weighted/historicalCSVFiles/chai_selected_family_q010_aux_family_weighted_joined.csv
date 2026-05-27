@@ -1,0 +1,28 @@
+"phylum","class","order","family","A","B","C","clFDR"
+"Bacteroidetes","Bacteroidia","Bacteroidales","Porphyromonadaceae",0,0,0,0.0207513074185648
+"Firmicutes","Clostridia","Clostridiales","Tissierellaceae",0,0,0,0.0594634761197973
+"Firmicutes","Bacilli","Lactobacillales","Enterococcaceae",0,0,0,0.0627227966308688
+"Proteobacteria","Gammaproteobacteria","Pseudomonadales","Moraxellaceae",-1.95996398454005,0,0,0.0635775613715163
+"Proteobacteria","Alphaproteobacteria","Rickettsiales","mitochondria",0,0,0,0.0663200585620608
+"Actinobacteria","Actinobacteria","Actinomycetales","Micrococcaceae",0,0,0,0.0668942322314269
+"Verrucomicrobia","Opitutae","Cerasicoccales","Cerasicoccaceae",1.95996398454005,0,0,0.0699402061239293
+"Firmicutes","Bacilli","Turicibacterales","Turicibacteraceae",0,0,0,0.0703294782634302
+"Firmicutes","Clostridia","Clostridiales","unclassified Clostridiales",0,0,0,0.0723758202586
+"Firmicutes","Erysipelotrichi","Erysipelotrichales","Erysipelotrichaceae",0,0,0,0.0723758202586001
+"Proteobacteria","Alphaproteobacteria","RF32","unclassified RF32",0,0,0,0.0741077987728818
+"Firmicutes","Bacilli","Gemellales","Gemellaceae",0,0,0,0.0887249893955232
+"Tenericutes","Mollicutes","Candidatus Izemoplasmatales","Candidatus Izemoplasmataceae",0,0,0,0.0952824890419456
+"Firmicutes","Clostridia","Clostridiales","Eubacteriaceae",0,0,0,0.0965219044439143
+"Firmicutes","Bacilli","Lactobacillales","Leuconostocaceae",1.95996398454005,0,0,0.108118188476159
+"Firmicutes","Clostridia","SHA-98","unclassified SHA-98",0,0,0,0.109913349669107
+"Bacteroidetes","Bacteroidia","Bacteroidales","Muribaculaceae",0,0,0,0.121565478602385
+"Euryarchaeota","Thermoplasmata","Methanomassiliicoccales","Methanomassiliicoccaceae",0,0,0,0.12717360324962
+"Synergistetes","Synergistia","Synergistales","Synergistaceae",0,0,0,0.12717360324962
+"Tenericutes","Mollicutes","Anaeroplasmatales","Anaeroplasmataceae",0,0,0,0.12717360324962
+"Tenericutes","RF3","ML615J-28","unclassified ML615J-28",0,0,0,0.12717360324962
+"Firmicutes","Bacilli","Lactobacillales","Streptococcaceae",0,0,0,0.130871470119172
+"Actinobacteria","Actinobacteria","Actinomycetales","Actinomycetaceae",0,0,0,0.137077415387987
+"Proteobacteria","Gammaproteobacteria","Enterobacteriales","Enterobacteriaceae",-2.05374891063182,0,0,0.146771245757783
+"Proteobacteria","Betaproteobacteria","Burkholderiales","Oxalobacteraceae",0,0,0,0.149869047977429
+"Firmicutes","Clostridia","Clostridiales","Dehalobacteriaceae",0,0,0,0.152789587421395
+"Firmicutes","Bacilli","Lactobacillales","Lactobacillaceae",0,0,0,0.15373770833136

@@ -1,0 +1,34 @@
+"feature_id","kingdom","phylum","class","order","family","genus","genus_clean","clFDR"
+"OTU_19","k__Bacteria","p__Firmicutes","c__Clostridia","o__Clostridiales","f__Ruminococcaceae","g__Ruminococcus","Ruminococcus",0.0184252077024908
+"OTU_117","k__Bacteria","p__Firmicutes","c__Erysipelotrichi","o__Erysipelotrichales","f__Erysipelotrichaceae","g__unclassified Erysipelotrichaceae","unclassified Erysipelotrichaceae",0.142145547508556
+"OTU_1077","k__Archaea","p__Euryarchaeota","c__Methanobacteria","o__Methanobacteriales","f__Methanobacteriaceae","g__Methanosphaera","Methanosphaera",0.161125672399051
+"OTU_369","k__Bacteria","p__Firmicutes","c__Erysipelotrichi","o__Erysipelotrichales","f__Erysipelotrichaceae","g__cc_115","cc_115",0.177448133968889
+"OTU_164","k__Bacteria","p__Bacteroidetes","c__Bacteroidia","o__Bacteroidales","f__Porphyromonadaceae","g__Macellibacteroides","Macellibacteroides",0.195043178319064
+"OTU_31","k__Bacteria","p__Firmicutes","c__Clostridia","o__Clostridiales","f__Ruminococcaceae","g__Gemmiger","Gemmiger",0.236403022407019
+"OTU_1033","k__Bacteria","p__Firmicutes","c__Bacilli","o__Lactobacillales","f__Aerococcaceae","g__Abiotrophia","Abiotrophia",0.237667716936467
+"OTU_424","k__Bacteria","p__Firmicutes","c__Bacilli","o__Bacillales","f__Staphylococcaceae","g__Staphylococcus","Staphylococcus",0.239764226053388
+"OTU_365","k__Bacteria","p__Actinobacteria","c__Coriobacteriia","o__Coriobacteriales","f__Coriobacteriaceae","g__Atopobium","Atopobium",0.240745410479847
+"OTU_716","k__Bacteria","p__Bacteroidetes","c__Bacteroidia","o__Bacteroidales","f__Barnesiellaceae","g__Barnesiella","Barnesiella",0.250117645994812
+"OTU_1375","k__Bacteria","p__Actinobacteria","c__Actinobacteria","o__Bifidobacteriales","f__Bifidobacteriaceae","g__Gardnerella","Gardnerella",0.33178181244774
+"OTU_491","k__Bacteria","p__Proteobacteria","c__Betaproteobacteria","o__Neisseriales","f__Neisseriaceae","g__Neisseria","Neisseria",0.367112078757453
+"OTU_806","k__Bacteria","p__Firmicutes","c__Clostridia","o__Clostridiales","f__Dehalobacteriaceae","g__unclassified Dehalobacteriaceae","unclassified Dehalobacteriaceae",0.552747932218098
+"OTU_695","k__Bacteria","p__Firmicutes","c__Clostridia","o__Clostridiales","f__Ruminococcaceae","g__Ruminiclostridium","Ruminiclostridium",0.58081164820664
+"OTU_298","k__Bacteria","p__Proteobacteria","c__Gammaproteobacteria","o__Pseudomonadales","f__Pseudomonadaceae","g__Pseudomonas","Pseudomonas",0.595511349121698
+"OTU_779","k__Bacteria","p__Bacteroidetes","c__Bacteroidia","o__Bacteroidales","f__Rikenellaceae","g__human","human",0.614839971402417
+"OTU_995","k__Bacteria","p__Proteobacteria","c__Gammaproteobacteria","o__Pseudomonadales","f__Moraxellaceae","g__Enhydrobacter","Enhydrobacter",0.615879646300155
+"OTU_608","k__Bacteria","p__Proteobacteria","c__Gammaproteobacteria","o__Pseudomonadales","f__Moraxellaceae","g__Acinetobacter","Acinetobacter",0.626036677482851
+"OTU_970","k__Bacteria","p__Proteobacteria","c__Gammaproteobacteria","o__Enterobacteriales","f__Enterobacteriaceae","g__Pantoea","Pantoea",0.634814011088668
+"OTU_208","k__Bacteria","p__Proteobacteria","c__Gammaproteobacteria","o__Enterobacteriales","f__Enterobacteriaceae","g__Proteus","Proteus",0.635080114599139
+"OTU_1328","k__Bacteria","p__Proteobacteria","c__Gammaproteobacteria","o__Enterobacteriales","f__Enterobacteriaceae","g__Citrobacter","Citrobacter",0.640416998878288
+"OTU_1308","k__Bacteria","p__Proteobacteria","c__Gammaproteobacteria","o__Aeromonadales","f__Aeromonadaceae","g__unclassified Aeromonadaceae","unclassified Aeromonadaceae",0.647101412648248
+"OTU_42","k__Bacteria","p__Bacteroidetes","c__Bacteroidia","o__Bacteroidales","f__Porphyromonadaceae","g__Dysgonomonas","Dysgonomonas",0.816321932033736
+"OTU_1240","k__Bacteria","p__Firmicutes","c__Clostridia","o__Clostridiales","f__Veillonellaceae","g__Selenomonas","Selenomonas",0.830182600891001
+"OTU_259","k__Bacteria","p__Lentisphaerae","c__Lentisphaeria","o__Victivallales","f__Victivallaceae","g__unclassified Victivallaceae","unclassified Victivallaceae",0.847896334753299
+"OTU_198","k__Bacteria","p__Bacteroidetes","c__Bacteroidia","o__Bacteroidales","f__Odoribacteraceae","g__Butyricimonas","Butyricimonas",0.862610680625607
+"OTU_724","k__Bacteria","p__Firmicutes","c__Clostridia","o__Clostridiales","f__Lachnospiraceae","g__Oribacterium","Oribacterium",0.916529283901763
+"OTU_52","k__Bacteria","p__Firmicutes","c__Clostridia","o__Clostridiales","f__Lachnospiraceae","g__Lachnospira","Lachnospira",0.949198359055659
+"OTU_1218","k__Bacteria","p__Lentisphaerae","c__unclassified Lentisphaerae","o__unclassified Bacteria","f__unclassified Bacteria","g__unclassified Bacteria","unclassified Bacteria",0.983951099519489
+"OTU_374","k__Bacteria","p__Firmicutes","c__Clostridia","o__SHA-98","f__unclassified SHA-98","g__unclassified SHA-98","unclassified SHA-98",1.00503384705543
+"OTU_65","k__Bacteria","p__Firmicutes","c__Clostridia","o__Clostridiales","f__Lachnospiraceae","g__Ruminococcus","Ruminococcus",1.01146727896922
+"OTU_222","k__Bacteria","p__Firmicutes","c__Clostridia","o__Clostridiales","f__Lachnospiraceae","g__Anaerostipes","Anaerostipes",1.02705164505598
+"OTU_175","k__Bacteria","p__Firmicutes","c__Bacilli","o__Lactobacillales","f__Lactobacillaceae","g__Lactobacillus","Lactobacillus",6.34682304938564

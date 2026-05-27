@@ -1,0 +1,9 @@
+OTUname,phylum,class,order,family,genus,species,A,B,C,clFDR
+OTU_77,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,gordonii,0,1.95996398454005,0,0.08745348663202696
+OTU_319,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,unclassified Parabacteroides,0,1.95996398454005,0,0.08817937325702213
+OTU_14,Firmicutes,Clostridia,Clostridiales,Ruminococcaceae,Faecalibacterium,prausnitzii,1.95996398454005,1.95996398454005,0,0.09750281543365616
+OTU_903,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,unclassified Parabacteroides,0,1.95996398454005,0,0.09763679963996821
+OTU_278,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,unclassified Parabacteroides,0,1.95996398454005,0,0.1052971583566768
+OTU_1441,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,unclassified Parabacteroides,0,1.95996398454005,0,0.10529715835667681
+OTU_607,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,unclassified Parabacteroides,0,1.95996398454005,0,0.10529715835667681
+OTU_1263,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,unclassified Parabacteroides,0,1.95996398454005,0,0.1078226921428102

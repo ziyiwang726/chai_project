@@ -1,0 +1,195 @@
+OTUname,phylum,class,order,family,genus,species,A,B,C,clFDR
+OTU_77,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,gordonii,0,1.95996398454005,0,0.08745348663202696
+OTU_319,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,unclassified Parabacteroides,0,1.95996398454005,0,0.08817937325702213
+OTU_14,Firmicutes,Clostridia,Clostridiales,Ruminococcaceae,Faecalibacterium,prausnitzii,1.95996398454005,1.95996398454005,0,0.09750281543365616
+OTU_903,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,unclassified Parabacteroides,0,1.95996398454005,0,0.09763679963996821
+OTU_278,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,unclassified Parabacteroides,0,1.95996398454005,0,0.1052971583566768
+OTU_1441,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,unclassified Parabacteroides,0,1.95996398454005,0,0.10529715835667681
+OTU_607,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,unclassified Parabacteroides,0,1.95996398454005,0,0.10529715835667681
+OTU_1263,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,unclassified Parabacteroides,0,1.95996398454005,0,0.1078226921428102
+OTU_620,Bacteroidetes,Bacteroidia,Bacteroidales,Barnesiellaceae,unclassified Barnesiellaceae,unclassified Barnesiellaceae,-2.96773792534179,0,0,0.11693020894851107
+OTU_472,Firmicutes,Clostridia,Clostridiales,Ruminococcaceae,Faecalibacterium,prausnitzii,1.95996398454005,1.95996398454005,0,0.11911309721228111
+OTU_635,Firmicutes,Clostridia,Clostridiales,Ruminococcaceae,Faecalibacterium,prausnitzii,1.95996398454005,1.95996398454005,0,0.11986488837904977
+OTU_648,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,unclassified Parabacteroides,0,1.95996398454005,0,0.12110410264818593
+OTU_708,Bacteroidetes,Bacteroidia,Bacteroidales,Barnesiellaceae,unclassified Barnesiellaceae,unclassified Barnesiellaceae,-2.96773792534179,0,0,0.12153412880216405
+OTU_107,Proteobacteria,Gammaproteobacteria,Pasteurellales,Pasteurellaceae,Haemophilus,parainfluenzae,0,0,-1.95996398454005,0.12482813789538594
+OTU_1043,Firmicutes,Clostridia,Clostridiales,Ruminococcaceae,Faecalibacterium,prausnitzii,1.95996398454005,1.95996398454005,0,0.12835556793446848
+OTU_716,Bacteroidetes,Bacteroidia,Bacteroidales,Barnesiellaceae,Barnesiella,intestinihominis,-2.96773792534179,0,0,0.12860915289109667
+OTU_61,Bacteroidetes,Bacteroidia,Bacteroidales,Barnesiellaceae,unclassified Barnesiellaceae,unclassified Barnesiellaceae,-2.96773792534179,0,0,0.1298500329882758
+OTU_1290,Bacteroidetes,Bacteroidia,Bacteroidales,Barnesiellaceae,unclassified Barnesiellaceae,unclassified Barnesiellaceae,-2.96773792534179,0,0,0.1324042274504865
+OTU_602,Firmicutes,Clostridia,Clostridiales,Ruminococcaceae,Faecalibacterium,prausnitzii,1.95996398454005,1.95996398454005,0,0.13290537179522263
+OTU_1301,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,distasonis,0,1.95996398454005,0,0.13301113860581892
+OTU_1279,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.13317070331460099
+OTU_750,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,fimetarium,-2.70950030675198,0,0,0.13319505255387826
+OTU_1439,Firmicutes,Clostridia,Clostridiales,Peptostreptococcaceae,Clostridium,difficile,-2.70950030675198,0,0,0.13319505255387826
+OTU_357,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,colinum,-2.70950030675198,0,0,0.13335688408736263
+OTU_420,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.1334476249530808
+OTU_176,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,celatum,-2.70950030675198,0,0,0.13349761498998183
+OTU_1147,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Parabacteroides,gordonii,0,1.95996398454005,0,0.13373920383270835
+OTU_516,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.13396215663378025
+OTU_125,Firmicutes,Clostridia,Clostridiales,Veillonellaceae,Megasphaera,unclassified Megasphaera,0,0,-1.95996398454005,0.13438106524625168
+OTU_583,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.1359074210732965
+OTU_1037,Firmicutes,Clostridia,Clostridiales,Veillonellaceae,Megasphaera,unclassified Megasphaera,0,0,-1.95996398454005,0.13679318471514954
+OTU_1153,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,unclassified Clostridium,-2.70950030675198,0,0,0.13703608110408233
+OTU_1225,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,unclassified Clostridium,-2.70950030675198,0,0,0.13703608110408233
+OTU_148,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,symbiosum,-2.70950030675198,0,0,0.13703608110408233
+OTU_404,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,unclassified Clostridium,-2.70950030675198,0,0,0.13703608110408233
+OTU_1243,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,butyricum,-2.70950030675198,0,0,0.13703608110408233
+OTU_912,Firmicutes,Clostridia,Clostridiales,Ruminococcaceae,Faecalibacterium,prausnitzii,1.95996398454005,1.95996398454005,0,0.14118434070699584
+OTU_464,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.14132966368705097
+OTU_718,Bacteroidetes,Bacteroidia,Bacteroidales,Rikenellaceae,Alistipes,finegoldii,0,0,0,0.14624401690833477
+OTU_675,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.14625379303878783
+OTU_512,Firmicutes,Clostridia,Clostridiales,Peptococcaceae,unclassified Peptococcaceae,anaerobic bacterium EtOH8,0,0,0,0.14625590875855807
+OTU_286,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.1462559087585581
+OTU_1303,Firmicutes,Clostridia,Clostridiales,Veillonellaceae,Phascolarctobacterium,unclassified Phascolarctobacterium,0,0,0,0.1462559087585581
+OTU_354,Proteobacteria,Deltaproteobacteria,Desulfovibrionales,Desulfovibrionaceae,unclassified Desulfovibrionaceae,unclassified Desulfovibrionaceae,0,0,0,0.1462559087585581
+OTU_239,Firmicutes,Clostridia,Clostridiales,Christensenellaceae,unclassified Christensenellaceae,unclassified Christensenellaceae,0,0,0,0.14625590875855815
+OTU_256,Firmicutes,Clostridia,Clostridiales,Mogibacteriaceae,unclassified Mogibacteriaceae,unclassified Mogibacteriaceae,0,0,0,0.14632313134497768
+OTU_1416,Firmicutes,Bacilli,Lactobacillales,Enterococcaceae,unclassified Enterococcaceae,unclassified Enterococcaceae,0,0,0,0.1463278619619231
+OTU_535,Firmicutes,Bacilli,Lactobacillales,Lactobacillaceae,Lactobacillus,plantarum,0,0,0,0.1464770648685316
+OTU_1065,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.1464808743254444
+OTU_1403,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,colinum,-2.70950030675198,0,0,0.14648087432544443
+OTU_957,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,unclassified Clostridium,-2.70950030675198,0,0,0.14648087432544443
+OTU_603,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,unclassified Clostridium,-2.70950030675198,0,0,0.14648087432544443
+OTU_306,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,unclassified Clostridium,-2.70950030675198,0,0,0.14648087432544443
+OTU_138,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,neonatale,-2.70950030675198,0,0,0.14648087432544443
+OTU_774,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,perfringens,-2.70950030675198,0,0,0.14648087432544443
+OTU_1191,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.14648087432544443
+OTU_562,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.14648087432544443
+OTU_560,Bacteroidetes,Bacteroidia,Bacteroidales,Muribaculaceae,unclassified Muribaculaceae,unclassified Muribaculaceae,0,0,0,0.14654855322517651
+OTU_72,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.1467472098780458
+OTU_829,Firmicutes,Clostridia,Clostridiales,Dehalobacteriaceae,Dehalobacterium,unclassified Dehalobacterium,0,0,0,0.14722235840403378
+OTU_578,Firmicutes,Bacilli,Lactobacillales,Lactobacillaceae,Lactobacillus,iners,0,0,0,0.14722235840403383
+OTU_242,Firmicutes,Bacilli,Lactobacillales,Lactobacillaceae,Lactobacillus,delbrueckii,0,0,0,0.14722235840403383
+OTU_550,Proteobacteria,Alphaproteobacteria,Rickettsiales,mitochondria,Nicotiana,tabacum,0,0,0,0.14722235840403383
+OTU_523,Firmicutes,Clostridia,Clostridiales,Tissierellaceae,1-68,unclassified 1-68,0,0,0,0.14722235840403383
+OTU_119,Bacteroidetes,Bacteroidia,Bacteroidales,Rikenellaceae,unclassified Rikenellaceae,unclassified Rikenellaceae,0,0,0,0.14722235840403383
+OTU_139,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.14722235840403386
+OTU_526,Firmicutes,Clostridia,Clostridiales,Mogibacteriaceae,unclassified Mogibacteriaceae,unclassified Mogibacteriaceae,0,0,0,0.14722235840403386
+OTU_369,Firmicutes,Erysipelotrichi,Erysipelotrichales,Erysipelotrichaceae,cc_115,unclassified cc_115,0,0,0,0.14722235840403386
+OTU_284,Firmicutes,Bacilli,Turicibacterales,Turicibacteraceae,Turicibacter,unclassified Turicibacter,0,0,0,0.14756964954700957
+OTU_188,Firmicutes,Erysipelotrichi,Erysipelotrichales,Erysipelotrichaceae,Catenibacterium,unclassified Catenibacterium,0,0,0,0.14761521978775757
+OTU_16,Proteobacteria,Alphaproteobacteria,RF32,unclassified RF32,unclassified RF32,unclassified RF32,0,0,0,0.14761521978775757
+OTU_479,Firmicutes,Clostridia,Clostridiales,Dehalobacteriaceae,Dehalobacterium,unclassified Dehalobacterium,0,0,0,0.14761521978775757
+OTU_203,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.14761521978775757
+OTU_534,Firmicutes,Clostridia,Clostridiales,Tissierellaceae,ph2,unclassified ph2,0,0,0,0.14761521978775757
+OTU_220,Bacteroidetes,Bacteroidia,Bacteroidales,Rikenellaceae,unclassified Rikenellaceae,unclassified Rikenellaceae,0,0,0,0.14761521978775757
+OTU_663,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,SMB53,unclassified SMB53,0,0,0,0.1478718833627703
+OTU_173,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.14800162935198546
+OTU_374,Firmicutes,Clostridia,SHA-98,unclassified SHA-98,unclassified SHA-98,unclassified SHA-98,0,0,0,0.148036700036021
+OTU_86,Firmicutes,Clostridia,Clostridiales,Christensenellaceae,unclassified Christensenellaceae,unclassified Christensenellaceae,0,0,0,0.14820584998847544
+OTU_341,Firmicutes,Bacilli,Gemellales,Gemellaceae,unclassified Gemellaceae,unclassified Gemellaceae,0,0,0,0.1488912489776225
+OTU_678,Actinobacteria,Actinobacteria,Actinomycetales,Micrococcaceae,Rothia,dentocariosa,0,0,0,0.1501780705299591
+OTU_821,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.1501780705299591
+OTU_1006,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.1509714156582849
+OTU_434,Firmicutes,Clostridia,Clostridiales,Christensenellaceae,unclassified Christensenellaceae,unclassified Christensenellaceae,0,0,0,0.1509714156582849
+OTU_820,Tenericutes,Mollicutes,Candidatus Izemoplasmatales,Candidatus Izemoplasmataceae,unclassified Candidatus Izemoplasma,unclassified Candidatus Izemoplasma,0,0,0,0.1509714156582849
+OTU_124,Firmicutes,Erysipelotrichi,Erysipelotrichales,Erysipelotrichaceae,Eubacterium,biforme,0,0,0,0.1509714156582849
+OTU_1127,Tenericutes,Mollicutes,Anaeroplasmatales,Anaeroplasmataceae,Anaeroplasma,unclassified Anaeroplasma,0,0,0,0.1509714156582849
+OTU_1455,Actinobacteria,Actinobacteria,Bifidobacteriales,Bifidobacteriaceae,Bifidobacterium,breve,0,0,0,0.1509714156582849
+OTU_81,Proteobacteria,Betaproteobacteria,Burkholderiales,Alcaligenaceae,Sutterella,unclassified Sutterella,0,0,0,0.1509714156582849
+OTU_646,Firmicutes,Clostridia,Clostridiales,Eubacteriaceae,Pseudoramibacter_Eubacterium,unclassified Pseudoramibacter_Eubacterium,0,0,0,0.1509714156582849
+OTU_1014,Firmicutes,Clostridia,Clostridiales,Christensenellaceae,Christensenella,unclassified Christensenella,0,0,0,0.1509714156582849
+OTU_671,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.1509714156582849
+OTU_822,Firmicutes,Clostridia,Clostridiales,Tissierellaceae,1-68,unclassified 1-68,0,0,0,0.15097141565828492
+OTU_650,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Dysgonomonas,unclassified Dysgonomonas,0,0,0,0.15097141565828492
+OTU_845,Bacteroidetes,Bacteroidia,Bacteroidales,Paraprevotellaceae,Prevotella,unclassified Prevotella,0,0,0,0.15097141565828492
+OTU_183,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.15097141565828495
+OTU_281,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.15097141565828495
+OTU_1169,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.15097141565828495
+OTU_802,Firmicutes,Clostridia,Clostridiales,Mogibacteriaceae,unclassified Mogibacteriaceae,unclassified Mogibacteriaceae,0,0,0,0.15097141565828495
+OTU_1377,Proteobacteria,Betaproteobacteria,Burkholderiales,Alcaligenaceae,Sutterella,unclassified Sutterella,0,0,0,0.15097141565828495
+OTU_463,Firmicutes,Erysipelotrichi,Erysipelotrichales,Erysipelotrichaceae,Bulleidia,moorei,0,0,0,0.15113009881883102
+OTU_1434,Bacteroidetes,Bacteroidia,Bacteroidales,Barnesiellaceae,Barnesiella,intestinihominis,-2.96773792534179,0,0,0.15145779372002072
+OTU_658,Bacteroidetes,Bacteroidia,Bacteroidales,Rikenellaceae,unclassified Rikenellaceae,unclassified Rikenellaceae,0,0,0,0.15177324609690027
+OTU_601,Bacteroidetes,Bacteroidia,Bacteroidales,Rikenellaceae,Alistipes,onderdonkii,0,0,0,0.15181547769712808
+OTU_424,Firmicutes,Bacilli,Bacillales,Staphylococcaceae,Staphylococcus,unclassified Staphylococcus,0,0,0,0.1521972429353683
+OTU_416,Actinobacteria,Actinobacteria,Actinomycetales,Micrococcaceae,Rothia,mucilaginosa,0,0,0,0.1528806109250415
+OTU_723,Bacteroidetes,Bacteroidia,Bacteroidales,Rikenellaceae,unclassified Rikenellaceae,unclassified Rikenellaceae,0,0,0,0.154425450957725
+OTU_469,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.1544779716467566
+OTU_236,Firmicutes,Bacilli,Lactobacillales,Lactobacillaceae,Lactobacillus,unclassified Lactobacillus,0,0,0,0.15468692399422596
+OTU_233,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.15515591994617373
+OTU_329,Firmicutes,Clostridia,Clostridiales,Mogibacteriaceae,unclassified Mogibacteriaceae,unclassified Mogibacteriaceae,0,0,0,0.15544742261465472
+OTU_56,Proteobacteria,Betaproteobacteria,Burkholderiales,Alcaligenaceae,Sutterella,unclassified Sutterella,0,0,0,0.15582632660688794
+OTU_80,Bacteroidetes,Bacteroidia,Bacteroidales,Rikenellaceae,unclassified Rikenellaceae,unclassified Rikenellaceae,0,0,0,0.15582632660688794
+OTU_693,Bacteroidetes,Bacteroidia,Bacteroidales,Barnesiellaceae,unclassified Barnesiellaceae,unclassified Barnesiellaceae,-2.96773792534179,0,0,0.1561908205848796
+OTU_269,Proteobacteria,Gammaproteobacteria,Pasteurellales,Pasteurellaceae,Aggregatibacter,unclassified Aggregatibacter,0,0,0,0.15619374590626942
+OTU_680,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Porphyromonas,unclassified Porphyromonas,0,0,0,0.15624794323541052
+OTU_449,Bacteroidetes,Bacteroidia,Bacteroidales,Muribaculaceae,unclassified Muribaculaceae,unclassified Muribaculaceae,0,0,0,0.15639056960838546
+OTU_448,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.15639056960838554
+OTU_558,Firmicutes,Clostridia,Clostridiales,Christensenellaceae,unclassified Christensenellaceae,unclassified Christensenellaceae,0,0,0,0.15708756342635313
+OTU_698,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.15888080783718544
+OTU_132,Firmicutes,Clostridia,Clostridiales,Veillonellaceae,unclassified Veillonellaceae,unclassified Veillonellaceae,0,0,0,0.15888080783718544
+OTU_1076,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.1589358670706712
+OTU_665,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.1589358670706712
+OTU_809,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.1589358670706712
+OTU_964,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.1589358670706712
+OTU_967,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.1589358670706712
+OTU_1199,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.1589358670706712
+OTU_1218,Lentisphaerae,unclassified Lentisphaerae,unclassified Bacteria,unclassified Bacteria,unclassified Bacteria,unclassified Bacteria,0,0,0,0.1589358670706712
+OTU_1016,Firmicutes,Clostridia,Clostridiales,Mogibacteriaceae,unclassified Mogibacteriaceae,unclassified Mogibacteriaceae,0,0,0,0.1589358670706712
+OTU_318,Firmicutes,Clostridia,Clostridiales,Mogibacteriaceae,unclassified Mogibacteriaceae,unclassified Mogibacteriaceae,0,0,0,0.1589358670706712
+OTU_505,Firmicutes,Clostridia,Clostridiales,Mogibacteriaceae,unclassified Mogibacteriaceae,unclassified Mogibacteriaceae,0,0,0,0.1589358670706712
+OTU_839,Firmicutes,Erysipelotrichi,Erysipelotrichales,Erysipelotrichaceae,unclassified Erysipelotrichaceae,unclassified Erysipelotrichaceae,0,0,0,0.1589358670706712
+OTU_819,Actinobacteria,Actinobacteria,Actinomycetales,Actinomycetaceae,Mobiluncus,unclassified Mobiluncus,0,0,0,0.1589358670706712
+OTU_1193,Cyanobacteria,Chloroplast,Streptophyta,unclassified Streptophyta,unclassified Streptophyta,unclassified Streptophyta,0,0,0,0.1589358670706712
+OTU_204,Proteobacteria,Deltaproteobacteria,Desulfovibrionales,Desulfovibrionaceae,unclassified Desulfovibrionaceae,unclassified Desulfovibrionaceae,0,0,0,0.1589358670706712
+OTU_1314,Proteobacteria,Deltaproteobacteria,Desulfovibrionales,Desulfovibrionaceae,Desulfovibrio,unclassified Desulfovibrio,0,0,0,0.1589358670706712
+OTU_1423,Proteobacteria,Deltaproteobacteria,Desulfovibrionales,Desulfovibrionaceae,Desulfovibrio,unclassified Desulfovibrio,0,0,0,0.1589358670706712
+OTU_90,Proteobacteria,Betaproteobacteria,Burkholderiales,Alcaligenaceae,Sutterella,unclassified Sutterella,0,0,0,0.1589358670706712
+OTU_1101,Proteobacteria,Betaproteobacteria,Neisseriales,Neisseriaceae,Eikenella,unclassified Eikenella,0,0,0,0.1589358670706712
+OTU_406,Firmicutes,Clostridia,Clostridiales,Peptococcaceae,rc4-4,unclassified rc4-4,0,0,0,0.1589358670706712
+OTU_732,Synergistetes,Synergistia,Synergistales,Synergistaceae,Synergistes,unclassified Synergistes,0,0,0,0.1589358670706712
+OTU_1011,Firmicutes,Clostridia,Clostridiales,Christensenellaceae,unclassified Christensenellaceae,unclassified Christensenellaceae,0,0,0,0.1589358670706712
+OTU_564,Firmicutes,Clostridia,Clostridiales,Christensenellaceae,Christensenella,unclassified Christensenella,0,0,0,0.1589358670706712
+OTU_462,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.1589358670706712
+OTU_954,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.1589358670706712
+OTU_557,Firmicutes,Clostridia,Clostridiales,Christensenellaceae,unclassified Christensenellaceae,unclassified Christensenellaceae,0,0,0,0.1589358670706712
+OTU_755,Firmicutes,Clostridia,Clostridiales,Christensenellaceae,unclassified Christensenellaceae,unclassified Christensenellaceae,0,0,0,0.1589358670706712
+OTU_968,Firmicutes,Clostridia,Clostridiales,Christensenellaceae,unclassified Christensenellaceae,unclassified Christensenellaceae,0,0,0,0.1589358670706712
+OTU_1100,Firmicutes,Clostridia,Clostridiales,Christensenellaceae,unclassified Christensenellaceae,unclassified Christensenellaceae,0,0,0,0.1589358670706712
+OTU_1009,Firmicutes,Clostridia,Clostridiales,Christensenellaceae,unclassified Christensenellaceae,unclassified Christensenellaceae,0,0,0,0.1589358670706712
+OTU_1221,Firmicutes,Clostridia,Clostridiales,Christensenellaceae,unclassified Christensenellaceae,unclassified Christensenellaceae,0,0,0,0.1589358670706712
+OTU_422,Firmicutes,Clostridia,Clostridiales,Tissierellaceae,Parvimonas,unclassified Parvimonas,0,0,0,0.1589358670706712
+OTU_710,Firmicutes,Clostridia,Clostridiales,Tissierellaceae,Anaerococcus,unclassified Anaerococcus,0,0,0,0.1589358670706712
+OTU_1130,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Porphyromonas,unclassified Porphyromonas,0,0,0,0.1589358670706712
+OTU_164,Bacteroidetes,Bacteroidia,Bacteroidales,Porphyromonadaceae,Macellibacteroides,fermentans,0,0,0,0.1589358670706712
+OTU_1026,Bacteroidetes,Bacteroidia,Bacteroidales,Muribaculaceae,unclassified Muribaculaceae,unclassified Muribaculaceae,0,0,0,0.1589358670706712
+OTU_868,Bacteroidetes,Bacteroidia,Bacteroidales,Rikenellaceae,unclassified Rikenellaceae,unclassified Rikenellaceae,0,0,0,0.1589358670706712
+OTU_37,Bacteroidetes,Bacteroidia,Bacteroidales,Rikenellaceae,unclassified Rikenellaceae,unclassified Rikenellaceae,0,0,0,0.1589358670706712
+OTU_1081,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.1589358670706712
+OTU_701,Proteobacteria,Deltaproteobacteria,Desulfovibrionales,Desulfovibrionaceae,unclassified Desulfovibrionaceae,unclassified Desulfovibrionaceae,0,0,0,0.1608316234718026
+OTU_477,Firmicutes,Bacilli,Lactobacillales,Lactobacillaceae,Lactobacillus,salivarius,0,0,0,0.16174207816342454
+OTU_7,Firmicutes,Clostridia,Clostridiales,Ruminococcaceae,Faecalibacterium,prausnitzii,1.95996398454005,1.95996398454005,0,0.1632737617899033
+OTU_219,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,spiroforme,-2.70950030675198,0,0,0.16399696666507005
+OTU_34,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,perfringens,-2.70950030675198,0,0,0.16409413219793248
+OTU_549,Firmicutes,Clostridia,Clostridiales,Mogibacteriaceae,unclassified Mogibacteriaceae,unclassified Mogibacteriaceae,0,0,0,0.16416607055843854
+OTU_1049,Actinobacteria,Actinobacteria,Actinomycetales,Micrococcaceae,Rothia,mucilaginosa,0,0,0,0.16416607055843854
+OTU_1022,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.1643926137677748
+OTU_30,Firmicutes,Clostridia,Clostridiales,Veillonellaceae,Phascolarctobacterium,unclassified Phascolarctobacterium,0,0,0,0.16524749397111696
+OTU_511,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.16616209566455561
+OTU_273,Firmicutes,Clostridia,Clostridiales,unclassified Clostridiales,unclassified Clostridiales,unclassified Clostridiales,0,0,0,0.1666794016562085
+OTU_443,Firmicutes,Clostridia,Clostridiales,Mogibacteriaceae,unclassified Mogibacteriaceae,unclassified Mogibacteriaceae,0,0,0,0.16813292506763453
+OTU_162,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,ramosum,-2.70950030675198,0,0,0.1683234705346221
+OTU_1085,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,fimetarium,-2.70950030675198,0,0,0.1684290544251024
+OTU_827,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,unclassified Clostridium,-2.70950030675198,0,0,0.16842905442510242
+OTU_831,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,colinum,-2.70950030675198,0,0,0.16842905442510242
+OTU_1396,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,purinilyticum,-2.70950030675198,0,0,0.16842905442510242
+OTU_884,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,unclassified Clostridium,-2.70950030675198,0,0,0.16842905442510242
+OTU_544,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,unclassified Clostridium,-2.70950030675198,0,0,0.16842905442510242
+OTU_1295,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,butyricum,-2.70950030675198,0,0,0.16842905442510242
+OTU_1435,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,perfringens,-2.70950030675198,0,0,0.16842905442510242
+OTU_1060,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.16842905442510242
+OTU_1138,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.16842905442510242
+OTU_1099,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.16842905442510242
+OTU_811,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.16842905442510242
+OTU_1393,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.16842905442510242
+OTU_1135,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.16842905442510242
+OTU_1231,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.16842905442510242
+OTU_1092,Firmicutes,Clostridia,Clostridiales,Clostridiaceae,Clostridium,methylpentosum,-2.70950030675198,0,0,0.16842905442510242
+OTU_527,Firmicutes,Clostridia,Clostridiales,Tissierellaceae,Peptoniphilus,unclassified Peptoniphilus,0,0,0,0.16939091589557473
+OTU_652,Firmicutes,Clostridia,Clostridiales,Tissierellaceae,Anaerococcus,unclassified Anaerococcus,0,0,0,0.16939091589557473
+OTU_181,Euryarchaeota,Methanobacteria,Methanobacteriales,Methanobacteriaceae,Methanobrevibacter,unclassified Methanobrevibacter,0,0,0,0.17230868059236906
+OTU_117,Firmicutes,Erysipelotrichi,Erysipelotrichales,Erysipelotrichaceae,unclassified Erysipelotrichaceae,unclassified Erysipelotrichaceae,0,0,0,0.17246538912399234
+OTU_679,Actinobacteria,Actinobacteria,Bifidobacteriales,Bifidobacteriaceae,Scardovia,unclassified Scardovia,0,0,0,0.172610370798398
+OTU_895,Actinobacteria,Actinobacteria,Actinomycetales,Corynebacteriaceae,Corynebacterium,durum,0,0,0,0.172610370798398

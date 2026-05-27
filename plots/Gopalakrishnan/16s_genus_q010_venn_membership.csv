@@ -1,0 +1,136 @@
+"genus","PCoA +
+Wilcoxon","PCoA +
+DESeq2","LLM +
+Wilcoxon"
+"'Solanum",TRUE,FALSE,FALSE
+"02d06",TRUE,FALSE,FALSE
+"Abiotrophia",FALSE,TRUE,FALSE
+"Acidaminococcus",TRUE,FALSE,FALSE
+"Acinetobacter",FALSE,TRUE,FALSE
+"Adlercreutzia",TRUE,FALSE,TRUE
+"Aggregatibacter",TRUE,FALSE,FALSE
+"Akkermansia",TRUE,FALSE,FALSE
+"Allobaculum",TRUE,FALSE,FALSE
+"Anaerofilum",TRUE,FALSE,FALSE
+"Anaerofustis",TRUE,FALSE,TRUE
+"Anaeroplasma",TRUE,FALSE,FALSE
+"Anaerorhabdus",TRUE,FALSE,FALSE
+"Anaerostipes",TRUE,TRUE,FALSE
+"Arcobacter",TRUE,FALSE,FALSE
+"Atopobium",TRUE,TRUE,TRUE
+"Bacteroides",TRUE,FALSE,TRUE
+"Barnesiella",FALSE,TRUE,FALSE
+"Bifidobacterium",TRUE,FALSE,FALSE
+"Bilophila",TRUE,FALSE,FALSE
+"Blautia",TRUE,FALSE,FALSE
+"Brachybacterium",TRUE,FALSE,FALSE
+"Bulleidia",TRUE,FALSE,FALSE
+"Butyricicoccus",TRUE,FALSE,FALSE
+"Butyricimonas",FALSE,TRUE,FALSE
+"Butyrivibrio",TRUE,FALSE,FALSE
+"Campylobacter",TRUE,FALSE,FALSE
+"Catenibacterium",TRUE,FALSE,FALSE
+"cc_115",FALSE,TRUE,FALSE
+"Christensenella",TRUE,FALSE,FALSE
+"Citrobacter",TRUE,TRUE,TRUE
+"Cloacibacillus",TRUE,FALSE,FALSE
+"Clostridium",TRUE,FALSE,FALSE
+"Collinsella",TRUE,FALSE,FALSE
+"Coprobacillus",TRUE,FALSE,FALSE
+"Coriobacterium",TRUE,FALSE,FALSE
+"Corynebacterium",TRUE,FALSE,TRUE
+"Defluviitalea",TRUE,FALSE,FALSE
+"Dehalobacterium",TRUE,FALSE,FALSE
+"Dialister",TRUE,FALSE,FALSE
+"Dorea",TRUE,FALSE,FALSE
+"Dysgonomonas",FALSE,TRUE,FALSE
+"Eggerthella",TRUE,FALSE,FALSE
+"Eikenella",TRUE,FALSE,TRUE
+"Enhydrobacter",FALSE,TRUE,FALSE
+"Enterobacter",TRUE,FALSE,FALSE
+"Enterocloster",TRUE,FALSE,FALSE
+"Epulopiscium",TRUE,FALSE,FALSE
+"Eubacterium",TRUE,FALSE,FALSE
+"Faecalibacterium",FALSE,FALSE,TRUE
+"Fusobacterium",TRUE,FALSE,TRUE
+"Gardnerella",TRUE,TRUE,FALSE
+"Gemmiger",FALSE,TRUE,FALSE
+"Granulicatella",TRUE,FALSE,FALSE
+"Haemophilus",TRUE,FALSE,FALSE
+"Helicobacter",TRUE,FALSE,FALSE
+"Hespellia",FALSE,FALSE,TRUE
+"Holdemania",TRUE,FALSE,FALSE
+"human",TRUE,TRUE,FALSE
+"Hungatella",TRUE,FALSE,FALSE
+"Lachnobacterium",TRUE,FALSE,FALSE
+"Lachnospira",TRUE,TRUE,FALSE
+"Lacrimispora",TRUE,FALSE,FALSE
+"Lactobacillus",FALSE,TRUE,FALSE
+"Lactonifactor",TRUE,FALSE,TRUE
+"Macellibacteroides",FALSE,TRUE,FALSE
+"Methanobrevibacter",TRUE,FALSE,FALSE
+"Methanosphaera",FALSE,TRUE,FALSE
+"Mitsuokella",TRUE,FALSE,FALSE
+"Mobiluncus",TRUE,FALSE,TRUE
+"Moryella",TRUE,FALSE,FALSE
+"Mucispirillum",TRUE,FALSE,TRUE
+"Neisseria",FALSE,TRUE,FALSE
+"Nicotiana",TRUE,FALSE,FALSE
+"Ochrobactrum",TRUE,FALSE,FALSE
+"Odoribacter",TRUE,FALSE,FALSE
+"Oribacterium",TRUE,TRUE,FALSE
+"Pantoea",FALSE,TRUE,FALSE
+"Papillibacter",TRUE,FALSE,FALSE
+"Parabacteroides",FALSE,FALSE,TRUE
+"Paraprevotella",TRUE,FALSE,FALSE
+"Parvimonas",TRUE,FALSE,TRUE
+"Peptostreptococcus",TRUE,FALSE,FALSE
+"Phascolarctobacterium",TRUE,FALSE,FALSE
+"Porphyromonas",TRUE,FALSE,FALSE
+"Proteocatella",TRUE,FALSE,FALSE
+"Proteus",FALSE,TRUE,FALSE
+"Providencia",TRUE,FALSE,TRUE
+"Pseudobutyrivibrio",TRUE,FALSE,FALSE
+"Pseudomonas",FALSE,TRUE,FALSE
+"RFN20",TRUE,FALSE,TRUE
+"Roseburia",TRUE,FALSE,FALSE
+"Ruminiclostridium",FALSE,TRUE,FALSE
+"Ruminococcus",TRUE,TRUE,FALSE
+"Rummeliibacillus",TRUE,FALSE,FALSE
+"Sarcina",TRUE,FALSE,FALSE
+"Scardovia",TRUE,FALSE,FALSE
+"Selenomonas",TRUE,TRUE,FALSE
+"Shuttleworthia",TRUE,FALSE,FALSE
+"Slackia",TRUE,FALSE,FALSE
+"SMB53",TRUE,FALSE,FALSE
+"Sporobacter",TRUE,FALSE,TRUE
+"Staphylococcus",TRUE,TRUE,FALSE
+"Streptococcus",TRUE,FALSE,FALSE
+"Subdoligranulum",TRUE,FALSE,FALSE
+"Synergistes",TRUE,FALSE,TRUE
+"unclassified Actinomycetaceae",TRUE,FALSE,FALSE
+"unclassified Aeromonadaceae",TRUE,TRUE,FALSE
+"unclassified Bacteria",TRUE,TRUE,TRUE
+"unclassified Candidatus Gastranaerophilaceae",TRUE,FALSE,FALSE
+"unclassified Clostridiaceae",TRUE,FALSE,FALSE
+"unclassified Dehalobacteriaceae",TRUE,TRUE,FALSE
+"unclassified Desulfovibrionaceae",TRUE,FALSE,FALSE
+"unclassified Enterococcaceae",TRUE,FALSE,FALSE
+"unclassified Erysipelotrichaceae",TRUE,TRUE,FALSE
+"unclassified Fusobacteriaceae",TRUE,FALSE,FALSE
+"unclassified Lachnospiraceae",TRUE,FALSE,FALSE
+"unclassified Leuconostocaceae",TRUE,FALSE,FALSE
+"unclassified ML615J-28",TRUE,FALSE,FALSE
+"unclassified Paraprevotellaceae",TRUE,FALSE,FALSE
+"unclassified Peptococcaceae",TRUE,FALSE,FALSE
+"unclassified Peptostreptococcaceae",TRUE,FALSE,FALSE
+"unclassified Prevotellaceae",TRUE,FALSE,FALSE
+"unclassified Rikenellaceae",TRUE,FALSE,FALSE
+"unclassified SHA-98",FALSE,TRUE,FALSE
+"unclassified Sphingobacteriales",TRUE,FALSE,FALSE
+"unclassified Streptophyta",TRUE,FALSE,FALSE
+"unclassified Veillonellaceae",TRUE,FALSE,TRUE
+"unclassified Victivallaceae",FALSE,TRUE,FALSE
+"Veillonella",TRUE,FALSE,FALSE
+"Victivallis",TRUE,FALSE,FALSE
+"WAL_1855D",TRUE,FALSE,FALSE

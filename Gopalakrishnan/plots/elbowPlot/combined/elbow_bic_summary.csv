@@ -1,0 +1,9 @@
+provider,aux_mode,aux_source,target_rank,selected_g,selected_model,n_features,output_pdf
+combined,unweighted,phylum,family,10,EII,75,/Users/yushushi/Library/CloudStorage/OneDrive-WeillCornellMedicine/Ziyi/chai_project/Gopalakrishnan/plots/elbowPlot/combined/unweighted/elbow_target_family_aux_phylum_unweighted.pdf
+combined,unweighted,phylum,genus,9,EEE,188,/Users/yushushi/Library/CloudStorage/OneDrive-WeillCornellMedicine/Ziyi/chai_project/Gopalakrishnan/plots/elbowPlot/combined/unweighted/elbow_target_genus_aux_phylum_unweighted.pdf
+combined,unweighted,phylum,otu,9,EEI,1437,/Users/yushushi/Library/CloudStorage/OneDrive-WeillCornellMedicine/Ziyi/chai_project/Gopalakrishnan/plots/elbowPlot/combined/unweighted/elbow_target_otu_aux_phylum_unweighted.pdf
+combined,unweighted,phylum,species,10,VII,283,/Users/yushushi/Library/CloudStorage/OneDrive-WeillCornellMedicine/Ziyi/chai_project/Gopalakrishnan/plots/elbowPlot/combined/unweighted/elbow_target_species_aux_phylum_unweighted.pdf
+combined,weighted,phylum,family,10,EII,75,/Users/yushushi/Library/CloudStorage/OneDrive-WeillCornellMedicine/Ziyi/chai_project/Gopalakrishnan/plots/elbowPlot/combined/weighted/elbow_target_family_aux_phylum_weighted.pdf
+combined,weighted,phylum,genus,10,VII,188,/Users/yushushi/Library/CloudStorage/OneDrive-WeillCornellMedicine/Ziyi/chai_project/Gopalakrishnan/plots/elbowPlot/combined/weighted/elbow_target_genus_aux_phylum_weighted.pdf
+combined,weighted,phylum,otu,7,EEI,1437,/Users/yushushi/Library/CloudStorage/OneDrive-WeillCornellMedicine/Ziyi/chai_project/Gopalakrishnan/plots/elbowPlot/combined/weighted/elbow_target_otu_aux_phylum_weighted.pdf
+combined,weighted,phylum,species,10,VII,283,/Users/yushushi/Library/CloudStorage/OneDrive-WeillCornellMedicine/Ziyi/chai_project/Gopalakrishnan/plots/elbowPlot/combined/weighted/elbow_target_species_aux_phylum_weighted.pdf

@@ -1,0 +1,19 @@
+"feature_id","phylum_clean","class_clean","order_clean","family_clean","DES_p","BH_adj_p","clFDR","BH_q005"
+"OTU_16","Proteobacteria","Alphaproteobacteria","RF32","unclassified RF32",1.04882102606257e-19,7.86615769546931e-18,3.74883536248277e-15,TRUE
+"OTU_3","Bacteroidetes","Bacteroidia","Bacteroidales","Prevotellaceae",1.32667719427153e-09,4.97503947851822e-08,0.00172409533705821,TRUE
+"OTU_7","Firmicutes","Clostridia","Clostridiales","Ruminococcaceae",5.47842140160922e-05,0.00102720401280173,0.00175771107927355,TRUE
+"OTU_83","Cyanobacteria","Candidatus Melainabacteria","Candidatus Gastranaerophilales","Candidatus Gastranaerophilaceae",0.00023729162193075,0.00355937432896124,0.00941981930855865,TRUE
+"OTU_175","Firmicutes","Bacilli","Lactobacillales","Lactobacillaceae",1.28576000087755e-05,0.000321440000219387,0.0112696739294724,TRUE
+"OTU_375","Firmicutes","Clostridia","Clostridiales","Tissierellaceae",0.0867759560921165,0.591654246082613,0.0198837853948834,FALSE
+"OTU_479","Firmicutes","Clostridia","Clostridiales","Dehalobacteriaceae",0.113815277842837,0.68920203093623,0.0199079878219427,FALSE
+"OTU_39","Firmicutes","Clostridia","Clostridiales","Clostridiaceae",0.11946168536228,0.68920203093623,0.0225132815765133,FALSE
+"OTU_307","Cyanobacteria","Chloroplast","Streptophyta","unclassified Streptophyta",0.00639491537805395,0.0599523316692557,0.0246500370943247,FALSE
+"OTU_86","Firmicutes","Clostridia","Clostridiales","Christensenellaceae",0.00178100294207251,0.0190821743793483,0.0260646324315209,TRUE
+"OTU_68","Firmicutes","Clostridia","Clostridiales","unclassified Clostridiales",0.242686724160364,0.838115972644725,0.0403541469828653,FALSE
+"OTU_23","Firmicutes","Clostridia","Clostridiales","Lachnospiraceae",0.268197111246312,0.838115972644725,0.0499733585596983,FALSE
+"OTU_61","Bacteroidetes","Bacteroidia","Bacteroidales","Barnesiellaceae",0.596234802090968,0.968158363481197,0.0834528662873154,FALSE
+"OTU_10","Bacteroidetes","Bacteroidia","Bacteroidales","Rikenellaceae",0.712631465630423,0.968158363481197,0.0971527077503034,FALSE
+"OTU_1159","Bacteroidetes","Flavobacteriia","Flavobacteriales","Weeksellaceae",0.759624888964646,0.968158363481197,0.0995379551251695,FALSE
+"OTU_147","Bacteroidetes","Bacteroidia","Bacteroidales","Muribaculaceae",0.590638433718649,0.968158363481197,0.101363330314576,FALSE
+"OTU_124","Firmicutes","Erysipelotrichi","Erysipelotrichales","Erysipelotrichaceae",0.0522542810981876,0.391907108236407,0.107259780706176,FALSE
+"OTU_646","Firmicutes","Clostridia","Clostridiales","Eubacteriaceae",0.576805939152846,0.968158363481197,0.14928440253413,FALSE

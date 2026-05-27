@@ -13,9 +13,6 @@ r_libs/
 # Bioconductor ExperimentHub local cache
 data/ExperimentHub/
 
-# Plot/output scratch directories
-plots/
-
 # Secrets — never commit real .env files
 .env
 *.env
@@ -24,3 +21,6 @@ plots/
 # Editor / IDE
 .vscode/
 .idea/
+
+# Claude Code session state (per-user)
+.claude/

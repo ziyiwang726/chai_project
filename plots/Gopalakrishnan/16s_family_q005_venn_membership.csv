@@ -1,0 +1,44 @@
+"family","PCoA +
+Wilcoxon","PCoA +
+DESeq2","LLM +
+Wilcoxon"
+"Actinomycetaceae",TRUE,FALSE,FALSE
+"Aerococcaceae",TRUE,FALSE,FALSE
+"Anaeroplasmataceae",TRUE,FALSE,FALSE
+"Barnesiellaceae",FALSE,TRUE,FALSE
+"Candidatus Gastranaerophilaceae",FALSE,TRUE,FALSE
+"Candidatus Izemoplasmataceae",TRUE,FALSE,FALSE
+"Christensenellaceae",FALSE,TRUE,FALSE
+"Clostridiaceae",TRUE,TRUE,FALSE
+"Corynebacteriaceae",TRUE,FALSE,FALSE
+"Dehalobacteriaceae",FALSE,TRUE,FALSE
+"Desulfovibrionaceae",TRUE,FALSE,FALSE
+"Enterococcaceae",TRUE,FALSE,FALSE
+"Erysipelotrichaceae",TRUE,TRUE,FALSE
+"Eubacteriaceae",FALSE,TRUE,FALSE
+"Fusobacteriaceae",TRUE,FALSE,FALSE
+"Lachnospiraceae",TRUE,TRUE,FALSE
+"Lactobacillaceae",FALSE,TRUE,FALSE
+"Leuconostocaceae",TRUE,FALSE,FALSE
+"Micrococcaceae",TRUE,FALSE,FALSE
+"Mogibacteriaceae",TRUE,FALSE,FALSE
+"Muribaculaceae",TRUE,TRUE,FALSE
+"Oxalobacteraceae",TRUE,FALSE,FALSE
+"Paraprevotellaceae",TRUE,FALSE,FALSE
+"Prevotellaceae",FALSE,TRUE,FALSE
+"Rikenellaceae",FALSE,TRUE,FALSE
+"Ruminococcaceae",FALSE,TRUE,FALSE
+"Streptococcaceae",TRUE,FALSE,FALSE
+"Succinivibrionaceae",TRUE,FALSE,FALSE
+"Synergistaceae",TRUE,FALSE,FALSE
+"Thermoactinomycetaceae",TRUE,FALSE,FALSE
+"Tissierellaceae",FALSE,TRUE,FALSE
+"Turicibacteraceae",TRUE,FALSE,FALSE
+"unclassified Clostridiales",FALSE,TRUE,FALSE
+"unclassified RF32",FALSE,TRUE,FALSE
+"unclassified SHA-98",TRUE,FALSE,FALSE
+"unclassified Sphingobacteriales",TRUE,FALSE,FALSE
+"unclassified Streptophyta",TRUE,TRUE,FALSE
+"Veillonellaceae",TRUE,FALSE,FALSE
+"Verrucomicrobiaceae",TRUE,FALSE,FALSE
+"Weeksellaceae",FALSE,TRUE,FALSE

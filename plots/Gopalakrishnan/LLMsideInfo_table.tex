@@ -1,0 +1,47 @@
+% Requires \usepackage{booktabs,tabularx,array}
+\subsection{Feature selection results with supporting literature indicated by PMCID}
+\begin{table}[ht]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.1}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Phylum} & \textbf{Class} & \textbf{Order} & \textbf{Family} & \textbf{Supporting literature (PMCID)} \\
+\midrule
+Bacteroidetes & Bacteroidia & Bacteroidales & Porphyromonadaceae & -- \\
+Firmicutes & Clostridia & Clostridiales & Tissierellaceae & -- \\
+Firmicutes & Bacilli & Lactobacillales & Enterococcaceae & -- \\
+Proteobacteria & Gammaproteobacteria & Pseudomonadales & Moraxellaceae & \texttt{PMC11307144} \\
+Proteobacteria & Alphaproteobacteria & Rickettsiales & mitochondria & -- \\
+Actinobacteria & Actinobacteria & Actinomycetales & Micrococcaceae & -- \\
+Verrucomicrobia & Opitutae & Cerasicoccales & Cerasicoccaceae & \texttt{PMC12259845} \\
+Firmicutes & Bacilli & Turicibacterales & Turicibacteraceae & -- \\
+Firmicutes & Clostridia & Clostridiales & unclassified & -- \\
+ & & & Clostridiales & \\
+Firmicutes & Erysipelotrichi & Erysipelotrichales & Erysipelotrichaceae & -- \\
+Proteobacteria & Alphaproteobacteria & RF32 & unclassified & -- \\
+ & & & RF32 & \\
+Firmicutes & Bacilli & Gemellales & Gemellaceae & -- \\
+Tenericutes & Mollicutes & Candidatus & Candidatus & -- \\
+ & & Izemoplasmatales & Izemoplasmataceae & \\
+Firmicutes & Clostridia & Clostridiales & Eubacteriaceae & -- \\
+Firmicutes & Bacilli & Lactobacillales & Leuconostocaceae & \texttt{PMC12259845} \\
+Firmicutes & Clostridia & SHA-98 & unclassified & -- \\
+ & & & SHA-98 & \\
+Bacteroidetes & Bacteroidia & Bacteroidales & Muribaculaceae & -- \\
+Euryarchaeota & Thermoplasmata & Methanomassiliicoccales & Methanomassiliicoccaceae & -- \\
+Synergistetes & Synergistia & Synergistales & Synergistaceae & -- \\
+Tenericutes & Mollicutes & Anaeroplasmatales & Anaeroplasmataceae & -- \\
+Tenericutes & RF3 & ML615J-28 & unclassified & -- \\
+ & & & ML615J-28 & \\
+Firmicutes & Bacilli & Lactobacillales & Streptococcaceae & -- \\
+Actinobacteria & Actinobacteria & Actinomycetales & Actinomycetaceae & -- \\
+Proteobacteria & Gammaproteobacteria & Enterobacteriales & Enterobacteriaceae & \texttt{PMC10685659} \\
+Proteobacteria & Betaproteobacteria & Burkholderiales & Oxalobacteraceae & -- \\
+Firmicutes & Clostridia & Clostridiales & Dehalobacteriaceae & -- \\
+Firmicutes & Bacilli & Lactobacillales & Lactobacillaceae & -- \\
+\bottomrule
+\end{tabularx}
+\caption{Feature selection results. Features also selected by BH at the $q=0.10$ level are bolded; for this table, none of the displayed families are selected by BH at $q=0.10$.}
+\label{tab:llm_side_info_family}
+\end{table}

@@ -1,0 +1,61 @@
+"family","PCoA +
+Wilcoxon","PCoA +
+DESeq2","LLM +
+Wilcoxon"
+"Acetobacteraceae",TRUE,FALSE,FALSE
+"Acholeplasmataceae",TRUE,FALSE,FALSE
+"Actinomycetaceae",TRUE,FALSE,FALSE
+"Aerococcaceae",TRUE,FALSE,FALSE
+"Alcaligenaceae",FALSE,TRUE,FALSE
+"Anaeroplasmataceae",TRUE,FALSE,TRUE
+"Barnesiellaceae",TRUE,TRUE,FALSE
+"Bifidobacteriaceae",TRUE,FALSE,FALSE
+"Brucellaceae",TRUE,FALSE,FALSE
+"Candidatus Gastranaerophilaceae",TRUE,TRUE,FALSE
+"Candidatus Izemoplasmataceae",TRUE,FALSE,TRUE
+"Christensenellaceae",TRUE,TRUE,FALSE
+"Clostridiaceae",TRUE,TRUE,TRUE
+"Comamonadaceae",FALSE,TRUE,FALSE
+"Corynebacteriaceae",TRUE,FALSE,FALSE
+"Dehalobacteriaceae",TRUE,TRUE,TRUE
+"Desulfovibrionaceae",TRUE,FALSE,FALSE
+"Enterococcaceae",TRUE,FALSE,FALSE
+"Erysipelotrichaceae",TRUE,TRUE,FALSE
+"Eubacteriaceae",TRUE,TRUE,TRUE
+"Fusobacteriaceae",TRUE,FALSE,TRUE
+"Gemellaceae",FALSE,FALSE,TRUE
+"Helicobacteraceae",FALSE,TRUE,FALSE
+"Lachnospiraceae",TRUE,TRUE,FALSE
+"Lactobacillaceae",TRUE,TRUE,TRUE
+"Leuconostocaceae",TRUE,FALSE,FALSE
+"Methanobacteriaceae",TRUE,FALSE,FALSE
+"Micrococcaceae",TRUE,FALSE,FALSE
+"Mogibacteriaceae",TRUE,FALSE,FALSE
+"Muribaculaceae",TRUE,TRUE,TRUE
+"Odoribacteraceae",TRUE,FALSE,FALSE
+"Oxalobacteraceae",TRUE,FALSE,FALSE
+"Paraprevotellaceae",TRUE,FALSE,FALSE
+"Peptococcaceae",TRUE,FALSE,FALSE
+"Planococcaceae",TRUE,FALSE,FALSE
+"Porphyromonadaceae",FALSE,FALSE,TRUE
+"Prevotellaceae",FALSE,TRUE,FALSE
+"Rikenellaceae",FALSE,TRUE,FALSE
+"Ruminococcaceae",FALSE,TRUE,FALSE
+"Sphingobacteriaceae",FALSE,TRUE,FALSE
+"Staphylococcaceae",TRUE,FALSE,FALSE
+"Streptococcaceae",TRUE,FALSE,FALSE
+"Succinivibrionaceae",TRUE,TRUE,FALSE
+"Synergistaceae",TRUE,TRUE,TRUE
+"Thermoactinomycetaceae",TRUE,TRUE,FALSE
+"Tissierellaceae",FALSE,TRUE,FALSE
+"Turicibacteraceae",TRUE,FALSE,TRUE
+"unclassified Bacteria",TRUE,FALSE,FALSE
+"unclassified Clostridiales",TRUE,TRUE,FALSE
+"unclassified ML615J-28",FALSE,FALSE,TRUE
+"unclassified RF32",FALSE,TRUE,TRUE
+"unclassified SHA-98",TRUE,TRUE,TRUE
+"unclassified Sphingobacteriales",TRUE,TRUE,FALSE
+"unclassified Streptophyta",TRUE,TRUE,FALSE
+"Veillonellaceae",TRUE,FALSE,FALSE
+"Verrucomicrobiaceae",TRUE,FALSE,FALSE
+"Weeksellaceae",FALSE,TRUE,FALSE

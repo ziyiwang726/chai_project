@@ -3,6 +3,4 @@
 .env
 __pycache__/
 *.pyc
-cache/
-plots/
 LLMCode/archive/
