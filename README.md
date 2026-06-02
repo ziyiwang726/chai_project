@@ -5,7 +5,7 @@
 **chai** is a covariate-informed statistical framework that leverages auxiliary information to enhance the statistical power of multiple hypothesis testing while controlling the false discovery rate (FDR) in high-dimensional data (such as 16S rRNA and WGS microbiome sequencing).
  
 > **Note:** This repository contains all analysis files related to the **chai** project, but does **not** include the `chai` R package itself.
-> To install the package, please visit: [https://github.com/ziyiwang726/chai@robust](https://github.com/ziyiwang726/chai)
+> To install the package, please visit: [https://github.com/ziyiwang726/chai](https://github.com/ziyiwang726/chai)
  
 ---
  
