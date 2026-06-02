@@ -131,9 +131,9 @@ Three analysis configurations were evaluated:
  
 | Configuration | Test statistic | Side information **X** |
 |---|---|---|
-| (i) | Wilcoxon z-statistics | Phylogeny-derived PCoA coordinates |
-| (ii) | DESeq2 signed Wald statistics | PCoA coordinates |
-| (iii) | Wilcoxon z-statistics | LLM-derived covariates (3 variables) |
+| (i) | Wilcoxon z-statistics | Phylogeny-derived PCoA coordinates | 
+| (ii) | DESeq2 signed Wald statistics | Phylogeny-derived PCoA coordinates |
+| (iii) | Wilcoxon z-statistics | LLM-derived covariates |
 
 
 ### 3. Shotgun metagenomic sequencing data: schizophrenia vs. healthy individuals
