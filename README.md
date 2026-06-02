@@ -124,7 +124,7 @@ Canonical correlations between each genus and metabolite profiles are used as si
 
 ### 2. 16S rRNA gene sequence data: responders vs. non-responders in a melanoma cohort
 Full workflow: 
-[Melanoma with PCoA](https://ziyiwang726.github.io/chai_project/reports/Realdata_Melanoma_PCoA.html)
+[Melanoma with PCoA](https://ziyiwang726.github.io/chai_project/reports/Realdata_Melanoma_PCoA.html) \\
 [Melanoma (LLM)](https://ziyiwang726.github.io/chai_project/reports/Realdata_Melanoma_LLM.html)
 
 Three analysis configurations were evaluated:
