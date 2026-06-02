@@ -30,9 +30,9 @@ dir.create("./plots/Zhu", recursive = TRUE, showWarnings = FALSE)
 # ------------------------------
 # Read autoencoder and PCA5 file
 # ------------------------------
-ae5  <- read.csv("./data/Zhu_autoencoder/outputs/ZhuF_2020_species_AE5.csv", row.names = 1)
-pca5 <- read.csv("./data/Zhu_autoencoder/outputs/ZhuF_2020_species_PCA5.csv", row.names = 1)
-# spec_path <- read.csv("./data/Zhu_autoencoder/ZhuF_2020_species_pathway.csv", row.names = 1)
+ae5  <- read.csv("../data/Zhu_autoencoder/outputs/ZhuF_2020_species_AE5.csv", row.names = 1)
+pca5 <- read.csv("../data/Zhu_autoencoder/outputs/ZhuF_2020_species_PCA5.csv", row.names = 1)
+# spec_path <- read.csv("../data/Zhu_autoencoder/ZhuF_2020_species_pathway.csv", row.names = 1)
 
 
 # -----------------------------
@@ -942,7 +942,7 @@ p_zhu_ae <- plot_rejections_vs_q(zhu_ae,
                               title = "Number of Discoveries vs q, with Autoencoder",
                               x_breaks = sort(unique(zhu_ae$q)))
 
-pdf("./plots/Zhu/Zhu_AE_updated_locfdr.pdf", width = 10, height = 5)
+pdf("../plots/Zhu/Zhu_AE_updated_locfdr.pdf", width = 10, height = 5)
 plot(p_zhu_ae)
 dev.off()
 
@@ -956,7 +956,7 @@ p_zhu_ae_updated <- plot_rejections_vs_q(
   label_nudge_multipliers = c("^OrderShapeEM" = 1.7)
 )
 
-pdf("./figures/Zhu_AE_updated_orderlabels_right.pdf", width = 10, height = 5)
+pdf("../figures/Zhu_AE_updated_orderlabels_right.pdf", width = 10, height = 5)
 plot(p_zhu_ae_updated)
 dev.off()
 
@@ -977,7 +977,7 @@ p_zhu_pca <- plot_rejections_vs_q(zhu_pca,
                                  title = "Number of Discoveries vs q, with PCA",
                                  x_breaks = sort(unique(zhu_pca$q)))
 
-pdf("./plots/Zhu/Zhu_PCA_updated_locfdr.pdf", width = 10, height = 5)
+pdf("../plots/Zhu/Zhu_PCA_updated_locfdr.pdf", width = 10, height = 5)
 plot(p_zhu_pca)
 dev.off()
 
@@ -1244,7 +1244,7 @@ p_ae_pca <- ggplot(zhu_long_methods,
   )
 
 
-pdf("./plots/Zhu/Zhu_AE5_vs_PCA5_vs_noise_locfdr.pdf",
+pdf("../plots/Zhu/Zhu_AE5_vs_PCA5_vs_noise_locfdr.pdf",
     width = 11, height = 7)
 plot(p_ae_pca)
 dev.off()

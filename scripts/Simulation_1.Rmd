@@ -4,41 +4,42 @@ author: "Ziyi Wang"
 date: "2026-02-07"
 output: html_document
 ---
-## Simulation 1 - One dimensional x 
-sim a
-
+# Simulation 1 - One dimensional x 
 
 ### Load Packages/Functions
 
-```{r setup, include=FALSE}
-library(knitr)
-library(locfdr)
-library(CATMicrobiome)
-library(admix)
-library(mvtnorm)
-library(mixtools)
-library(devtools)
-library(KScorrect)
-library(mclust)
-library(adaptMT)
-library(AdaPTGMM)
-library(splines2)
-library(splines)
-library(dplyr)
-library(ggplot2)
-library(tidyr)
-library(coin)
-library(ggrepel)
-library(viridisLite)
-library(IHW)
-library(FDRreg)
-library(OrderShapeEM)
-library(chai)
+```{r setup, include=TRUE, warning=FALSE}
+suppressPackageStartupMessages({
+  library(knitr)
+  library(locfdr)
+  library(CATMicrobiome)
+  library(admix)
+  library(mvtnorm)
+  library(mixtools)
+  library(KScorrect)
+  library(mclust)
+  library(adaptMT)
+  library(AdaPTGMM)
+  library(splines2)
+  library(splines)
+  library(dplyr)
+  library(ggplot2)
+  library(tidyr)
+  library(coin)
+  library(ggrepel)
+  library(viridisLite)
+  library(IHW)
+  library(FDRreg)
+  library(OrderShapeEM)
+  library(chai)
+})
 ```
 
 ### Simulation generating and fit the models
 
-Note: this chunk is very time-consuming. Specifically, for each seed (100 randomly generated seeds in total) and each value of $a$ ($a \in {0, 0.5, 1, 1.5, 2}$), one simulation dataset was generated and then analyzed using \code{chai} and each benchmark method. For every method, we recorded the number of selections, FDP, and power at all $q$-level from 0.01 to 0.10, together with the corresponding seed and $a$ setting. 
+**Note: **
+
+This chunk is very time-consuming. Specifically, for each seed (100 randomly generated seeds in total) and each value of $a$ ($a \in {0, 0.5, 1, 1.5, 2}$), one simulation dataset was generated and then analyzed using \code{chai} and each benchmark method. For every method, we recorded the number of selections, FDP, and power at all $q$-level from 0.01 to 0.10, together with the corresponding seed and $a$ setting. 
 
 You can directly run next chuck to load all the results.
 
@@ -226,11 +227,12 @@ if (file.exists(cache_file)){
 ```
 
 ### Load simulation 1's results 
+
 Load simulation 1 results and calculate the average across 100 repeats.
 
 ```{r}
 # Load results
-results_1 <- readRDS("./data/chai_env/simA_all_results_with_zero.rds")
+results_1 <- readRDS("../data/chai_env/simA_all_results_with_zero.rds")
 
 # Calculate the average of selections, FDP and power.
 summary_1 <- results_1 %>%

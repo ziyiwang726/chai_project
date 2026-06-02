@@ -1,21 +1,65 @@
 ---
-title: "Realdata_Melanoma_PCoA"
+title: "Melanoma anti-PD-1 Real Data Analysis - PCoA"
 author: "Ziyi Wang"
-date: "2026-03-30"
-output: html_document
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    code_folding: show
 ---
 
-# Real data
-# Melanoma anti-PD-1 - The second real data
-## Wilcoxon test + PCoA
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo    = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  cache   = FALSE
+)
+```
 
-### Load Packages/Functions
-```{r setup, include=TRUE, warning=FALSE}
+## Overview
+
+This document reproduces the Melanoma anti-PD-1 real data analysis using
+PCoA of phylogentic tree structure as side covariates (auxiliary information).
+
+**Key settings (matching the manuscript figure):**
+
+| Parameter | Value |
+|-----------|-------|
+| Dataset | Gopalakrishnan et al. (Melanoma, 16S rRNA) |
+| Target taxonomic rank | Family |
+| Primary test statistic | Wilcoxon z-statistic / DESeq2 |
+| FDR methods compared | chai, AdaPT-GLM, AdaPT-GMM, OrderShapeEM, FDRreg, IHW, BH |
+
+
+**Working directory:** Knit this file from (`chai_project/scripts/`).
+
+---
+
+## 1. Install Dependencies
+
+Run once in a fresh R session before knitting:
+
+```{r install, eval=FALSE}
+# CRAN + Bioconductor + GitHub dependencies
+source("install_packages.R")
+
+# chai package (not on CRAN)
+remotes::install_github("ziyiwang726/chai@robust")
+```
+
+---
+
+## 2. Load Packages
+
+```{r packages, include=TRUE, warning=FALSE}
 suppressPackageStartupMessages({
+  library(chai)
   library(knitr)
   library(CATMicrobiome)
   library(mixtools)
-  library(devtools)
   library(KScorrect)
   library(adaptMT)
   library(AdaPTGMM)
@@ -30,16 +74,23 @@ suppressPackageStartupMessages({
   library(IHW)
   library(FDRreg)
   library(OrderShapeEM)
-  library(chai)
+  library(DESeq2)
+  library(ggtree)
+  library(ggtreeExtra)
+  library(ggnewscale)
 })
 
 ```
 
-### Load the raw data and pre-processing the data
+---
 
-**Note**: The pro-processing part and model fitting chunk could be time-consuming. We saved the processed data together with the organized results after fitting the models. When knitting this HTML file, we loaded the **Gopalakrishnan_16s_PCoA_env.RData** file directly and generated the plots from it. 
+## 3. Load the data and pre-processing the data
 
-However, for verification or reproducibility, you can also run each pre-processing chunk and/or model-fitting chunk one by one, while skiping the chunk that loads the .RData file. This should produce the same results.
+**Note**: 
+
+The pro-processing part and model fitting chunk could be time-consuming. We saved the processed data together with the organized results after fitting the models. When knitting this HTML file, we loaded the **Gopalakrishnan_16s_PCoA_env.RData** file directly in sectcion 4 and generated the plots from it. 
+
+However, for verification or reproducibility, you can also run each pre-processing chunk and/or model-fitting chunk one by one, while skipping the chunk that loads the .RData file. This should produce the same results.
 
 ```{r, eval=FALSE}
 #################### Load data from package CATMicrobiome ##############
@@ -87,14 +138,19 @@ cs[cs == 0] <- 1
 family_abun <- sweep(otu_table(family), 2, cs, "/") * 100    # family x subjects
 
 # Transpose for modeling (subjects × species)
-t_abun <- t(family_abun)     # 43 x 76
+t_abun <- t(family_abun)     # 43 x 75
 
 ########################## Outcome ###################################
 outcome <- factor(sample_data(family)$BinOutcomes, levels = c("NR","R"))
 table(outcome)
 ```
 
-### Get the side information - PCoA
+---
+
+## 4. PCoA Auxiliary Covariates
+
+Generating the side information - Calculate the cophenetic distances from phylogentic tree at family level, and then fit into PCoA.
+
 
 ```{r, eval=FALSE}
 # Calculate the cophenetic distances from phylogentic tree at family level
@@ -105,7 +161,9 @@ family_D <- cophenetic(phy_tree(family))
 family_pcoa <- cmdscale(family_D, k = 2)
 ```
 
-### Generating the p-value/z-value
+---
+
+## 5. Wilcoxon Test Statistics
 
 ```{r, eval=FALSE}
 p_z_values <- sapply(colnames(t_abun), function(feature) {
@@ -124,7 +182,10 @@ z_value <- p_z_values[,2]
 
 ```
 
-### Load the processed data
+
+---
+
+## 6. Load the processed data
 
 The processed data included: 
 
@@ -139,29 +200,49 @@ The processed data included:
 - **gopa_fam_16s**: the summary table saving the number of selections of every method at different q, with wilcoxon z + family_pcoa.
 - **gopa_fam_16s_long**: the long table version of gopa_fam_16s for plot purpose.
 
-- **chai_family_pcoa_DES**: \code(chai) output with DESeq wald_statistics and family_pcoa (side information) as inputs.
+- **DES_stat**: the DESeq2 wald statistics of each family between NR vs R.
+- **DES_p**: the DESeq2 p-value of each family between NR vs R.
+- **res**: the DESeq2 analysis results at q = 0.05 target FDR level.
+
+- **chai_family_pcoa_DES**: \code(chai) output with DESeq2 wald_statistics and family_pcoa (side information) as inputs.
 - **gopa_fam_16s_DES**: the summary table saving the number of selections of every method at different q, with DESeq2 wald-stat + family_pcoa.
-- **gopa_fam_16s_DES_long**: the long table version of gopa_fam_16s_DES for plot purpose.
+- **gopa_fam_16s_DES_long**: the long table version of gopa_fam_16s_DES for plotting purpose.
 
 
 ```{r}
-load("./data/chai_env/Gopalakrishnan_16s_PCoA_env.RData") 
+load("../data/chai_env/Gopalakrishnan_16s_PCoA_env.RData")
+```
+
+---
+
+## 7. Multiple Testing Methods
+
+### 7a. BH Fit the models
+
+```{r bh, eval=FALSE, warning=FALSE}
+q_levels <- seq(0.01, 0.10, by = 0.01)
+
+########################## BH ##########################
+p_adjusted <- p.adjust(p_value, method = "BH")
+bh_rejs <- sapply(q_levels, function(q) {
+  length(which(p_adjusted <= q))
+})
 ```
 
 
-### Fit the models
-```{r, eval=FALSE}
-q_levels <- seq(0.01, 0.10, by = 0.01)
+### 7b. chai
 
-################## chai #######################
+```{r chai, eval=FALSE, warning=FALSE}
 set.seed(123)
-chai_family_pcoa <- chai(z_value, family_pcoa, B = 100)
+chai_family_pcoa <- chai(z_value, family_pcoa, B = 1000)
 chai_rejs <- sapply(q_levels, function(q) {
   length(clfdrselect(chai_family_pcoa$clFDR, q, 1))
 })
+```
 
+### 7c. AdaPT-GLM
 
-########################## Adapt-glm ##########################
+```{r adapt-glm, eval=FALSE}
 x <- data.frame(family_pcoa)
 formula_ns <- list("~ns(X1, df = 2) + ns(X2, df = 2)",
                    "~ns(X1, df = 4) + ns(X2, df = 4)",
@@ -170,18 +251,27 @@ formula_ns <- list("~ns(X1, df = 2) + ns(X2, df = 2)",
 glm_ns <- adapt_glm(x, pvals = p_value, alphas=q_levels, 
                     pi_formulas = formula_ns, mu_formulas = formula_ns)
 adapt_glm_ns_rej <- glm_ns$nrejs[1:10]
+```
 
-########################## Adapt-gmm-p ##########################
+### 7d. AdaPT-GMM (p-values)
+
+```{r adapt-gmm-p, eval=FALSE}
 gmm_ns_p <- adapt_gmm(x, pvals = p_value,  alphas=q_levels,
                       beta_formulas = formula_ns)
 adapt_gmm_p_ns_rej <- gmm_ns_p$nrejs[1:10]
+```
 
-########################## Adapt-gmm-z ##########################
+### 7e. AdaPT-GMM (z-statistics)
+
+```{r adapt-gmm-z, eval=FALSE}
 gmm_ns_z <- adapt_gmm(x, z = z_value, alphas=q_levels,
                       beta_formulas = formula_ns, testing = "two_sided")
 adapt_gmm_z_ns_rej <- gmm_ns_z$nrejs[1:10]
+```
 
-########################## OrderShapeEM ##########################
+### 7f. OrderShapeEM
+
+```{r ordershape, eval=FALSE}
 ordershape_x1 <- OrderShapeEM(pvals = p_value, order.var = family_pcoa[,1], 
                               OrderShapeEM.control(trace = TRUE))
 ordershapeem_x1_rejs <- sapply(q_levels, function(q) {
@@ -193,16 +283,22 @@ ordershape_x2 <- OrderShapeEM(pvals = p_value, order.var = family_pcoa[,2],
 ordershapeem_x2_rejs <- sapply(q_levels, function(q) {
   sum(ordershape_x2$fdr <= q)
 })
+```
 
+### 7g. FDRreg
 
-########################## FDRreg ##########################
+```{r fdrreg, eval=FALSE}
 set.seed(123)
 fdr_theo <- FDRreg(z_value, family_pcoa, nulltype = 'theoretical')
 rdrreg_rejs <- sapply(q_levels, function(q) {
   length(which(fdr_theo$FDR <= q))
 })
+```
 
-########################## IHW ##########################
+### 7h. IHW
+** Note: ** Careful on running IHW.
+
+```{r ihw, eval=FALSE, message=FALSE}
 set.seed(123)
 ihw_1_rejs <- sapply(q_levels, function(q) {
   ihw <- ihw(pvalues = p_value, covariates = family_pcoa[,1], alpha = q, nbins = 5)
@@ -213,15 +309,13 @@ ihw_2_rejs <- sapply(q_levels, function(q) {
   ihw <- ihw(pvalues = p_value, covariates = family_pcoa[,2], alpha = q, nbins = 5)
   rejections(ihw)
 })
+```
 
+---
 
-########################## BH ##########################
-p_adjusted <- p.adjust(p_value, method = "BH")
-bh_rejs <- sapply(q_levels, function(q) {
-  length(which(p_adjusted <= q))
-})
+## 8. Main Figure — Number of Discoveries vs FDR Threshold
 
-# combine into data frame
+```{r, eval=FALSE, fig.width=10, fig.height=5}
 gopa_fam_16s <- data.frame(
   q = q_levels,
   chai = chai_rejs,
@@ -247,157 +341,11 @@ gopa_fam_16s_long <- gopa_fam_16s %>%
   mutate(Method = as.character(Method))
 ```
 
-### Visualization
+Line chart of number or selections by every method at different FDR q level. 
 
-Define the plotting functions
+```{r fig1}
+source("consistant_color.R")
 
-```{r}
-# ---------- color helpers ----------
-blend_color <- function(col, target = "white", amount = 0.4) {
-  a <- grDevices::col2rgb(col) / 255
-  b <- grDevices::col2rgb(target) / 255
-  out <- (1 - amount) * a + amount * b
-  grDevices::rgb(out[1,], out[2,], out[3,])
-}
-
-variant_shades <- function(base_col, K = 12) {
-  grDevices::colorRampPalette(c(
-    blend_color(base_col, "white", 0.55),
-    base_col,
-    blend_color(base_col, "black", 0.25)
-  ))(K)
-}
-
-make_method_palette <- function(methods, K = 12) {
-  fixed <- c(
-    chai        = "red",
-    adapt_glm   = "#FF7F0E",
-    adapt_gmm_z = "#2CA02C",
-    adapt_gmm_p = "#9467BD",
-    FDRreg      = "#8C564B",
-    BH          = "black"
-  )
-
-  family_base <- c(
-    OrderShapeEM = "#1F77B4",  # blue family
-    IHW          = "#17BECF"   # teal family
-  )
-
-  ord_shades <- variant_shades(family_base["OrderShapeEM"], K = K)
-  ihw_shades <- variant_shades(family_base["IHW"],          K = K)
-
-  methods <- unique(as.character(methods))
-  pal <- setNames(rep("#7F7F7F", length(methods)), methods)  # fallback grey
-
-  for (m in methods) {
-    if (m %in% names(fixed)) {
-      pal[m] <- fixed[m]
-      next
-    }
-
-    base <- sub("_x\\d+$", "", m)
-    idx  <- suppressWarnings(as.integer(sub(".*_x", "", m)))
-
-    if (base %in% names(family_base)) {
-      if (is.na(idx)) {
-        pal[m] <- family_base[base]  # e.g. "OrderShapeEM" with no suffix
-      } else {
-        idx <- max(1L, min(idx, K))
-        pal[m] <- if (base == "OrderShapeEM") ord_shades[idx] else ihw_shades[idx]
-      }
-    }
-  }
-
-  pal
-}
-
-method_order <- function(methods) {
-  methods <- unique(as.character(methods))
-  core <- c("chai","adapt_glm","adapt_gmm_z","adapt_gmm_p","FDRreg")
-
-  sort_family <- function(base) {
-    fam <- methods[grepl(paste0("^", base, "(_x\\d+)?$"), methods)]
-    base_present <- base %in% fam
-    vars <- fam[grepl("_x\\d+$", fam)]
-    if (length(vars)) {
-      idx <- suppressWarnings(as.integer(sub(".*_x", "", vars)))
-      vars <- vars[order(idx)]
-    }
-    c(if (base_present) base else character(0), vars)
-  }
-
-  out <- c(core, sort_family("OrderShapeEM"), sort_family("IHW"), "BH")
-  out <- unique(out)
-  out[out %in% methods]
-}
-
-# ---------- plotting function (labels, no legend) ----------
-library(ggrepel)
-library(stringr)
-
-plot_rejections_vs_q <- function(long_table, # title = "Number of Discoveries vs q",
-                                 K_variants = 12, x_breaks = NULL, 
-                                 method_font = 5.5) {
-
-  ord <- method_order(long_table$Method)
-  long_table <- long_table %>% mutate(Method = factor(Method, levels = ord))
-  pal <- make_method_palette(levels(long_table$Method), K = K_variants)
-
-  endpoints <- long_table %>%
-    group_by(Method) %>%
-    filter(q == max(q, na.rm = TRUE)) %>%
-    slice_tail(n = 1) %>%
-    ungroup() %>%
-    mutate(label = as.character(Method))
-
-  x_rng   <- range(long_table$q, na.rm = TRUE)
-  x_nudge <- diff(x_rng) * 0.03
-
-  p <- ggplot(long_table, aes(x = q, y = Rejections, group = Method, color = Method)) +
-    geom_line(linewidth = 0.9, na.rm = TRUE) +
-    geom_point(size = 1.8, na.rm = TRUE) +
-    ggrepel::geom_text_repel(
-      data = endpoints,
-      aes(label = label),
-      size = method_font,
-      nudge_x = x_nudge,
-      hjust = 0,
-      direction = "y",
-      segment.size = 0.2,
-      box.padding = 0.15,
-      point.padding = 0.10,
-      min.segment.length = 0,
-      max.overlaps = Inf,
-      seed = 1,
-      show.legend = FALSE
-    ) +
-    scale_color_manual(values = pal, breaks = ord) +
-    labs(# title = title, 
-      x = "q level", y = "Number of Rejections") +
-    coord_cartesian(clip = "off") +
-    theme_minimal() +
-    theme(
-      legend.position = "none",
-      plot.margin = margin(5.5, 60, 5.5, 5.5),
-      axis.title.x = element_text(size = 14),
-      axis.title.y = element_text(size = 14),
-      axis.text.x  = element_text(size = 12),
-      axis.text.y  = element_text(size = 12)
-    )
-
-  if (!is.null(x_breaks)) {
-    p <- p + scale_x_continuous(breaks = x_breaks, expand = expansion(mult = c(0.02, 0.18)))
-  } else {
-    p <- p + scale_x_continuous(expand = expansion(mult = c(0.02, 0.18)))
-  }
-
-  p
-}
-```
-
-##### The line chart
-Fit the above function to get the line chart.
-```{r}
 p_PCoA <- plot_rejections_vs_q(gopa_fam_16s_long,
                               x_breaks = sort(unique(gopa_fam_16s_long$q)))
 
@@ -408,12 +356,11 @@ p_PCoA
 ```
 
 
-## DESeq2 + PCoA
+---
 
-### Fit the DESeq2 workflow to get wald-statistics and p-value
+## 9. DESeq2 Statistics
 
-```{r, message=FALSE, warning=FALSE}
-library(DESeq2)
+```{r, eval=FALSE, message=FALSE, warning=FALSE}
 set.seed(123)
 cts <- as(otu_table(family), "matrix")
 
@@ -431,19 +378,34 @@ DES_p <- res$pvalue
 
 ```
 
+---
 
-### Fit the models
-```{r, message=FALSE, warning=FALSE, results='hide'}
+## 10. Multiple Testing Methods
+### 10a. BH Fit the models
+
+```{r bh_des, eval=FALSE, warning=FALSE}
 q_levels <- seq(0.01, 0.10, by = 0.01)
 
-################## chai #######################
+########################## BH ##########################
+p_adjusted_DES <- p.adjust(DES_p, method = "BH")
+bh_rejs_DES <- sapply(q_levels, function(q) {
+  length(which(p_adjusted_DES <= q))
+})
+```
+
+### 10b. chai
+
+```{r chai_des, eval=FALSE, warning=FALSE}
 set.seed(123)
-chai_family_pcoa_DES <- chai(DES_stat, family_pcoa, B = 100)
-chai_rejs <- sapply(q_levels, function(q) {
+chai_family_pcoa_DES <- chai(DES_stat, family_pcoa, B = 1000)
+chai_rejs_DES <- sapply(q_levels, function(q) {
   length(clfdrselect(chai_family_pcoa_DES$clFDR, q, 1))
 })
+```
 
-########################## Adapt-glm ##########################
+### 10c. AdaPT-GLM
+
+```{r adapt-glm_des, eval=FALSE}
 x <- data.frame(family_pcoa)
 formula_ns <- list("~ns(X1, df = 2) + ns(X2, df = 2)",
                    "~ns(X1, df = 4) + ns(X2, df = 4)",
@@ -452,71 +414,85 @@ formula_ns <- list("~ns(X1, df = 2) + ns(X2, df = 2)",
 glm_ns_DES <- adapt_glm(x, pvals = DES_p, alphas=q_levels,
                         pi_formulas = formula_ns, mu_formulas = formula_ns)
 
-adapt_glm_ns_rej <- glm_ns_DES$nrejs[1:10]
+adapt_glm_ns_rej_DES <- glm_ns_DES$nrejs[1:10]
+```
 
-########################## Adapt-gmm-p ##########################
+### 10d. AdaPT-GMM (p-values)
+
+```{r adapt-gmm-p_des, eval=FALSE}
 gmm_ns_p_DES <- adapt_gmm(x, pvals = DES_p,  alphas=q_levels,
                       beta_formulas = formula_ns)
-adapt_gmm_p_ns_rej <- gmm_ns_p_DES$nrejs[1:10]
+adapt_gmm_p_ns_rej_DES <- gmm_ns_p_DES$nrejs[1:10]
+```
 
-########################## Adapt-gmm-z ##########################
+### 10e. AdaPT-GMM (z-statistics)
+
+```{r adapt-gmm-z_des, eval=FALSE}
 gmm_ns_z_DES <- adapt_gmm(x, z = DES_stat, alphas=q_levels,
                       beta_formulas = formula_ns, testing = "two_sided")
-adapt_gmm_z_ns_rej <- gmm_ns_z_DES$nrejs[1:10]
+adapt_gmm_z_ns_rej_DES <- gmm_ns_z_DES$nrejs[1:10]
+```
 
-########################## OrderShapeEM ##########################
+### 10f. OrderShapeEM
+
+```{r ordershape_des, eval=FALSE}
 ordershape_x1_DES <- OrderShapeEM(pvals = DES_p, order.var = family_pcoa[,1], 
                               OrderShapeEM.control(trace = TRUE))
-ordershapeem_x1_rejs <- sapply(q_levels, function(q) {
+ordershapeem_x1_rejs_DES <- sapply(q_levels, function(q) {
   sum(ordershape_x1_DES$fdr <= q)
 })
 
 ordershape_x2_DES <- OrderShapeEM(pvals = DES_p, order.var = family_pcoa[,2], 
                               OrderShapeEM.control(trace = TRUE))
-ordershapeem_x2_rejs <- sapply(q_levels, function(q) {
+ordershapeem_x2_rejs_DES <- sapply(q_levels, function(q) {
   sum(ordershape_x2_DES$fdr <= q)
 })
+```
 
+### 10g. FDRreg
 
-########################## FDRreg ##########################
+```{r fdrreg_des, eval=FALSE}
 set.seed(123)
 fdr_theo_DES <- FDRreg(DES_stat, family_pcoa, nulltype = 'theoretical')
-rdrreg_rejs <- sapply(q_levels, function(q) {
+rdrreg_rejs_DES <- sapply(q_levels, function(q) {
   length(which(fdr_theo_DES$FDR <= q))
 })
+```
 
-########################## IHW ##########################
+### 10h. IHW
+** Note: ** Careful on running IHW.
+
+```{r ihw_des, eval=FALSE, message=FALSE}
 set.seed(123)
-ihw_1_rejs <- sapply(q_levels, function(q) {
+ihw_1_rejs_DES <- sapply(q_levels, function(q) {
   ihw <- ihw(pvalues = DES_p, covariates = family_pcoa[,1], alpha = q, nbins = 5)
   rejections(ihw)
 })
 
-ihw_2_rejs <- sapply(q_levels, function(q) {
+ihw_2_rejs_DES <- sapply(q_levels, function(q) {
   ihw <- ihw(pvalues = DES_p, covariates = family_pcoa[,2], alpha = q, nbins = 5)
   rejections(ihw)
 })
+```
 
 
-########################## BH ##########################
-p_adjusted_DES <- p.adjust(DES_p, method = "BH")
-bh_rejs <- sapply(q_levels, function(q) {
-  length(which(p_adjusted_DES <= q))
-})
+---
 
-# combine into data frame
+## 11. Main Figure
+
+```{r, eval=FALSE, fig.width=10, fig.height=5}
 gopa_fam_16s_DES <- data.frame(
   q = q_levels,
-  chai = chai_rejs,
-  adapt_glm = adapt_glm_ns_rej,
-  adapt_gmm_p = adapt_gmm_p_ns_rej,
-  adapt_gmm_z = adapt_gmm_z_ns_rej,
-  OrderShapeEM_x1 = ordershapeem_x1_rejs,
-  OrderShapeEM_x2 = ordershapeem_x2_rejs,
-  FDRreg = rdrreg_rejs,
-  IHW_x1 = ihw_1_rejs,
-  IHW_x2 = ihw_2_rejs,
-  BH = bh_rejs
+  chai = chai_rejs_DES,
+  adapt_glm = adapt_glm_ns_rej_DES,
+  adapt_gmm_p = adapt_gmm_p_ns_rej_DES,
+  adapt_gmm_z = adapt_gmm_z_ns_rej_DES,
+  OrderShapeEM_x1 = ordershapeem_x1_rejs_DES,
+  OrderShapeEM_x2 = ordershapeem_x2_rejs_DES,
+  FDRreg = rdrreg_rejs_DES,
+  IHW_x1 = ihw_1_rejs_DES,
+  IHW_x2 = ihw_2_rejs_DES,
+  BH = bh_rejs_DES
 )
 
 
@@ -530,12 +506,9 @@ gopa_fam_16s_DES_long <- gopa_fam_16s_DES %>%
   mutate(Method = as.character(Method))
 ```
 
-### Visualization
+### 11a. Number of Discoveries vs FDR Threshold
 
-##### The line chart
-Fit the defined function to get the line chart.
-
-```{r}
+```{r fig2}
 p_PCoA_DES <- plot_rejections_vs_q(gopa_fam_16s_DES_long,
                                    x_breaks = sort(unique(gopa_fam_16s_DES_long$q)))
 
@@ -546,13 +519,9 @@ p_PCoA_DES
 ```
 
 
-##### The phylogentic tree
+### 11b. The phylogentic tree
 
 ```{r, message=FALSE, warning=FALSE}
-library(ggtree)
-library(ggtreeExtra)
-library(ggnewscale)
-
 # Define a function to clean the feature name
 clean_taxon <- function(x) {
   x %>%
@@ -628,7 +597,7 @@ p3 <- p2 +
   ) +
   scale_color_manual(
     name   = "Tip label group",
-    values = c(chai_only="red", BH_only="blue", both="green", neither="black"),
+    values = c(chai_only="#E69F00", BH_only="#0072B2", both="#CC79A7", neither="#666666"),
     breaks = c("chai_only", "BH_only", "both", "neither"),
     labels = c("Only in chai", "Only in DESeq2", "In both", "Neither"),
     drop   = FALSE
@@ -658,3 +627,11 @@ p4 <- p3 +
 p4
 ```
 
+
+---
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+```

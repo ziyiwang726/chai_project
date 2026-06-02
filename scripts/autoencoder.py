@@ -13,8 +13,8 @@ from sklearn.decomposition import TruncatedSVD
 # =========================
 # User config (edit here)
 # =========================
-CSV_PATH = r".\autoencoder_project\ZhuF_2020_species_pathway.csv"
-OUT_DIR  = r".\autoencoder_project\outputs"
+CSV_PATH = r"..data\Zhu_autoencoder\ZhuF_2020_species_pathway.csv"
+OUT_DIR  = r"..data\Zhu_autoencoder\outputs"
 
 SEED = 123
 LATENT_DIM = 5

@@ -324,24 +324,6 @@ glm_ns <- adapt_glm(x, pvals = p_value, alphas=alphas,
 # alpha = 0.1: FDPhat 0.0833, Number of Rej. 12
 # alpha = 0.09: FDPhat 0.0833, Number of Rej. 12
 
-# # ispline
-# x <- data.frame(family_pcoa)
-# formula_is <- list("~iSpline(X1, df = 4) + iSpline(X2, df = 4)",
-#                    "~iSpline(X1, df = 6) + iSpline(X2, df = 6)",
-#                    "~iSpline(X1, df = 8) + iSpline(X2, df = 8)")
-# glm_ispline <- adapt_glm(x, pvals = p_value,  alphas=alphas,
-#                          pi_formulas = formula_is, mu_formulas = formula_is)
-# # alpha = 0.1: FDPhat 0.0833, Number of Rej. 12
-# # alpha = 0.09: FDPhat 0.0833, Number of Rej. 12
-#
-# # bs
-# formula_bs <- list("~bs(X1, df = 4) + bs(X2, df = 4)",
-#                    "~bs(X1, df = 6) + bs(X2, df = 6)",
-#                    "~bs(X1, df = 8) + bs(X2, df = 8)")
-# glm_bs <- adapt_glm(x, pvals = p_value,  alphas=alphas,
-#                     pi_formulas = formula_bs, mu_formulas = formula_bs)
-# # 0
-
 # GMM - p
 # ns
 gmm_ns_p <- adapt_gmm(x, pvals = p_value,  alphas=alphas,
@@ -349,30 +331,11 @@ gmm_ns_p <- adapt_gmm(x, pvals = p_value,  alphas=alphas,
 # alpha = 0.1: FDPhat 0.075, Number of Rej. 2
 # alpha = 0.05: FDPhat 0.05, Number of Rej. 1
 
-
-# # ispline
-# gmm_ispline_p <- adapt_gmm(x, pvals = p_value,  alphas=alphas,
-#                            beta_formulas = formula_is)
-# # alpha = 0.1: FDPhat 0.075, Number of Rej. 2
-# # alpha = 0.06: FDPhat 0.05, Number of Rej. 1
-#
-# # bs
-# gmm_bs_p <- adapt_gmm(x, pvals = p_value,  alphas=alphas,
-#                       beta_formulas = formula_bs)
-#
-# # alpha = 0.1: FDPhat 0.075, Number of Rej. 2
-# # alpha = 0.05: FDPhat 0.05, Number of Rej. 1
-
 # GMM - Z
 gmm_ns_z <- adapt_gmm(x, z = z_value, alphas=alphas,
                       beta_formulas = formula_ns, testing = "two_sided")
 # alpha = 0.1: FDPhat 0.075, Number of Rej. 2
 # alpha = 0.05: FDPhat 0.05, Number of Rej. 2
-
-# gmm_bs_z <- adapt_gmm(x, z = z_value, alphas=alphas,
-#                       beta_formulas = formula_bs, testing = "two_sided")
-# # alpha = 0.1: FDPhat 0.4429, Number of Rej. 0
-# # alpha = 0.05: FDPhat 0.4429, Number of Rej. 0
 
 ################## OrderShapeEM #######################
 require(OrderShapeEM)
@@ -391,10 +354,6 @@ set.seed(123)
 fdr_theo <- FDRreg(z_value, family_pcoa, nulltype = 'theoretical')
 length(which(fdr_theo$FDR <= 0.05))
 # 4
-
-fdr_emp <- FDRreg(z_value, family_pcoa, nulltype = 'empirical')
-length(which(fdr_emp$FDR <= 0.05))
-# 14
 
 ######################## IHW ############################
 set.seed(123)
@@ -438,15 +397,12 @@ chai_rejs <- sapply(q_levels, function(q) {
 
 # adapt_glm
 adapt_glm_ns_rej <- glm_ns$nrejs[1:10]
-# adapt_glm_bs_rej <- glm_bs$nrejs[1:10]
 
 # adapt_gmm_p
 adapt_gmm_p_ns_rej <- gmm_ns_p$nrejs[1:10]
-# adapt_gmm_p_bs_rej <- gmm_bs_p$nrejs[1:10]
 
 # adapt_gmm_z
 adapt_gmm_z_ns_rej <- gmm_ns_z$nrejs[1:10]
-# adapt_gmm_z_bs_rej <- gmm_bs_z$nrejs[1:10]
 
 # OrderShapeEM
 ordershapeem_x1_rejs <- sapply(q_levels, function(q) {
@@ -467,32 +423,24 @@ ihw_x1_rejs <- c(rejections(ihw_x1_01), rejections(ihw_x1_02), rejections(ihw_x1
                  rejections(ihw_x1_04),rejections(ihw_x1_05), rejections(ihw_x1_06),
                  rejections(ihw_x1_07), rejections(ihw_x1_08),
                  rejections(ihw_x1_09), rejections(ihw_x1_1))
-# [1] 0 1 1 1 1 1 1 0 0 0
 
 ihw_x2_rejs <- c(rejections(ihw_x2_01), rejections(ihw_x2_02), rejections(ihw_x2_03),
                  rejections(ihw_x2_04), rejections(ihw_x2_05), rejections(ihw_x2_06),
                  rejections(ihw_x2_07), rejections(ihw_x2_08),
                  rejections(ihw_x2_09), rejections(ihw_x2_1))
-# [1] 0 1 1 1 1 1 1 1 1 2
 
 # BH
 bh_rejs <- sapply(q_levels, function(q) {
   length(which(p_adjusted <= q))
 })
-# [1] 0 1 1 1 1 1 1 1 1 2
-
-
 
 # combine into data frame
 gopa_sum_16s_family <- data.frame(
   q = q_levels,
   chai = chai_rejs,
   adapt_glm = adapt_glm_ns_rej,
-  # adapt_glm_bs = adapt_glm_bs_rej,
   adapt_gmm_p = adapt_gmm_p_ns_rej,
-  # adapt_gmm_p_bs = adapt_gmm_p_bs_rej,
   adapt_gmm_z = adapt_gmm_z_ns_rej,
-  # adapt_gmm_z_bs = adapt_gmm_z_bs_rej,
   OrderShapeEM_x1 = ordershapeem_x1_rejs,
   OrderShapeEM_x2 = ordershapeem_x2_rejs,
   FDRreg = rdrreg_rejs,
@@ -666,29 +614,16 @@ dds_res <- DESeq(dds)
 res <- results(dds_res, alpha = 0.05)
 summary(res)
 which(res$padj <= 0.05)
-# [1]  9 28 48 54 63 65 76
 
-# res_01 <- results(dds_res, alpha = 0.01)  # 6
-# res_02 <- results(dds_res, alpha = 0.02)  # 6
-# res_03 <- results(dds_res, alpha = 0.03)  # 7
-# res_04 <- results(dds_res, alpha = 0.04)  # 7
 res_05 <- results(dds_res, alpha = 0.05)  # 7
-# res_06 <- results(dds_res, alpha = 0.06)  # 7
-# res_07 <- results(dds_res, alpha = 0.07)  # 8
-# res_08 <- results(dds_res, alpha = 0.08)  # 8
-# res_09 <- results(dds_res, alpha = 0.09)  # 8
-# res_1 <- results(dds_res, alpha = 0.1)    # 8
-
-DESeq <- c(6,6,7,7,7,7,8,8,8,8)
-
-# res_1 <- results(dds_res, alpha = 0.1)
-# summary(res_1)
-# which(res_1$padj <= 0.1)
-# # [1]  9 27 28 48 54 63 65 76
-
-
 DES_stat <- res_05$stat
 DES_p <- res_05$pvalue
+
+alphas <- seq(0.01, 0.10, by = 0.01)
+DESeq <- sapply(alphas, function(a) {
+  res <- results(dds_res, alpha = a)
+  sum(res$padj < a, na.rm = TRUE)
+})
 
 ########################### BH ###################################
 DES_p_adjusted <- p.adjust(DES_p, method = "BH")
@@ -724,7 +659,6 @@ length(lFDRselect(lfdr_DES_pcoa, 0.1, 1))
 
 # Quickly check which family taxa were been picked
 chai_found <- tax_table(family)[rownames(tax_table(family)) %in% rownames(family_pcoa)[lFDRselect(lfdr_DES_pcoa, 0.05, 1)], ]
-# write.csv(chai_found, "C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/plots/Gopalakrishnan/chai_found_DES_q05_family.csv", row.names = TRUE)
 
 # Visualization
 chai_DES_sel <- lFDRselect(lfdr_DES_pcoa, 0.05, 1)
@@ -757,16 +691,12 @@ ggplot(df_DES, aes(x = family_pcoa[,1], y = family_pcoa[,2], color = grp)) +
 
 
 ################## Adapt #######################
-alphas <- seq(0.01, 0.10, by = 0.01)
-
 # GLM
 # ns
 x <- data.frame(family_pcoa)
 
 glm_DES_ns <- adapt_glm(x, pvals = DES_p, alphas=alphas,
                         pi_formulas = formula_ns, mu_formulas = formula_ns)
-# 0
-
 
 # GMM - p
 # ns
@@ -776,15 +706,11 @@ gmm_DES_ns_p <- adapt_gmm(x, pvals = DES_p,  alphas=alphas,
 # alpha = 0.05: FDPhat 0.05, Number of Rej. 9
 
 
-
-
 # GMM - Z
 gmm_DES_ns_z <- adapt_gmm(x, z = DES_stat, alphas=alphas,
                           beta_formulas = formula_ns, testing = "two_sided")
 # alpha = 0.1: FDPhat 0.0938, Number of Rej. 8
 # alpha = 0.05: FDPhat 0.05, Number of Rej. 7
-
-
 
 ################## OrderShapeEM #######################
 
@@ -804,12 +730,6 @@ set.seed(123)
 fdr_DES_theo <- FDRreg(DES_stat, family_pcoa, nulltype = 'theoretical')
 length(which(fdr_DES_theo$FDR <= 0.05))
 # 9
-
-fdr_DES_emp <- FDRreg(DES_stat, family_pcoa, nulltype = 'empirical')
-length(which(fdr_DES_emp$FDR <= 0.05))
-# 9
-
-
 
 ######################## IHW ############################
 ihw_DES_x1_01 <- ihw(pvalues = DES_p, covariates = family_pcoa[,1], alpha = 0.01, nbins = 5)
@@ -852,15 +772,12 @@ chai_DES_rejs <- sapply(q_levels, function(q) {
 
 # adapt_glm
 adapt_glm_DES_ns_rej <- glm_DES_ns$nrejs[1:10]
-# adapt_glm_DES_bs_rej <- glm_DES_bs$nrejs[1:10]
 
 # adapt_gmm_p
 adapt_gmm_DES_p_ns_rej <- gmm_DES_ns_p$nrejs[1:10]
-# adapt_gmm_DES_p_bs_rej <- gmm_DES_bs_p$nrejs[1:10]
 
 # adapt_gmm_z
 adapt_gmm_DES_z_ns_rej <- gmm_DES_ns_z$nrejs[1:10]
-# adapt_gmm_DES_z_bs_rej <- gmm_DES_bs_z$nrejs[1:10]
 
 # OrderShapeEM
 ordershapeem_DES_x1_rejs <- sapply(q_levels, function(q) {
@@ -901,11 +818,8 @@ gopa_sum_16s_DES <- data.frame(
   q = q_levels,
   chai = chai_DES_rejs,
   adapt_glm = adapt_glm_DES_ns_rej,
-  # adapt_glm_bs = adapt_glm_DES_bs_rej,
   adapt_gmm_p = adapt_gmm_DES_p_ns_rej,
-  # adapt_gmm_p_bs = adapt_gmm_DES_p_bs_rej,
   adapt_gmm_z = adapt_gmm_DES_z_ns_rej,
-  # adapt_gmm_z_bs = adapt_gmm_DES_z_bs_rej,
   OrderShapeEM_x1 = ordershapeem_DES_x1_rejs,
   OrderShapeEM_x2 = ordershapeem_DES_x2_rejs,
   FDRreg = rdrreg_DES_rejs,
@@ -914,8 +828,6 @@ gopa_sum_16s_DES <- data.frame(
   DESeq2 = DESeq,
   BH = bh_rejs
 )
-
-
 
 ###########################################################
 # Plots
@@ -948,9 +860,6 @@ save(
   file = file.path(output_dir, "16s_DES_pcoa_family_updated_plot_data.RData"),
   compress = "xz"
 )
-
-
-# save(gopa_sum_16s_family, gopa_sum_16s_DES, file = "./chai_env/Gopalakrishnan_16s_tables.RData", compress = "xz")
 
 ####################################################################
 ############################ PLOTS #################################
@@ -1104,11 +1013,6 @@ p4 <- p3 +
   ) +
   guides(color = guide_legend(override.aes = list(alpha = 1))) +
   theme(legend.position = "right")
-
-# pdf("./plots/Gopalakrishnan/16s_wilcoxz_PCoA_phylo_tree.pdf", width = 8, height = 6.5)
-# plot(p4)
-# dev.off()
-
 
 
 # DESeq2 PCoA

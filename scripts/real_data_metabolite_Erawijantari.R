@@ -11,18 +11,16 @@ library(FDRreg)
 library(coin)
 library(IHW)
 
-
 source("chai.R")
 source("color_helper.R")
 
-
 ########################## Data from Github #################################
 
-mtb <- read.delim("./data/Erawijantari/mtb.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
+mtb <- read.delim("../data/Erawijantari/mtb.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
 # 96 x 524
-genera_counts <- read.delim("./data/Erawijantari/genera.counts.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
+genera_counts <- read.delim("../data/Erawijantari/genera.counts.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
 # 96 x 10527
-metadata <- read.delim("./data/Erawijantari/metadata.tsv", header = TRUE, stringsAsFactors = FALSE)
+metadata <- read.delim("../data/Erawijantari/metadata.tsv", header = TRUE, stringsAsFactors = FALSE)
 
 
 table(metadata$Study.Group)  # With metabolite profiles
@@ -219,7 +217,7 @@ p_ab <- pa + ppcoa +
 
 print(p_ab)
 
-# pdf("./plots/Erawijantari/Erawijantari_a_b_diversity.pdf", width = 10, height = 4)
+# pdf("../plots/Erawijantari/Erawijantari_a_b_diversity.pdf", width = 10, height = 4)
 # plot(p_ab)
 # dev.off()
 
@@ -229,23 +227,23 @@ p_cca_z <- ggplot(df, aes(x = z, y = x)) +
             geom_point(alpha = 0.6) +
             labs(x = "z-value", y = "Canonical Correlation") +
             theme_minimal()
-# pdf("./plots/Erawijantari/Erawijantari_cca_z.pdf", width = 5, height = 4)
+# pdf("../plots/Erawijantari/Erawijantari_cca_z.pdf", width = 5, height = 4)
 # plot(p_cca_z)
 # dev.off()
 
 ############################ Fit model ############################
 ################## chai #######################
 set.seed(123)
-chai_cca <- chai(z_value, as.matrix(cancor, ncol = 1), R = 100)
+chai_cca <- chai(z_value, as.matrix(cancor, ncol = 1), B = 100)
 
 # select <- lFDRselect(chai_cca, q = 0.05)
 # length(lFDRselect(chai_cca, q = 0.05))
 
-chai_sel <- lFDRselect(chai_cca$lFDR, 0.05, 1)
+chai_sel <- lFDRselect(chai_cca$lFDR, 0.05)
 
-length(lFDRselect(chai_cca$lFDR, 0.01, 1)) # 63
-length(lFDRselect(chai_cca$lFDR, 0.05, 1)) # 208
-length(lFDRselect(chai_cca$lFDR, 0.1, 1))  # 379
+length(lFDRselect(chai_cca$lFDR, 0.01)) # 63
+length(lFDRselect(chai_cca$lFDR, 0.05)) # 208
+length(lFDRselect(chai_cca$lFDR, 0.1))  # 379
 
 
 label_direction <- function(outcome, z_value, selected_idx) {
@@ -292,7 +290,7 @@ cca_sel <- ggplot(df, aes(x = z, y = x, color = grp)) +
        color = "Group") +
   theme_minimal()
 
-# pdf("./plots/Erawijantari/Erawijantari_cca_z.pdf", width = 8, height = 6)
+# pdf("../plots/Erawijantari/Erawijantari_cca_z.pdf", width = 8, height = 6)
 # plot(cca_sel)
 # dev.off()
 
@@ -500,10 +498,6 @@ fdr_theo <- FDRreg(z_value, as.matrix(cancor), nulltype = 'theoretical')
 length(which(fdr_theo$FDR <= 0.05))
 # 160
 
-fdr_emp <- FDRreg(z_value, as.matrix(cancor), nulltype = 'empirical')
-length(which(fdr_emp$FDR <= 0.05))
-# 8
-
 ######################## IHW ############################
 ihw_01 <- ihw(pvalues = p_value, covariates = cancor, alpha = 0.01)
 ihw_02 <- ihw(pvalues = p_value, covariates = cancor, alpha = 0.02)
@@ -556,7 +550,6 @@ ihw_rejs <- c(rejections(ihw_01), rejections(ihw_02), rejections(ihw_03),
               rejections(ihw_04), rejections(ihw_05), rejections(ihw_06),
               rejections(ihw_07), rejections(ihw_08), rejections(ihw_09),
               rejections(ihw_1))
-# [1]  36  61  72 110 123 146 167 180 205 241
 
 # BH
 bh_rejs <- sapply(q_levels, function(q) {
@@ -596,11 +589,7 @@ eraw_long <- eraw_sum %>%
     values_to = "Rejections"
   ) %>%
   mutate(Method = as.character(Method))
-#
-# order <- c("chai", "adapt_glm", "adapt_gmm_z", "adapt_gmm_p",
-#            "FDRreg", "OrderShapeEM", "IHW", "BH")
-#
-# eraw_long$Method <- factor(eraw_long$Method, levels = order)
+
 
 plot_rejections_vs_q <- function(eraw_long, title = "Number of Discoveries vs q",
                                  K_variants = 12, x_breaks = NULL) {
@@ -658,7 +647,7 @@ p_eraw_cca <- plot_rejections_vs_q(eraw_long,
                                    title = "Number of Discoveries vs q, with metabolites CCA score",
                                    x_breaks = sort(unique(eraw_long$q)))
 
-# pdf("./plots/Erawijantari/Erawijantari_cca_updated.pdf", width = 8, height = 4)
+# pdf("../plots/Erawijantari/Erawijantari_cca_updated.pdf", width = 8, height = 4)
 # plot(p_eraw_cca)
 # dev.off()
 
@@ -755,16 +744,16 @@ length(which(fdr_emp_logcount$FDR <= 0.05))
 # 8
 
 ######################## IHW ############################
-# ihw_01_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.01)
-# ihw_02_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.02)
-# ihw_03_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.03)
-# ihw_04_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.04)
-# ihw_05_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.05)
-# ihw_06_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.06)
-# ihw_07_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.07)
-# ihw_08_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.08)
-# ihw_09_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.09)
-# ihw_1_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.1)
+ihw_01_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.01)
+ihw_02_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.02)
+ihw_03_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.03)
+ihw_04_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.04)
+ihw_05_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.05)
+ihw_06_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.06)
+ihw_07_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.07)
+ihw_08_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.08)
+ihw_09_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.09)
+ihw_1_logcount <- ihw(pvalues = p_value, covariates = log_count, alpha = 0.1)
 
 rejections(ihw_05_logcount)  # 178
 rejections(ihw_06_logcount)  # 209
@@ -807,7 +796,6 @@ ihw_logcount_rejs <- c(rejections(ihw_01_logcount), rejections(ihw_02_logcount),
               rejections(ihw_04_logcount), rejections(ihw_05_logcount), rejections(ihw_06_logcount),
               rejections(ihw_07_logcount), rejections(ihw_08_logcount), rejections(ihw_09_logcount),
               rejections(ihw_1_logcount))
-# [1]  40  69 123 152 178 209 247 268 293 316
 
 # combine into data frame
 eraw_sum_logcount <- data.frame(
@@ -823,8 +811,6 @@ eraw_sum_logcount <- data.frame(
 )
 
 
-
-
 ###########################################################
 # Plots
 library(ggplot2)
@@ -838,11 +824,6 @@ eraw_long_logcount <- eraw_sum_logcount %>%
     values_to = "Rejections"
   ) %>%
   mutate(Method = as.character(Method))
-#
-# order <- c("chai", "adapt_glm", "adapt_gmm_z", "adapt_gmm_p",
-#            "FDRreg", "OrderShapeEM", "IHW", "BH")
-#
-# eraw_long$Method <- factor(eraw_long$Method, levels = order)
 
 plot_rejections_vs_q <- function(long_table, title = "Number of Discoveries vs q",
                                  K_variants = 12, x_breaks = NULL) {
@@ -900,7 +881,7 @@ p_eraw_logcount <- plot_rejections_vs_q(eraw_long_logcount,
                                    title = "Number of Discoveries vs q, log of normalized counts",
                                    x_breaks = sort(unique(eraw_long_logcount$q)))
 
-# pdf("./plots/Erawijantari/Erawijantari_logcount_updated.pdf", width = 8, height = 4)
+# pdf("../plots/Erawijantari/Erawijantari_logcount_updated.pdf", width = 8, height = 4)
 # plot(p_eraw_logcount)
 # dev.off()
 

@@ -1,22 +1,68 @@
 ---
-title: "Realdata_Gastrectomy"
+title: "Gastrectomy Real Data Analysis"
 author: "Ziyi Wang"
-date: "2026-03-16"
-output: html_document
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    code_folding: show
 ---
-# Real data
-## Gastrectomy - The first real data in paper
 
-### Load Packages/Functions
-```{r setup, include=TRUE, warning=FALSE}
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo    = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  cache   = FALSE
+)
+```
+
+## Overview
+
+This document reproduces the post-Gastrectomy real data analysis using
+Canonical Correlation coefficient of each genera with top 50 metabolomes as side covariates (auxiliary information).
+
+**Key settings (matching the manuscript figure):**
+
+| Parameter | Value |
+|-----------|-------|
+| Dataset | Erawijantari et al. (Gastrectomy, WGS) |
+| Target taxonomic rank | Genus |
+| Primary test statistic | Wilcoxon z-statistic |
+| FDR methods compared | chai, AdaPT-GLM, AdaPT-GMM, OrderShapeEM, FDRreg, IHW, BH |
+
+
+**Working directory:** Knit this file from (`chai_project/scripts/`).
+
+---
+
+## 1. Install Dependencies
+
+Run once in a fresh R session before knitting:
+
+```{r install, eval=FALSE}
+# CRAN + Bioconductor + GitHub dependencies
+source("install_packages.R")
+
+# chai package (not on CRAN)
+remotes::install_github("ziyiwang726/chai")
+```
+
+---
+
+## 2. Load Packages
+
+```{r packages, include=TRUE, warning=FALSE}
 suppressPackageStartupMessages({
+  library(chai)
   library(knitr)
   library(locfdr)
   library(CATMicrobiome)
   library(admix)
   library(mvtnorm)
   library(mixtools)
-  library(devtools)
   library(KScorrect)
   library(mclust)
   library(adaptMT)
@@ -32,23 +78,26 @@ suppressPackageStartupMessages({
   library(IHW)
   library(FDRreg)
   library(OrderShapeEM)
-  library(chai)
 })
 ```
 
-### Load the data and pre-processing the data
+---
 
-**Note**: The pro-processing part and model fitting chunk could be time-consuming. We saved the processed data together with the organized results after fitting the models. When knitting this HTML file, we loaded the **Gastrectomy_env.RData** file directly and generated the plots from it. 
+## 3. Load the data and pre-processing the data
 
-However, for verification or reproducibility, you can also run each pre-processing chunk and/or model-fitting chunk one by one, while skiping the chunk that loads the .RData file. This should produce the same results.
+**Note**: 
 
-```{r, eval=FALSE}
+The pro-processing part and model fitting chunk could be time-consuming. We saved the processed data together with the organized results after fitting the models. When knitting this HTML file, we loaded the **Gastrectomy_env.RData** file directly and generated the plots from it. 
+
+However, for verification or reproducibility, you can also run each pre-processing chunk and/or model-fitting chunk one by one, while skipping the chunk that loads the .RData file. This should produce the same results.
+
+```{r data, eval=FALSE}
 # Load the data
-mtb <- read.delim("./data/Erawijantari/mtb.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
+mtb <- read.delim("../data/Erawijantari/mtb.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
 
-genera_counts <- read.delim("./data/Erawijantari/genera.counts.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
+genera_counts <- read.delim("../data/Erawijantari/genera.counts.tsv", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
 
-metadata <- read.delim("./data/Erawijantari/metadata.tsv", header = TRUE, stringsAsFactors = FALSE)
+metadata <- read.delim("../data/Erawijantari/metadata.tsv", header = TRUE, stringsAsFactors = FALSE)
 
 table(metadata$Study.Group)
 
@@ -67,8 +116,12 @@ metadata_reorder <- metadata[match(rownames(genera_abun), metadata$Subject), ]
 # Get the outcome - outcome
 outcome <- as.factor(metadata_reorder$Study.Group)
 ```
-### Generating the p-value/z-value for each genera
-```{r, eval=FALSE}
+
+---
+
+## 4. Wilcoxon Test Statistics
+
+```{r wilcoxon, eval=FALSE}
 # p-value/z-value 
 compute_pz_wilcox <- function(t_abun, outcome) {
   stopifnot(nrow(t_abun) == length(outcome))
@@ -95,8 +148,13 @@ z_value <- p_z_values[,2]
 
 ```
 
-### Generating the side information - Canonical Correlation between genera relative abundance table and top 50 metabolomes
-```{r, eval=FALSE}
+---
+
+## 5. Canonical Correlation coefficient Auxiliary Covariates
+
+Generating the side information - Canonical Correlation between genera relative abundance table and top 50 metabolomes
+
+```{r aux, eval=FALSE}
 ######################## Metabolite ##############################
 # Filter out the 'low abundance' metabolites
 # Keep metabolites that are non-zero in at least 50% of subjects
@@ -127,24 +185,35 @@ for (i in 1:ncol(genera_abun)) {
 
 ```
 
-### Load the processed data
+---
+
+## 6. Load the processed data
 
 The processed data included: 
-- genera_abun: the relative abundance table of this Gastrectomy dataset at genera level 
-- outcome: the outcome (gastrectomy or control) of this dataset  
-- z_value: the z-statistics from wilcoxon text of each genera between gastrectomy vs control
-- p_value: the p-value calculated from z-statistics with two-sided
-- mtb_top50: the top 50 metabolomes
-- cancor: the Canonical Correlation coefficient of each genera
+
+- **genera_abun**: the relative abundance table of this Gastrectomy dataset at genera level 
+- **outcome**:     the outcome (gastrectomy or control) of this dataset  
+- **z_value**:     the z-statistics from wilcoxon text of each genera between gastrectomy vs control
+- **p_value**:     the p-value calculated from z-statistics with two-sided
+- **mtb_top50**:   the top 50 metabolomes
+- **cancor**:      the Canonical Correlation coefficient between top 50 metabolomes and each genera
+
+- **chai_cca**:    the \code(chai) output with wilcoxon z_statistics and Canonical Correlation coefficient (side information) as inputs
+
+- **eraw_sum**:    the summary of the number of selections by each method at each target FDR level
+- **eraw_long**:   the long table version of eraw_sum for plotting purpose
 
 
 ```{r}
-load("./data/chai_env/Gastrectomy_env.RData") 
+load("../data/chai_env/Gastrectomy_env.RData") 
 ```
 
 
-### Explore the data
-```{r}
+---
+
+## 7. Explore the data
+
+```{r explore}
 # alpha diversity
 alpha_df <- tibble(
   sample = rownames(genera_abun),
@@ -230,51 +299,84 @@ p_ab
 ```
 
 
-### Fit the models
+---
 
-```{r, eval=FALSE, warning=FALSE}
+## 8. Multiple Testing Methods
+
+### 8a. BH Fit the models
+
+```{r bh, eval=FALSE, warning=FALSE}
 q_levels <- seq(0.01, 0.10, by = 0.01)
 
-# chai
+p_adjusted <- p.adjust(p_value, method = "BH")
+bh <- which(p_adjusted <= 0.05)
+bh_rejs <- sapply(q_levels, function(q) {
+  length(which(p_adjusted <= q))
+})
+```
+
+
+### 8b. chai
+
+```{r chai, eval=FALSE, warning=FALSE}
 set.seed(123)
 chai_cca <- chai(z_value, as.matrix(cancor, ncol = 1), B = 100)
 chai_rejs <- sapply(q_levels, function(q) {
   length(clfdrselect(chai_cca$clFDR, q, 1))
 })
+```
 
-# Adapt_glm
+
+### 8c. AdaPT-GLM
+
+```{r adapt-glm, eval=FALSE}
 x <- data.frame(cancor)
 formula <- c(paste0("ns(cancor, df = ",2:8,")"))
 glm_ns <- adapt_glm(x, pvals = p_value, alphas=q_levels, 
                     pi_formulas = formula, mu_formulas = formula)
 adapt_glm_ns_rej <- glm_ns$nrejs[1:10]
+```
 
-# Adapt_gmm_p
+### 8d. AdaPT-GMM (p-values)
+
+```{r adapt-gmm-p, eval=FALSE}
 gmm_ns_p <- adapt_gmm(x, pvals = p_value,  alphas=q_levels, 
                       beta_formulas = formula)
 adapt_gmm_p_ns_rej <- gmm_ns_p$nrejs[1:10]
+```
 
-# Adapt_gmm_z
+### 8e. AdaPT-GMM (z-statistics)
+
+```{r adapt-gmm-z, eval=FALSE}
 gmm_ns_z <- adapt_gmm(x, z = z_value, alphas=q_levels, 
                       beta_formulas = formula, testing = "two_sided")
 adapt_gmm_z_ns_rej <- gmm_ns_z$nrejs[1:10]
+```
 
-# OrderShapeEM
+### 8f. OrderShapeEM
+
+```{r ordershape, eval=FALSE}
 orderfdr <- OrderShapeEM(pvals = p_value, order.var = cancor, 
                          OrderShapeEM.control(trace = TRUE))
 ordershapeem_rejs <- sapply(q_levels, function(q) {
   sum(orderfdr$fdr <= q)
 })
+```
 
-# FDRreg
+### 8g. FDRreg
+
+```{r fdrreg, eval=FALSE}
 set.seed(123)
 fdr_theo <- FDRreg(z_value, as.matrix(cancor), nulltype = 'theoretical')
 rdrreg_rejs <- sapply(q_levels, function(q) {
   length(which(fdr_theo$FDR <= q))
 })
+```
 
-# IHW
-############### Careful on running IHW!!!!!!
+### 8h. IHW
+** Note: ** Careful on running IHW.
+
+```{r ihw, eval=FALSE, message=FALSE}
 # ihw_rejs <- sapply(q_levels, function(q) {
 #   ihw <- ihw(pvalues = p_value, covariates = cancor, alpha = q, nbins = 5)
 #   rejections(ihw)
@@ -295,16 +397,14 @@ ihw_rejs <- c(rejections(ihw_01), rejections(ihw_02), rejections(ihw_03),
               rejections(ihw_04), rejections(ihw_05), rejections(ihw_06),
               rejections(ihw_07), rejections(ihw_08), rejections(ihw_09),
               rejections(ihw_1))
-
-# BH
-p_adjusted <- p.adjust(p_value, method = "BH")
-bh <- which(p_adjusted <= 0.05)
-bh_rejs <- sapply(q_levels, function(q) {
-  length(which(p_adjusted <= q))
-})
+```
 
 
-# combine into data frame
+---
+
+## 9. Main Figure
+
+```{r main-figure, eval=FALSE, fig.width=10, fig.height=5}
 eraw_sum <- data.frame(
   q = q_levels,
   chai = chai_rejs,
@@ -328,175 +428,22 @@ eraw_long <- eraw_sum %>%
   mutate(Method = as.character(Method))
 ```
 
-### Visualization
-
-Define the plot function 
-```{r}
-library(dplyr)
-library(ggplot2)
-library(tidyr)
-
-# ---------- color helpers ----------
-blend_color <- function(col, target = "white", amount = 0.4) {
-  a <- grDevices::col2rgb(col) / 255
-  b <- grDevices::col2rgb(target) / 255
-  out <- (1 - amount) * a + amount * b
-  grDevices::rgb(out[1,], out[2,], out[3,])
-}
-
-variant_shades <- function(base_col, K = 12) {
-  grDevices::colorRampPalette(c(
-    blend_color(base_col, "white", 0.55),
-    base_col,
-    blend_color(base_col, "black", 0.25)
-  ))(K)
-}
-
-make_method_palette <- function(methods, K = 12) {
-  fixed <- c(
-    chai        = "red",
-    adapt_glm   = "#FF7F0E",
-    adapt_gmm_z = "#2CA02C",
-    adapt_gmm_p = "#9467BD",
-    FDRreg      = "#8C564B",
-    BH          = "black"
-  )
-
-  family_base <- c(
-    OrderShapeEM = "#1F77B4",  # blue family
-    IHW          = "#17BECF"   # teal family
-  )
-
-  ord_shades <- variant_shades(family_base["OrderShapeEM"], K = K)
-  ihw_shades <- variant_shades(family_base["IHW"],          K = K)
-
-  methods <- unique(as.character(methods))
-  pal <- setNames(rep("#7F7F7F", length(methods)), methods)  # fallback grey
-
-  for (m in methods) {
-    if (m %in% names(fixed)) {
-      pal[m] <- fixed[m]
-      next
-    }
-
-    base <- sub("_x\\d+$", "", m)
-    idx  <- suppressWarnings(as.integer(sub(".*_x", "", m)))
-
-    if (base %in% names(family_base)) {
-      if (is.na(idx)) {
-        pal[m] <- family_base[base]  # e.g. "OrderShapeEM" with no suffix
-      } else {
-        idx <- max(1L, min(idx, K))
-        pal[m] <- if (base == "OrderShapeEM") ord_shades[idx] else ihw_shades[idx]
-      }
-    }
-  }
-
-  pal
-}
-
-method_order <- function(methods) {
-  methods <- unique(as.character(methods))
-  core <- c("chai","adapt_glm","adapt_gmm_z","adapt_gmm_p","FDRreg")
-
-  sort_family <- function(base) {
-    fam <- methods[grepl(paste0("^", base, "(_x\\d+)?$"), methods)]
-    base_present <- base %in% fam
-    vars <- fam[grepl("_x\\d+$", fam)]
-    if (length(vars)) {
-      idx <- suppressWarnings(as.integer(sub(".*_x", "", vars)))
-      vars <- vars[order(idx)]
-    }
-    c(if (base_present) base else character(0), vars)
-  }
-
-  out <- c(core, sort_family("OrderShapeEM"), sort_family("IHW"), "BH")
-  out <- unique(out)
-  out[out %in% methods]
-}
-
-# ---------- plotting function (labels, no legend) ----------
-library(ggrepel)
-library(stringr)
-
-plot_rejections_vs_q <- function(long_table, # title = "Number of Discoveries vs q",
-                                 K_variants = 12, x_breaks = NULL, method_font = 5.5) {
-  
-  ord <- method_order(long_table$Method)
-  long_table <- long_table %>% mutate(Method = factor(Method, levels = ord))
-  pal <- make_method_palette(levels(long_table$Method), K = K_variants)
-  
-  endpoints <- long_table %>%
-    group_by(Method) %>%
-    filter(q == max(q, na.rm = TRUE)) %>%
-    slice_tail(n = 1) %>%
-    ungroup() %>%
-    mutate(label = as.character(Method))
-  
-  x_rng   <- range(long_table$q, na.rm = TRUE)
-  x_nudge <- diff(x_rng) * 0.03
-  
-  p <- ggplot(long_table, aes(x = q, y = Rejections, group = Method, color = Method)) +
-    geom_line(linewidth = 0.9, na.rm = TRUE) +
-    geom_point(size = 1.8, na.rm = TRUE) +
-    ggrepel::geom_text_repel(
-      data = endpoints,
-      aes(label = label),
-      size = method_font,
-      nudge_x = x_nudge,
-      hjust = 0,
-      direction = "y",
-      segment.size = 0.2,
-      box.padding = 0.15,
-      point.padding = 0.10,
-      min.segment.length = 0,
-      max.overlaps = Inf,
-      seed = 1,
-      show.legend = FALSE
-    ) +
-    scale_color_manual(values = pal, breaks = ord) +
-    labs( #title = title, 
-      x = "q level", y = "Number of Rejections") +
-    coord_cartesian(clip = "off") +
-    theme_minimal() +
-    theme(
-      legend.position = "none",
-      plot.margin = margin(5.5, 60, 5.5, 5.5),
-      axis.title.x = element_text(size = 14),
-      axis.title.y = element_text(size = 14),
-      axis.text.x  = element_text(size = 12),
-      axis.text.y  = element_text(size = 12)
-    )
-  
-  if (!is.null(x_breaks)) {
-    p <- p + scale_x_continuous(breaks = x_breaks, expand = expansion(mult = c(0.02, 0.18)))
-  } else {
-    p <- p + scale_x_continuous(expand = expansion(mult = c(0.02, 0.18)))
-  }
-  
-  p
-}
-```
-
+### 9a. Number of Discoveries vs FDR Threshold
 
 Line chart of number or selections by every method at different FDR q level. 
 
+```{r fig1}
+source("consistant_color.R")
 
-```{R}
 p_eraw_cca <- plot_rejections_vs_q(eraw_long, 
                                    x_breaks = sort(unique(eraw_long$q)))
 ```
 
 
 
-```{r, fig.width=8, fig.height=4, out.width='60%', warning=FALSE}
-p_eraw_cca
-```
+### 9b. Scatter plot of z-value vs Canonical Correlation coefficient.
 
-
-Scatter plot of z-value vs Canonical Correlation coefficient.
-
-```{r}
+```{r  fig2}
 # chai selections at 0.05 FDR level
 chai_sel <- clfdrselect(chai_cca$clFDR, 0.05, 1)
 
@@ -565,6 +512,12 @@ Eraw_comb <- p_eraw_cca  + cca_sel +
 Eraw_comb
 ```
 
-# ggsave("./plots/Erawijantari/Erawijantari_comb.png", plot = Eraw_comb, width = 14, height = 5, dpi = 300)
+
+---
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
 ```
 

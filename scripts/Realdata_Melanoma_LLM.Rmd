@@ -1,0 +1,410 @@
+---
+title: "Melanoma Real Data Analysis — LLM Side Information"
+author: "Yushu Shi, Ziyi Wang"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo    = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  cache   = FALSE
+)
+```
+
+## Overview
+
+This document reproduces the Melanoma anti-PD-1 real data analysis using
+LLM-derived literature evidence as side covariates (auxiliary information).
+
+**Key settings (matching the manuscript figure):**
+
+| Parameter | Value |
+|-----------|-------|
+| Dataset | Gopalakrishnan et al. (Melanoma, 16S rRNA) |
+| Target taxonomic rank | Family |
+| LLM auxiliary source | Family and below (combined provider) |
+| Aggregation mode | **Weighted** Stouffer z |
+| Primary test statistic | Wilcoxon z-statistic |
+| FDR methods compared | chai, AdaPT-GLM, AdaPT-GMM, OrderShapeEM, FDRreg, IHW, BH |
+
+**Input LLM auxiliary file:**
+```
+chai_project/Gopalakrishnan/sideCov/combined/weighted/selectionTargetFamily/
+  d1Taxonomy_family_ABCD_family_and_below_weighted.csv
+```
+This file is pre-computed by the LLM pipeline (`chai_project/Gopalakrishnan/LLMCode/`)
+and is already included in the repository. You do **not** need to re-run
+the LLM pipeline to reproduce these results.
+
+**Working directory:** Knit this file from (`chai_project/scripts/`).
+
+---
+
+## 1. Install Dependencies
+
+Run once in a fresh R session before knitting:
+
+```{r install, eval=FALSE}
+# CRAN + Bioconductor + GitHub dependencies
+source("Gopalakrishnan/install_packages.R")
+
+# chai package (not on CRAN)
+remotes::install_github("ziyiwang726/chai@robust")
+```
+
+---
+
+## 2. Load Packages
+
+```{r packages}
+library(chai)
+library(ape)
+library(CATMicrobiome)
+library(coin)
+library(phyloseq)
+library(adaptMT)
+library(AdaPTGMM)
+library(splines)
+library(splines2)
+library(IHW)
+library(FDRreg)
+library(OrderShapeEM)
+library(auctestr)
+library(dplyr)
+library(tibble)
+library(stringr)
+library(tidyr)
+library(readr)
+library(ggplot2)
+library(ggrepel)
+
+```
+
+---
+
+## 3. Configuration
+
+```{r config}
+# ── Analysis parameters (matching manuscript figure) ──────────────────────────
+TARGET_RANK <- "family"
+AUX_SOURCE  <- "family"
+AUX_MODE    <- "weighted"
+PROVIDER    <- "combined"
+
+# ── Input: LLM auxiliary covariate CSV ────────────────────────────────────────
+aux_csv <- file.path(
+  "../Gopalakrishnan", "sideCov", "combined", "weighted",
+  "selectionTargetFamily",
+  "d1Taxonomy_family_ABCD_family_and_below_weighted.csv"
+)
+
+stopifnot("LLM auxiliary CSV not found — check working directory" = file.exists(aux_csv))
+
+# ── Reproducibility ───────────────────────────────────────────────────────────
+SEED     <- 123L
+B_CHAI   <- 1000L
+Q_LEVELS <- seq(0.01, 0.10, by = 0.01)
+
+set.seed(SEED)
+```
+
+---
+
+## 4. Helper Functions
+
+```{r helpers}
+clean_taxon <- function(x) {
+  x %>%
+    as.character() %>%
+    str_replace("^.*?__", "") %>%
+    str_replace_all("\\[|\\]", "") %>%
+    str_squish()
+}
+
+compute_pz_wilcox <- function(t_abun, outcome) {
+  stopifnot(nrow(t_abun) == length(outcome))
+  res <- sapply(colnames(t_abun), function(feat) {
+    wt <- wilcox_test(t_abun[, feat] ~ outcome)
+    c(p_value = as.numeric(pvalue(wt)), z_value = as.numeric(statistic(wt)))
+  }, simplify = "matrix")
+  out <- as.data.frame(t(res))
+  out$feature <- rownames(out)
+  rownames(out) <- NULL
+  out
+}
+
+make_main_df <- function(t_abun, pz_df, ps_obj, rank) {
+  tax_df   <- as.data.frame(tax_table(ps_obj)) %>% rownames_to_column("otu_rep")
+  rank_col <- names(tax_df)[tolower(names(tax_df)) == tolower(rank)]
+  if (length(rank_col) != 1)
+    stop("Cannot find unique taxonomy column for rank = '", rank, "'")
+  tax_map <- tax_df %>%
+    transmute(otu_rep, rank_value = as.character(.data[[rank_col]]))
+  pz_map <- pz_df %>%
+    transmute(otu_rep = feature,
+              p_main  = as.numeric(p_value),
+              z_main  = as.numeric(z_value))
+  pz_map %>%
+    left_join(tax_map, by = "otu_rep") %>%
+    mutate(taxon_key = clean_taxon(rank_value))
+}
+
+stouffer_nonzero <- function(v) {
+  v2 <- v[!is.na(v) & v != 0]
+  if (!length(v2)) return(0)
+  auctestr::stouffer_z(v2, ignore.na = FALSE)
+}
+
+make_aux_tax_level <- function(aux_otu, level, aux_cols = c("A", "B", "C", "D")) {
+  present_cols <- intersect(aux_cols, names(aux_otu))
+  level_col    <- names(aux_otu)[tolower(names(aux_otu)) == tolower(level)]
+  if (length(level_col) != 1)
+    stop("Cannot find level column '", level, "' in auxiliary CSV")
+  aux_otu %>%
+    filter(!is.na(.data[[level_col]]), .data[[level_col]] != "") %>%
+    group_by(.data[[level_col]]) %>%
+    summarise(across(all_of(present_cols), stouffer_nonzero, .names = "x{col}"),
+              .groups = "drop") %>%
+    mutate(taxon_key = clean_taxon(.data[[level_col]]))
+}
+
+build_ns_formulas <- function(X, dfs = c(2, 4, 6)) {
+  n_unique <- vapply(X, function(col) length(unique(col[is.finite(col)])), integer(1))
+  varying  <- names(n_unique)[n_unique > 1]
+  lapply(dfs, function(df_req) {
+    if (!length(varying)) return(~ 1)
+    terms <- vapply(varying, function(v) {
+      nu <- n_unique[[v]]
+      if (nu <= 2) v else sprintf("ns(%s, df=%d)", v, min(df_req, nu - 1))
+    }, character(1))
+    as.formula(paste("~", paste(terms, collapse = " + ")))
+  })
+}
+
+compute_ihw_rejs <- function(p, covariate, name, q_levels) {
+  if (length(unique(covariate[is.finite(covariate)])) <= 1) {
+    message("Skipping IHW for ", name, " (constant covariate)")
+    return(rep(NA_integer_, length(q_levels)))
+  }
+  tryCatch(
+    sapply(q_levels, function(q)
+      rejections(ihw(pvalues = p, covariates = covariate, alpha = q, nbins = 5))),
+    error = function(e) {
+      warning("IHW failed for ", name, ": ", e$message)
+      rep(NA_integer_, length(q_levels))
+    }
+  )
+}
+```
+
+---
+
+## 5. Load and Pre-process Data
+
+```{r data}
+otutable <- read.csv(
+  system.file("extdata", "d1OTUtable.csv", package = "CATMicrobiome"),
+  header = TRUE, row.names = 1)
+taxonomy <- read.csv(
+  system.file("extdata", "d1Taxonomy.csv", package = "CATMicrobiome"),
+  header = TRUE, row.names = 1)
+metaData <- read.csv(
+  system.file("extdata", "d1Meta.csv", package = "CATMicrobiome"),
+  header = TRUE, row.names = 1)
+tree <- read.tree(
+  system.file("extdata", "d1Tree.tree", package = "CATMicrobiome"))
+
+otus_keep <- intersect(tree$tip.label, rownames(taxonomy))
+tree      <- keep.tip(tree, otus_keep)
+taxonomy  <- taxonomy[match(tree$tip.label, rownames(taxonomy)), , drop = FALSE]
+otutable  <- otutable[otus_keep, , drop = FALSE]
+
+ps <- phyloseq(
+  otu_table(as.matrix(otutable), taxa_are_rows = TRUE),
+  tax_table(as.matrix(taxonomy)),
+  sample_data(metaData),
+  phy_tree(tree)
+)
+```
+
+```{r agglomerate}
+family_ps     <- tax_glom(ps, taxrank = "family")
+
+cs            <- colSums(otu_table(family_ps)); cs[cs == 0] <- 1
+family_abun   <- sweep(otu_table(family_ps), 2, cs, "/") * 100
+t_family_abun <- t(family_abun)
+
+outcome <- factor(sample_data(family_ps)$BinOutcomes, levels = c("NR", "R"))
+table(outcome)
+```
+
+---
+
+## 6. Wilcoxon Test Statistics
+
+```{r wilcoxon}
+family_pz     <- compute_pz_wilcox(t_family_abun, outcome)
+family_pz_tax <- make_main_df(t_family_abun, family_pz, family_ps, rank = "family")
+```
+
+---
+
+## 7. LLM Auxiliary Covariates
+
+```{r aux}
+family_aux_otu <- read_csv(aux_csv, show_col_types = FALSE)
+
+fam_aux <- make_aux_tax_level(family_aux_otu, level = "family")
+
+model_covariates <- c("xA", "xB", "xC")
+df_model <- family_pz_tax %>%
+  dplyr::left_join(fam_aux %>% dplyr::select(taxon_key, all_of(model_covariates)),
+            by = "taxon_key") %>%
+  dplyr::mutate(across(all_of(model_covariates), ~ replace_na(.x, 0)))
+
+keep     <- complete.cases(df_model[, c("z_main", "p_main", model_covariates)])
+df_model <- df_model[keep, ]
+
+z <- df_model$z_main
+p <- df_model$p_main
+X <- as.data.frame(df_model[, model_covariates])
+```
+
+---
+
+## 8. Multiple Testing Methods
+
+### 8a. BH
+
+```{r bh}
+p_adjusted <- p.adjust(p, method = "BH")
+bh_rejs    <- sapply(Q_LEVELS, function(q) sum(p_adjusted <= q))
+```
+
+### 8b. chai
+
+```{r chai}
+set.seed(SEED)
+chai_fit  <- chai(z, X, K_vec = 2:10, B = B_CHAI)
+chai_lfdr <- if (!is.null(chai_fit$lFDR)) chai_fit$lFDR else chai_fit$clFDR
+chai_rejs <- sapply(Q_LEVELS, function(q) length(clfdrselect(chai_lfdr, q, 1)))
+```
+
+### 8c. AdaPT-GLM
+
+```{r adapt-glm}
+formula_ns     <- build_ns_formulas(X)
+glm_ns         <- adapt_glm(X, pvals = p, alphas = Q_LEVELS,
+                             pi_formulas = formula_ns, mu_formulas = formula_ns)
+adapt_glm_rejs <- glm_ns$nrejs[seq_along(Q_LEVELS)]
+```
+
+### 8d. AdaPT-GMM (p-values)
+
+```{r adapt-gmm-p}
+gmm_ns_p         <- adapt_gmm(X, pvals = p, alphas = Q_LEVELS,
+                               beta_formulas = formula_ns)
+adapt_gmm_p_rejs <- gmm_ns_p$nrejs[seq_along(Q_LEVELS)]
+```
+
+### 8e. AdaPT-GMM (z-statistics)
+
+```{r adapt-gmm-z}
+gmm_ns_z         <- adapt_gmm(X, z = z, alphas = Q_LEVELS,
+                               beta_formulas = formula_ns, testing = "two_sided")
+adapt_gmm_z_rejs <- gmm_ns_z$nrejs[seq_along(Q_LEVELS)]
+```
+
+### 8f. OrderShapeEM
+
+```{r ordershape}
+os_x1 <- OrderShapeEM(pvals = p, order.var = X[,1],
+                      OrderShapeEM.control(trace = FALSE))
+os_x2 <- OrderShapeEM(pvals = p, order.var = X[,2],
+                      OrderShapeEM.control(trace = FALSE))
+os_x3 <- OrderShapeEM(pvals = p, order.var = X[,3],
+                      OrderShapeEM.control(trace = FALSE))
+os_x1_rejs <- sapply(Q_LEVELS, function(q) sum(os_x1$fdr <= q))
+os_x2_rejs <- sapply(Q_LEVELS, function(q) sum(os_x2$fdr <= q))
+os_x3_rejs <- sapply(Q_LEVELS, function(q) sum(os_x3$fdr <= q))
+```
+
+### 8g. FDRreg
+
+```{r fdrreg}
+n_unique_X  <- vapply(X, function(col) length(unique(col[is.finite(col)])), integer(1))
+varying_X   <- names(n_unique_X)[n_unique_X > 1]
+
+if (length(varying_X)) {
+  set.seed(SEED)
+  fdr_theo    <- FDRreg::FDRreg(z, as.matrix(X[, varying_X, drop = FALSE]),
+                                nulltype = "theoretical")
+  fdrreg_rejs <- sapply(Q_LEVELS, function(q) sum(fdr_theo$FDR <= q))
+} else {
+  fdr_theo    <- NULL
+  fdrreg_rejs <- rep(NA_integer_, length(Q_LEVELS))
+}
+```
+
+### 8h. IHW
+
+```{r ihw, message=FALSE}
+ihw_x1_rejs <- compute_ihw_rejs(p, X[,1], "xA", Q_LEVELS)
+ihw_x2_rejs <- compute_ihw_rejs(p, X[,2], "xB", Q_LEVELS)
+ihw_x3_rejs <- compute_ihw_rejs(p, X[,3], "xC", Q_LEVELS)
+```
+
+
+---
+
+## 9. Main Figure - Number of Discoveries vs FDR Threshold
+
+```{r main-figure, fig.width=10, fig.height=5}
+LLM_fam <- data.frame(
+  q               = Q_LEVELS,
+  BH              = bh_rejs,
+  chai            = chai_rejs,
+  adapt_glm       = adapt_glm_rejs,
+  adapt_gmm_p     = adapt_gmm_p_rejs,
+  adapt_gmm_z     = adapt_gmm_z_rejs,
+  OrderShapeEM_x1 = os_x1_rejs,
+  # OrderShapeEM_x2 = os_x2_rejs,
+  # OrderShapeEM_x3 = os_x3_rejs,
+  FDRreg          = fdrreg_rejs,
+  IHW_x1          = ihw_x1_rejs,
+  IHW_x2          = ihw_x2_rejs,
+  IHW_x3          = ihw_x3_rejs
+)
+
+LLM_fam_long <- LLM_fam %>%
+  pivot_longer(
+    cols = -q,
+    names_to = "Method",
+    values_to = "Rejections"
+  ) %>%
+  mutate(Method = as.character(Method))
+```
+
+
+```{r fig1}
+source("consistant_color.R")
+plot_rejections_vs_q(LLM_fam_long,
+                     x_breaks = sort(unique(LLM_fam_long$q)))
+
+```
+
+---
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+```

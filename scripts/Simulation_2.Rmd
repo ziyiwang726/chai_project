@@ -5,7 +5,6 @@ date: "2026-03-23"
 output: html_document
 ---
 # Simulation 2 - Two dimensional x 
-sim z
 
 ### Load Packages/Functions
 
@@ -14,7 +13,6 @@ suppressPackageStartupMessages({
   library(knitr)
   library(mvtnorm)
   library(mixtools)
-  library(devtools)
   library(KScorrect)
   library(adaptMT)
   library(AdaPTGMM)
@@ -34,7 +32,9 @@ suppressPackageStartupMessages({
 
 ### Simulation generating and fit the models
 
-Note: this chunk is time-consuming. Specifically, for each seed (100 randomly generated seeds in total), one simulation dataset was generated and then analyzed using \code{chai} and each benchmark method. For every method, we recorded the number of selections, FDP, and power at all $q$-level from 0.01 to 0.10, together with the corresponding seed. 
+**Note: **
+
+This chunk is time-consuming. Specifically, for each seed (100 randomly generated seeds in total), one simulation dataset was generated and then analyzed using \code{chai} and each benchmark method. For every method, we recorded the number of selections, FDP, and power at all $q$-level from 0.01 to 0.10, together with the corresponding seed. 
 
 You can directly run next chuck to load all the results.
 
@@ -370,11 +370,11 @@ runtime_summary <- runtime_2 |>
 
 ```
 
-#### Load simulation 2's results 
+### Load simulation 2's results 
 Load simulation 2 results and calculate the average across 100 repeats.
 
 ```{r}
-results_2 <- readRDS("./data/chai_env/simZ_all_results_with_zero.rds")
+results_2 <- readRDS("../data/chai_env/simZ_all_results_with_zero.rds")
 
 summary_2 <- results_2 %>%
   group_by(Method, q) %>%
