@@ -47,7 +47,7 @@ Run once in a fresh R session before knitting:
 source("install_packages.R")
 
 # chai package (not on CRAN)
-remotes::install_github("ziyiwang726/chai@robust")
+remotes::install_github("ziyiwang726/chai")
 ```
 
 ---

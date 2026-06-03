@@ -55,7 +55,7 @@ remotes::install_github("ziyiwang726/chai")
 ## 2. Load Packages
 
 ```{r packages, include=TRUE, warning=FALSE}
-suppressPackageStartupMessages({
+# suppressPackageStartupMessages({
   library(chai)
   library(knitr)
   library(locfdr)
@@ -78,7 +78,8 @@ suppressPackageStartupMessages({
   library(IHW)
   library(FDRreg)
   library(OrderShapeEM)
-})
+  library(tibble)
+# })
 ```
 
 ---
@@ -417,6 +418,7 @@ eraw_sum <- data.frame(
   BH = bh_rejs
 )
 
+eraw_sum[eraw_sum$q == 0.05, ]
 
 # into long format for further visualization
 eraw_long <- eraw_sum %>%
