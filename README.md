@@ -1,30 +1,87 @@
 # chai Project Repository
-**chai** - Conditional Hypothesis testing using Auxiliary Information
-
-**chai** is a covariate-informed statistical framework. It leverages auxiliary information to enhance the statistical power of multiple hypothesis testing while controlling the false discovery rate (FDR) of high-dimensional data (such as 16S rRNA and WGS microbiome sequencing).
-
-This repository contains all files related to the **chai** project.  
-Please note that this repository does NOT include the `chai` R package itself.  
-To install the `chai` package, please visit: **[chai](https://github.com/ziyiwang726/chai)**.
-
+ 
+**chai** — Conditional Hypothesis testing using Auxiliary Information
+ 
+**chai** is a covariate-informed statistical framework that leverages auxiliary information to enhance the statistical power of multiple hypothesis testing while controlling the false discovery rate (FDR) in high-dimensional data (such as 16S rRNA and WGS microbiome sequencing).
+ 
+> **Note:** This repository contains all analysis files related to the **chai** project, but does **not** include the `chai` R package itself.
+> To install the package, please visit: [https://github.com/ziyiwang726/chai](https://github.com/ziyiwang726/chai)
+ 
+---
+ 
 ## Authors
-
+ 
 **Ziyi Wang, Satabdi Saha, Christine B. Peterson, Yushu Shi**
-
-
+ 
+---
+ 
 ## Repository Structure
+ 
+```
+chai_project/
+├── data/                   # Real datasets used in analyses
+│   ├── Erawijantari/       # Gastrectomy metagenomic data
+│   ├── Zhu_autoencoder/    # Schizophrenia WGS data + autoencoder outputs
+│   └── chai_env/           # Cached simulation .rds files and .RData environments
+├── scripts/                # R and Python analysis scripts (.Rmd, .R, .py)
+├── reports/                # Full rendered workflows (HTML): code + figures
+├── figures/                # Output figures
+└── Gopalakrishnan/         # Melanoma 16S rRNA analysis pipeline
+    ├── code/               # R helper functions used by analysis scripts
+    ├── LLMCode/            # LLM-based literature evidence pipeline
+    ├── cache/              # Cached intermediate results
+    ├── plots/              # Intermediate plots and tables
+    └── sideCov/            # Side covariate tables
+```
 
-- `data/`:
-  Contains the real data used in the project.
+---
+ 
+## Setup
+ 
+### 1. Install the `chai` R package
+ 
+All simulation and real-data scripts depend on the `chai` package. Install it from GitHub:
+ 
+```r
+devtools::install_github("ziyiwang726/chai")
+```
 
-- `scripts/`: 
-  Contains all related R scripts and Python scripts.
+### 2. Install other R package dependencies
+ 
+```r
+source("scripts/install_packages.R")
+```
 
-- `reports/`:
-  Contains the full workflow from data processing to visualization, including both code and generated figures.
+This script handles CRAN, Bioconductor, and GitHub-only dependencies including `CATMicrobiome`, `AdaPTGMM`, `adaptMT`, `FDRreg`, and `OrderShapeEM`. **Restart R after it finishes.**
 
-- `figures/`:
-  Contains all related figures.
+> **macOS users:** Install the official GNU Fortran toolchain from the [R for macOS tools page](https://mac.r-project.org/tools/) before installing source-built packages such as `FDRreg`. Current CRAN R builds expect the GNU Fortran runtime under `/opt/gfortran`. If it is missing, the install script will detect this and print the exact installation command to run.
+
+### 3. Working directory and data layout
+ 
+All scripts expect to be **run or knit from the project root** (`chai_project/`). Data is laid out as:
+ 
+```
+data/Erawijantari/              # mtb.tsv, genera.counts.tsv, metadata.tsv
+data/Zhu_autoencoder/           # ZhuF_2020_species_pathway.csv
+data/Zhu_autoencoder/outputs/   # ZhuF_2020_species_AE5.csv, ZhuF_2020_species_PCA5.csv
+data/chai_env/                  # Cached simulation .rds files and dataset .RData environments
+```
+ 
+The melanoma 16S OTU table, taxonomy, metadata, and phylogenetic tree are loaded from the `CATMicrobiome` GitHub package via `system.file("extdata", ...)`, so no extra download is needed once that package is installed.
+ 
+### 4. Pre-computed environments
+ 
+The main `Realdata_*.Rmd` scripts load pre-computed results via `load("./chai_env/<dataset>_env.RData")` rather than re-running the full analysis. These `.RData` files are included in `data/chai_env/`. If you would like to fully re-generate them from scratch, you can either change the `eval` option in the chunks from `FALSE` to `TRUE` and then knit the file, or manually run the chunks.
+
+### 5. LLM pipeline (`Gopalakrishnan/LLMCode/`)
+ 
+The literature-evidence pipeline calls Anthropic, OpenAI, and Gemini APIs. To use it:
+ 
+1. Copy `Gopalakrishnan/LLMCode/.env.example` to `Gopalakrishnan/LLMCode/.env`
+2. Fill in an API key for whichever provider you plan to use (no Cornell key required)
+3. See `Gopalakrishnan/LLMCode/README.md` for full run commands
+
+---
 
 ## Simulation 1 - One dimensional auxiliary-information
 For the generation and visualization of **Simulation 1**, please see: [Simulation 1](https://ziyiwang726.github.io/chai_project/reports/Simulation_1.html).  
@@ -57,56 +114,29 @@ This line chart shows the number of rejected hypotheses selected by **chai** and
 
 ![Simulation 2 - FDR and power](figures/SimZ_fdr_power_updated_zero.png)
 
-## Real data
+## Real data Analyses
 
 ### 1. Shotgun metagenomic sequencing data: gastrectomy vs. healthy individuals
-For the full application and visualization of this real dataset, please see: [Gastrectomy](https://ziyiwang726.github.io/chai_project/reports/Realdata_Gastrectomy.html).
+Full workflow: [Gastrectomy](https://ziyiwang726.github.io/chai_project/reports/Realdata_Gastrectomy.html).
 
-#### Results
-Plot A below is the line chart that shows the number of genera selected by **chai** and other benchmark methods with canonical correlations between each genus and the metabolite profiles as side information, at different target FDR level ($q$) in this post-gastrectomy dataset. Plot B is the scatter plot of the Canonical correlation coefficient vs. z-statistics, colored by whether it selected by **chai** and/or **BH**. 
+Canonical correlations between each genus and metabolite profiles are used as side information **X**.
 
-![Gastrectomy](figures/Erawijantari_comb.png)
 
 ### 2. 16S rRNA gene sequence data: responders vs. non-responders in a melanoma cohort
-For the full application and visualization of this real dataset, please see: [Melanoma with PCoA](https://ziyiwang726.github.io/chai_project/reports/Realdata_Melanoma_PCoA.html)
+Full workflow: 
+[Melanoma with PCoA](https://ziyiwang726.github.io/chai_project/reports/Realdata_Melanoma_PCoA.html) \\
+[Melanoma (LLM)](https://ziyiwang726.github.io/chai_project/reports/Realdata_Melanoma_LLM.html)
 
-We tried three different analysis configurations:
+Three analysis configurations were evaluated:
+ 
+| Configuration | Test statistic | Side information **X** |
+|---|---|---|
+| (i) | Wilcoxon z-statistics | Phylogeny-derived PCoA coordinates | 
+| (ii) | DESeq2 signed Wald statistics | Phylogeny-derived PCoA coordinates |
+| (iii) | Wilcoxon z-statistics | LLM-derived covariates |
 
-- `(i)`: Wilcoxon z-statistics with phylogeny-derived PCoA covariates as X,
-- `(ii)`: DESeq2-derived signed Wald statistics with PCoA covariates as X,
-- `(iii)`: Wilcoxon z-statistics with the LLM-derived 3 covariates as X.
-
-#### Results
-- `(i)`: Wilcoxon z-statistics with phylogeny-derived PCoA covariates as X
-
-<img src="figures/16s_wilcoxz_pcoa_family_updated.png" width="60%" alt="Melanoma (i)">
-
-- `(ii)`: DESeq2-derived signed Wald statistics with PCoA covariates as X
-
-<table border="0">
-  <tr>
-    <td width="60%" valign="top">
-      <img src="figures/16s_DES_pcoa_family_updated.png" width="100%">
-    </td>
-    <td width="38%" valign="top">
-      <img src="figures/16s_DESeq2_PCoA_phylo_tree.png" width="100%">
-    </td>
-  </tr>
-</table>
-
-- `(iii)`: Wilcoxon z-statistics with the LLM-derived 3 covariates as X
-
-<img src="figures/16s_wilcoxz_LLM_fam_classandbelow_YS.png" width="60%">
 
 ### 3. Shotgun metagenomic sequencing data: schizophrenia vs. healthy individuals
-For the full application and visualization of this real dataset, please see: [Schizophrenia](https://ziyiwang726.github.io/chai_project/reports/Realdata_Schizophrenia.html).
+Full workflow: [Schizophrenia](https://ziyiwang726.github.io/chai_project/reports/Realdata_Schizophrenia.html).
 
-#### Results
-
-This line chart shows the number of features selected by **chai** and other benchmark methods with Autoencoder-derived pathway covariates, at different target FDR level ($q$).
-
-<img src="figures/Zhu_AE_updated.png" width="60%">
-
-This plot shows the number of selections within same method using different side information at different target FDR level ($q$).
-
-<img src="figures/Zhu_AE5_vs_PCA5_vs_noise.png" width="80%">
+Autoencoder-derived pathway covariates are used as side information **X**.
