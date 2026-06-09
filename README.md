@@ -43,7 +43,7 @@ chai_project/
 All simulation and real-data scripts depend on the `chai` package. Install it from GitHub:
  
 ```r
-devtools::install_github("ziyiwang726/chai")
+remotes::install_github("ziyiwang726/chai")
 ```
 
 ### 2. Install other R package dependencies
@@ -97,7 +97,7 @@ In Parallel, a side-information variable $\mathbf{X}$ is generated fro each hypo
 
 Here is the line chart of **chai** and other benchmark methods in simulation 1 when informativeness parameter $a$ is fixed at 1 or 2:
 
-![Simulation 1 - FDR and power](figures/SimA_fixa_1_2_zero.png)
+![Simulation 1 - FDR and power](figures/Sim1_fixa_1_2.png)
 
 ## Simulation 2 - Two dimensional auxiliary-information
 For the generation and visualization of **Simulation 2**, please see: [Simulation 2](https://ziyiwang726.github.io/chai_project/reports/Simulation_2.html).  
@@ -112,7 +112,7 @@ The null hypotheses were generated from standard normal distributions, while the
 
 This line chart shows the number of rejected hypotheses selected by **chai** and other benchmark methods in simulation 2 across different target FDR levels:
 
-![Simulation 2 - FDR and power](figures/SimZ_fdr_power_updated_zero.png)
+![Simulation 2 - FDR and power](figures/Sim2.png)
 
 ## Real data Analyses
 
