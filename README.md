@@ -83,8 +83,8 @@ The literature-evidence pipeline calls Anthropic, OpenAI, and Gemini APIs. To us
 
 ---
 
-## Simulation 1 - One dimensional auxiliary-information
-For reproducing **Simulation 1**, please see: [Simulation 1](https://ziyiwang726.github.io/chai_project/reports/Simulation_1.html).  
+## Simulation 1 - Two-sided z-statistics with One dimensional auxiliary-information
+For reproducing **Simulation 1**, please run `/scripts/Simulation_1.Rmd` or see the html outputs with code here: [Simulation 1](https://ziyiwang726.github.io/chai_project/reports/Simulation_1.html).
 
 #### Simulation setting
 Briefly, this simulation considers a multiple testing setting with 1,000 hypotheses, including 950 null hypotheses and two non-null groups with positive and negative signals. 
@@ -99,8 +99,8 @@ Here is the line chart of **chai** and other benchmark methods in simulation 1 w
 
 ![Simulation 1 - FDR and power](figures/Sim1_fixa_1_2.png)
 
-## Simulation 2 - Two dimensional auxiliary-information
-For reproducing **Simulation 2**, please see: [Simulation 2](https://ziyiwang726.github.io/chai_project/reports/Simulation_2.html).  
+## Simulation 2 - Two-sided z-statistics with Two dimensional auxiliary-information
+For reproducing **Simulation 2**, please run `/scripts/Simulation_2.Rmd` or see the html outputs with code here: [Simulation 2](https://ziyiwang726.github.io/chai_project/reports/Simulation_2.html).  
 
 #### Simulation setting
 This simulation also considers a multiple testing setting with 1,000 hypotheses, including 950 null hypotheses and two non-null groups with positive (25) and negative signals (25). 
@@ -113,6 +113,14 @@ The null hypotheses were generated from standard normal distributions, while the
 This line chart shows the number of rejected hypotheses selected by **chai** and other benchmark methods in simulation 2 across different target FDR levels:
 
 ![Simulation 2 - FDR and power](figures/Sim2.png)
+
+
+## Supplementary Simulation S1 - One-sided z-statistics with One dimensional auxiliary-information
+For reproducing **Simulation S1**, please run `/scripts/Simulation_S1.Rmd` or see the html outputs with code here: [Simulation S1](https://ziyiwang726.github.io/chai_project/reports/Simulation_S1.html).  
+
+## Supplementary Simulation S2 - One-sided z-statistics with Two dimensional auxiliary-information
+For reproducing **Simulation S2**, please run `/scripts/Simulation_S2.Rmd` or see the html outputs with code here: [Simulation S2](https://ziyiwang726.github.io/chai_project/reports/Simulation_S2.html).  
+
 
 ## Real data Analyses
 
