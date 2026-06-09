@@ -84,7 +84,7 @@ The literature-evidence pipeline calls Anthropic, OpenAI, and Gemini APIs. To us
 ---
 
 ## Simulation 1 - One dimensional auxiliary-information
-For the generation and visualization of **Simulation 1**, please see: [Simulation 1](https://ziyiwang726.github.io/chai_project/reports/Simulation_1.html).  
+For reproducing **Simulation 1**, please see: [Simulation 1](https://ziyiwang726.github.io/chai_project/reports/Simulation_1.html).  
 
 #### Simulation setting
 Briefly, this simulation considers a multiple testing setting with 1,000 hypotheses, including 950 null hypotheses and two non-null groups with positive and negative signals. 
@@ -100,7 +100,7 @@ Here is the line chart of **chai** and other benchmark methods in simulation 1 w
 ![Simulation 1 - FDR and power](figures/Sim1_fixa_1_2.png)
 
 ## Simulation 2 - Two dimensional auxiliary-information
-For the generation and visualization of **Simulation 2**, please see: [Simulation 2](https://ziyiwang726.github.io/chai_project/reports/Simulation_2.html).  
+For reproducing **Simulation 2**, please see: [Simulation 2](https://ziyiwang726.github.io/chai_project/reports/Simulation_2.html).  
 
 #### Simulation setting
 This simulation also considers a multiple testing setting with 1,000 hypotheses, including 950 null hypotheses and two non-null groups with positive (25) and negative signals (25). 
