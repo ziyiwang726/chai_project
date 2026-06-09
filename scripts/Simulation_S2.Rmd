@@ -1,576 +1,378 @@
 ---
-title: "Simulation_x"
+title: "Simulation_S2"
 author: "Ziyi Wang"
-date: "2025-08-20"
+date: "`r Sys.Date()`"
 output:
-  html_document: 
-    theme: united
-    toc: yes
-    toc_float:
-      collapsed: yes
-    smooth_scroll: yes
-    code_folding: "hide"
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    code_folding: show
 ---
 
 ```{r setup, include=FALSE}
-library(knitr)
-opts_chunk$set(collapse=TRUE, fig.align='center', tidy=TRUE, tidy.opts=list(blank=TRUE, width.cutoff=80), warning=FALSE,message=FALSE,cache=F)
-library(locfdr)
-library(admix)
-library(mvtnorm)
-library(mixtools)
-library(devtools)
-library(KScorrect)
-library(mclust)
-library(adaptMT)
-library(AdaPTGMM)
-library(splines2)
-library(splines)
-library(IHW)
-library(FDRreg)
-library(dplyr)
-library(ggplot2)
-require(OrderShapeEM)
-library(chai)
+knitr::opts_chunk$set(
+  echo    = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  cache   = FALSE
+)
+```
 
-setwd("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian")
-# source("ConditionalGaussianlFDR_defined_functions_playing.R")
-# source("chai.R")
+## Overview
 
+This document reproduces the Supplementary Simulation S2, which is based on the one-sided z-statistic setting 
+with two-dimensional X as the side covariates (auxiliary information).
 
-# summary_by_aq <- readRDS("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/chai_env/simX_summary_diff_q.rds")
-# 
-# results_all <- readRDS("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/chai_env/simX_all_results_diff_q.rds")
+**Working directory:** Knit this file from (`chai_project/scripts/`).
 
+---
+
+## 1. Install Dependencies
+
+Run once in a fresh R session before knitting:
+
+```{r install, eval=FALSE}
+# CRAN + Bioconductor + GitHub dependencies
+source("install_packages.R")
+
+# chai package (not on CRAN)
+remotes::install_github("ziyiwang726/chai")
+```
+
+---
+
+## 2. Load Packages
+
+```{r packages, include=TRUE, warning=FALSE}
+suppressPackageStartupMessages({
+  library(chai)
+  library(knitr)
+  library(mvtnorm)
+  library(mixtools)
+  library(KScorrect)
+  library(adaptMT)
+  library(AdaPTGMM)
+  library(splines2)
+  library(dplyr)
+  library(ggplot2)
+  library(tidyr)
+  library(coin)
+  library(ggrepel)
+  library(IHW)
+  library(FDRreg)
+  library(OrderShapeEM)
+  library(patchwork)
+  library(ggrepel)
+  library(stringr)
+})
 ```
 
 
-# Simulation Setting
+---
 
-Simulation setting:
+## 3. Simulation generating and fit the models
 
-- Under Null (n0 = 950):
-$$ z_{H0} \sim \mathcal{N}(0, 1) $$
-$$ x1_{H0} \sim \mathcal{N}(5, 1) $$
-$$ x2_{H0} \sim \mathcal{N}(1, 1) $$
+**Note: **
 
-- Under Alternative 1 (n1 = 25):
-$$ z_{H1_1} \sim \mathcal{N}(2, 0.5) $$
-$$ x1_{H1_1} \sim \mathcal{N}(4, 1)  $$
-$$ x2_{H1_1} \sim \mathcal{N}(2, 1)  $$
-- Under Alternative 2 (n2 = 25):
-$$ z_{H1_2} \sim \mathcal{N}(3, 0.5) $$
-$$ x1_{H1_2} \sim \mathcal{N}(3, 1)  $$
-$$ x2_{H1_2} \sim \mathcal{N}(3, 1)  $$
+This chunk may be very time-consuming. Specifically, for each seed (100 randomly generated seeds in total), one simulation dataset was generated and then analyzed using \code{chai} and each benchmark method. For every method, we recorded the number of selections, FDP, and power at all $q$-level from 0.01 to 0.10, together with the corresponding seed. 
 
+By default, the code reads the previously generated RDS file to save time. If you want to re-generate the results from scratch, you can change the path of `cache_file` to let R cannot find the corresponding RDS file so that R starts by re-running the simulation.
 
-```{r}
-set.seed(123)
+```{r, warning=FALSE}
+set.seed(1)
+seeds <- c(sample(1:10000, 99), 123)   # Add seed 123 for checking purpose
+
 n = 1000
 n0 <- 950
 n1 <- 25
 
-z0 <- rnorm(n0, mean = 0, sd = 1)
-x0 <- rnorm(n0, mean = 5, sd = 1)
-y0 <- rnorm(n0, mean = 1, sd = 1)
-
-z1 <- rnorm(n1, mean = 2, sd = 0.5)
-x1 <- rnorm(n1, mean = 4, sd = 1)
-y1 <- rnorm(n1, mean = 2, sd = 1)
-
-z2 <- rnorm(n1, mean = 3, sd = 0.5)
-x2 <- rnorm(n1, mean = 3, sd = 1)
-y2 <- rnorm(n1, mean = 3, sd = 1)
-
-z <- c(z0, z1, z2)
-x <- c(x0, x1, x2)
-y <- c(y0, y1, y2)
-
-X <- cbind(x, y)
-
-# p <- 2 * (1 - pnorm(abs(z)))
-p <- pnorm(z, lower.tail = FALSE)
-
-
-gt_x <- seq((n0+1), n)    
-length(gt_x)            # 50
-
-true_labels <- c(rep('Null', n0), rep('Signal', n - n0))
-
-```
-
-
-# Plot of z and X
-
-```{r}
-df <- data.frame(z = z, x1 = x, x2 = y, p = p)
-
-# z
-ggplot(df, aes(x=z)) +
-  geom_histogram(aes(y=..density..), binwidth=0.25, color="black", fill="lightblue") +
-  geom_density() +
-  stat_function(fun=dnorm, args=list(mean=0, sd=1), linetype="dashed") +
-  labs(title="Histogram of z-value with N(0,1)", x="z", y="Density") +
-  theme_minimal()
-
-# x1
-ggplot(df, aes(x = x1)) +
-  geom_histogram(aes(y = ..density..), bins = 40, color = "black", fill = "lightblue") +
-  geom_density() +
-  labs(
-    title = paste0("Histogram of x1"),
-    x = "x1", y = "Density"
-  ) +
-  theme_minimal()
-
-# x2
-ggplot(df, aes(x = x2)) +
-  geom_histogram(aes(y = ..density..), bins = 40, color = "black", fill = "lightblue") +
-  geom_density() +
-  labs(
-    title = paste0("Histogram of x2"),
-    x = "x2", y = "Density"
-  ) +
-  theme_minimal()
-
-```
-
-
-# Fit Model
-
-## CHAI
-```{r}
-set.seed(123)
-sim_x <- chai(z, X, M = 100)
-select <- lFDRselect(sim_x, q = 0.05)
-performance(gt_x, select, z = sim_x$z, 
-            bh_level = 0.05, one.sided = TRUE)[c(4,1,2)]
-# 31, 0.0323, 0.6
-```
-
-## Adapt
-
-```{r}
-alphas <- seq(0.01, 0.1, by = 0.01)
-x <- data.frame(X)
-
-formula_ns <- list("~ns(x, df = 2) + ns(y, df = 2)", 
-                   "~ns(x, df = 4) + ns(y, df = 4)", 
-                   "~ns(x, df = 6) + ns(y, df = 6)")
-
-```
-
-### GMM, input with z 
-
-```{r}
-res_x.gmm_ns_z <- adapt_gmm(x, z = z, alphas=alphas, 
-                            beta_formulas = formula_ns, testing = "one_sided")
-performance(gt_x, res_x.gmm_ns_z$rejs[5][[1]], z = z, bh_level = 0.05, one.sided = TRUE)[c(4,1,2)]
-# 19, 0.0526, 0.36
-```
-
-### GMM, input with p
-
-```{r}
-# p <- 2 * (1 - pnorm(abs(z)))
-p <- pnorm(z, lower.tail = FALSE)
-
-res_x.gmm_ns_p <- adapt_gmm(x, pvals = p, alphas=alphas, 
-                            beta_formulas = formula_ns, testing = "one_sided")
-performance(gt_x, res_x.gmm_ns_p$rejs[5][[1]], z = z, bh_level = 0.05, one.sided = TRUE)[c(4,1,2)]
-# 27, 0.037, 0.52
-```
-
-
-## Adapt-GLM
-
-```{r}
-res_x.glm_ns <- adapt_glm(x, pvals=p,  alphas=alphas,
-                          pi_formulas = formula_ns, mu_formulas = formula_ns)
-
-performance(gt_x, res_x.glm_ns$rejs[5][[1]], z = z, bh_level = 0.05, one.sided = TRUE)[c(4,1,2)]
-# 45, 0.1333, 0.78
-performance(gt_x, res_x.glm_ns$rejs[10][[1]], z = z, bh_level = 0.1, one.sided = TRUE)[c(4,1,2)]
-# 45, 0.1333, 0.78
-```
-
-## FDRreg
-
-```{r}
-set.seed(123)
-fdr_x <- FDRreg(z, X, nulltype='theoretical')
-length(which(fdr_x$FDR <= 0.05))
-performance(gt_x, which(fdr_x$FDR <= 0.05), z = z, bh_level = 0.05, one.sided = TRUE)[c(4,1,2)]
-# 16, 0, 0.32
-
-```
-
-## OrderShapeEM
-
-```{r}
-require(OrderShapeEM)
-res_x.orderfdr_1 <- OrderShapeEM(pvals = as.vector(p), order.var = as.vector(X[,1]), 
-                               OrderShapeEM.control(trace = TRUE))
-sum(res_x.orderfdr_1$fdr <= 0.05)
-# 30
-res_x.orderfdr_2 <- OrderShapeEM(pvals = as.vector(p), order.var = as.vector(X[,2]), 
-                               OrderShapeEM.control(trace = TRUE))
-sum(res_x.orderfdr_2$fdr <= 0.05)
-# 0
-# performance(gt_z, which(res_x.orderfdr_2$fdr <= 0.05), z = z, bh_level = 0.05, one.sided = TRUE)[c(4,1,2)]
-
-```
-
-
-# Repeating
-```{r}
-set.seed(1)
-library(splines)
-
-
-# Initialize
-seeds <- sample(1:10000, 99)
-seeds <- c(seeds, 123)
-results_list <- list()
+# Ground truth for alternative
+gt <- seq((n0+1), n)
 
 q_grid <- seq(0.01, 0.1, by = 0.01)
 alphas <- q_grid
-  
-for (s in seq_along(seeds)) {
-  set.seed(seeds[s])
 
-  n = 1000
-  n0 <- 950
-  n1 <- 25
+results_list <- list()
 
-  z0 <- rnorm(n0, mean = 0, sd = 1)
-  x0 <- rnorm(n0, mean = 5, sd = 1)
-  y0 <- rnorm(n0, mean = 1, sd = 1)
-  
-  z1 <- rnorm(n1, mean = 2, sd = 0.5)
-  x1 <- rnorm(n1, mean = 4, sd = 1)
-  y1 <- rnorm(n1, mean = 2, sd = 1)
-  
-  z2 <- rnorm(n1, mean = 3, sd = 0.5)
-  x2 <- rnorm(n1, mean = 3, sd = 1)
-  y2 <- rnorm(n1, mean = 3, sd = 1)
-  
-  z <- c(z0, z1, z2)
-  x <- c(x0, x1, x2)
-  y <- c(y0, y1, y2)
-  
-  X <- cbind(x, y)
 
-  gt <- seq((n0+1), n) # Ground truth for alternative
+cache_file <- "../data/chai_env/Simulation_S2_results.rds"
 
-  # Common values
-  x_df <- data.frame(X)
-  formula_ns <- list("~ns(x, df = 2) + ns(y, df = 2)", 
-                     "~ns(x, df = 4) + ns(y, df = 4)",
-                     "~ns(x, df = 6) + ns(y, df = 6)")
-  p <- pnorm(z, lower.tail = FALSE)
-  # p <- 2 * (1 - pnorm(abs(z)))
+if (file.exists(cache_file)) {
+  # if the file exists, load it
+  results_s2 <- readRDS(cache_file)
+} else {
+  # if not, run the simulation
+  for (s in seq_along(seeds)) {
+    message("Running seed ", s, " / ", length(seeds), 
+          "  (seed value = ", seeds[s], ")")
 
-  # Apply models and collect performance
-  perf_a <- data.frame(
-    Seed    = integer(),
-    q       = numeric(),
-    Method  = character(),
-    Selected  = numeric(),
-    FDP       = numeric(),
-    Power     = numeric(),
-    stringsAsFactors = FALSE
-  )
+    set.seed(seeds[s])
 
-  # # 1. conditionalGaussianlFDR
-  # res <- conditionalGaussianlFDR_null_z_autoK(z, X, K = 2:6, q = 0.05)
-  # p1_1 <- performance(gt, res$selected, z = res$input_z, bh_level = 0.05, one.sided = FALSE)
-  # perf[nrow(perf)+1,] <- c(seeds[s], "conditionalGaussianlFDR", p1_1[c(4,1,2)])
-  # 
-  # res <- conditionalGaussianlFDR_null_z_autoK(z, X, K = 2:6, q = 0.05, max_lFDR = 0.2)
-  # p1_2 <- performance(gt, res$selected, z = res$input_z, bh_level = 0.05, one.sided = FALSE)
-  # perf[nrow(perf)+1,] <- c(seeds[s], "conditionalGaussianlFDR_cut", p1_2[c(4,1,2)])
-
-  # 2. CHAI
-  res_chai <- chai(z, X, M = 100)
-  for (qq in seq_along(q_grid)) {
-    select <- lFDRselect(res_chai, q = q_grid[qq])
-    p2  <- performance(gt, select, z = res_chai$z,
-                       bh_level = q_grid[qq], one.sided = TRUE)
-    # chai
-    perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "chai", p2[[4]], p2[[1]], p2[[2]])
-    # BH
-    perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "BH",   p2[[13]], p2[[8]], p2[[9]])
-  }
-
-  # 3. adapt_gmm_z
-  res_gmm_z <- adapt_gmm(x_df, z = z, alphas = alphas,
-                         beta_formulas = formula_ns, testing = "one_sided")
-  
-  for (qq in seq_along(q_grid)) {
-    # idx <- match(qq, alphas)  # 0.05 -> 5, 0.06 -> 6, ..., 0.10 -> 10
-    p3  <- performance(gt, res_gmm_z$rejs[[qq]], z = z,
-                       bh_level = q_grid[qq], one.sided = TRUE)
-    perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "adapt_gmm_z", p3[[4]], p3[[1]], p3[[2]])
-  }
-  
-  # 4. adapt_gmm_p
-  res_gmm_p <- adapt_gmm(x_df, pvals = p, alphas = alphas,
-                           beta_formulas = formula_ns, testing = "one_sided")
-  for (qq in seq_along(q_grid)) {
-    # idx <- match(qq, alphas)
-    p4  <- performance(gt, res_gmm_p$rejs[[qq]], z = z,
-                       bh_level = q_grid[qq], one.sided = TRUE)
-    perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "adapt_gmm_p", p4[[4]], p4[[1]], p4[[2]])
-  }
-
-  # 5. adapt_glm
-  res_glm <- adapt_glm(x_df, pvals = p, alphas = alphas,
-                         pi_formulas = formula_ns, mu_formulas = formula_ns)
-  empty <- is.null(res_glm) || (!is.list(res_glm$rejs))
-  for (qq in seq_along(q_grid)) {
-    if (!empty && lengths(res_glm$rejs)[qq] > 0L){
-     p5 <- performance(gt, res_glm$rejs[[qq]], z = z,
-                        bh_level = q_grid[qq], one.sided = TRUE)
-     perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "adapt_glm", p5[[4]], p5[[1]], p5[[2]])
-     
-    } else {
-      perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "adapt_glm", 0, NA, NA)
-    }
-  }
-
-  # 6. OrderShapeEM
-  # First x
-  tryCatch({
-    res_osem <- OrderShapeEM(pvals = p, order.var = X[,1],
-                             OrderShapeEM.control(trace = FALSE))
-    for (qq in seq_along(q_grid)) {
-      p6 <- performance(gt, which(res_osem$fdr <= q_grid[qq]), z = z,
-                        bh_level = q_grid[qq], one.sided = TRUE)
-      perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "OrderShapeEM_x1", p6[[4]], p6[[1]], p6[[2]])
-    }
-  }, error = function(e) {
-    message(paste("OrderShapeEM failed at seed", seeds[s], ":", e$message))
-    for (qq in seq_along(q_grid)) {
-      perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "OrderShapeEM_x1", NA, NA, NA)
-    }
-  })
+    z0 <- rnorm(n0, mean = 0, sd = 1)
+    x0 <- rnorm(n0, mean = 5, sd = 1)
+    y0 <- rnorm(n0, mean = 1, sd = 1)
     
+    z1 <- rnorm(n1, mean = 2, sd = 0.5)
+    x1 <- rnorm(n1, mean = 4, sd = 1)
+    y1 <- rnorm(n1, mean = 2, sd = 1)
+    
+    z2 <- rnorm(n1, mean = 3, sd = 0.5)
+    x2 <- rnorm(n1, mean = 3, sd = 1)
+    y2 <- rnorm(n1, mean = 3, sd = 1)
+    
+    z <- c(z0, z1, z2)
+    p <- pnorm(z, lower.tail = FALSE) # One-sided
+
+    x <- c(x0, x1, x2)
+    y <- c(y0, y1, y2)
+    
+    X <- cbind(x, y)
   
-  # Second x
-  tryCatch({
-    res_osem <- OrderShapeEM(pvals = p, order.var = X[,2],
-                             OrderShapeEM.control(trace = FALSE))
+    # Common values
+    x_df <- data.frame(X)
+    formula_ns <- list("~ns(x, df = 2) + ns(y, df = 2)", 
+                       "~ns(x, df = 4) + ns(y, df = 4)",
+                       "~ns(x, df = 6) + ns(y, df = 6)")
+
+    # Apply models and collect performance
+    perf_a <- data.frame(
+      Seed    = integer(),
+      q       = numeric(),
+      Method  = character(),
+      Selected  = numeric(),
+      FDP       = numeric(),
+      Power     = numeric(),
+      stringsAsFactors = FALSE
+    )
+    
+        # ------------------------------------------------------------------
+    # 1. chai
+    # ------------------------------------------------------------------
+    set.seed(seeds[s])
+    res_chai <- chai(z, X, B = 100)
+
     for (qq in seq_along(q_grid)) {
-      p6 <- performance(gt, which(res_osem$fdr <= q_grid[qq]), z = z,
+        select <- clfdrselect(res_chai, q = q_grid[qq])
+        p1  <- performance(gt, select, z = res_chai$z,
+                           bh_level = q_grid[qq], one.sided = TRUE)
+        # chai
+        perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "chai", p1[[4]], p1[[1]], p1[[2]])
+        # BH
+        perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "BH",   p1[[13]], p1[[8]], p1[[9]])
+      }
+    
+    # ------------------------------------------------------------------
+    # 2. adapt_gmm (z)
+    # ------------------------------------------------------------------
+    set.seed(seeds[s])
+    res_gmm_z <- adapt_gmm(
+      x_df, z = z, alphas = q_grid,
+      beta_formulas = formula_ns, testing = "two_sided"
+    )
+
+    for (qq in seq_along(q_grid)) {
+        p2  <- performance(gt, res_gmm_z$rejs[[qq]], z = z,
+                           bh_level = q_grid[qq], one.sided = TRUE)
+        perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "adapt_gmm_z", p2[[4]], p2[[1]], p2[[2]])
+    }
+    
+    # ------------------------------------------------------------------
+    # 3. adapt_gmm (p)
+    # ------------------------------------------------------------------
+    set.seed(seeds[s])
+    res_gmm_p <- adapt_gmm(
+      x_df, pvals = p, alphas = q_grid,
+      beta_formulas = formula_ns, testing = "two_sided"
+    )
+ 
+    for (qq in seq_along(q_grid)) {
+        # idx <- match(qq, alphas)
+        p3  <- performance(gt, res_gmm_p$rejs[[qq]], z = z,
+                           bh_level = q_grid[qq], one.sided = TRUE)
+        perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "adapt_gmm_p", p3[[4]], p3[[1]], p3[[2]])
+    }
+    
+    # ------------------------------------------------------------------
+    # 4. adapt_glm
+    # ------------------------------------------------------------------
+    set.seed(seeds[s])
+    res_glm <- adapt_glm(
+      x_df, pvals = p, alphas = q_grid,
+      pi_formulas = formula_ns, mu_formulas = formula_ns
+    )
+
+    empty <- is.null(res_glm) || (!is.list(res_glm$rejs))
+    for (qq in seq_along(q_grid)) {
+      if (!empty && lengths(res_glm$rejs)[qq] > 0L){
+       p4 <- performance(gt, res_glm$rejs[[qq]], z = z,
+                          bh_level = q_grid[qq], one.sided = TRUE)
+       perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "adapt_glm", p4[[4]], p4[[1]], p4[[2]])
+       
+      } else {
+        perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "adapt_glm", 0, 0, 0)
+      }
+    }
+  
+    # ------------------------------------------------------------------
+    # 5. OrderShapeEM
+    # ------------------------------------------------------------------
+    # First x
+    set.seed(seeds[s])
+    res_osem_x1 <- NULL
+    
+    res_osem_x1 <- tryCatch(
+      OrderShapeEM(pvals = p, order.var = X[, 1], OrderShapeEM.control(trace = TRUE)),
+      error = function(e) {
+        message(paste("OrderShapeEM_x1 failed at seed", seeds[s], ":", e$message))
+        NULL
+      }
+    )
+
+    
+    if (!is.null(res_osem_x1)) {
+      for (qq in seq_along(q_grid)) {
+        p5_1 <- performance(gt, which(res_osem_x1$fdr <= q_grid[qq]), z = z, 
+                            bh_level = q_grid[qq], one.sided = TRUE)
+        
+        perf_a[nrow(perf_a) + 1, ] <- list(seeds[s], q_grid[qq], "OrderShapeEM_x1",
+                                       p5_1[[4]], p5_1[[1]], p5_1[[2]])
+      }
+    } else {
+      for (qq in seq_along(q_grid)) {
+        perf_a[nrow(perf_a) + 1, ] <- list(seeds[s], q_grid[qq], "OrderShapeEM_x1",
+                                       NA, NA, NA)
+      }
+    }
+  
+    # Second x
+    set.seed(seeds[s])
+    res_osem_x2 <- NULL
+    
+    res_osem_x2 <- tryCatch(
+      OrderShapeEM(pvals = p, order.var = X[, 2], OrderShapeEM.control(trace = TRUE)),
+      error = function(e) {
+        message(paste("OrderShapeEM_x2 failed at seed", seeds[s], ":", e$message))
+        NULL
+      }
+    )
+    
+    if (!is.null(res_osem_x2)) {
+      for (qq in seq_along(q_grid)) {
+        p5_2 <- performance(gt, which(res_osem_x2$fdr <= q_grid[qq]), z = z, 
+                            bh_level = q_grid[qq], one.sided = TRUE)
+        
+        perf_a[nrow(perf_a) + 1, ] <- list(seeds[s], q_grid[qq], "OrderShapeEM_x2",
+                                       p5_2[[4]], p5_2[[1]], p5_2[[2]])
+      }
+    } else {
+      for (qq in seq_along(q_grid)) {
+        perf_a[nrow(perf_a) + 1, ] <- list(seeds[s], q_grid[qq], "OrderShapeEM_x2",
+                                       NA, NA, NA)
+      }
+    }
+  
+    # ------------------------------------------------------------------
+    # 6. FDRreg (theoretical null)
+    # ------------------------------------------------------------------
+    set.seed(seeds[s])
+    res_fdrreg <- FDRreg(z, as.matrix(X), nulltype = "theoretical")
+
+    for (qq in seq_along(q_grid)) {
+      p6 <- performance(gt, which(res_fdrreg$FDR <= q_grid[qq]), z = z,
                         bh_level = q_grid[qq], one.sided = TRUE)
-      perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "OrderShapeEM_x2", p6[[4]], p6[[1]], p6[[2]])
+      perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "FDRreg", p6[[4]], p6[[1]], p6[[2]])
     }
-  }, error = function(e) {
-    message(paste("OrderShapeEM failed at seed", seeds[s], ":", e$message))
+    
+    # ------------------------------------------------------------------
+    # 7. IHW
+    # ------------------------------------------------------------------
+    # First x
+    set.seed(seeds[s])
+  # IHW: first x
+    res_ihw_x1_list <- vector("list", length(q_grid))
+    
     for (qq in seq_along(q_grid)) {
-      perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "OrderShapeEM_x2", NA, NA, NA)
+      res_ihw_x1_list[[qq]] <- tryCatch(
+        ihw(pvalues    = p, covariates = X[, 1], alpha = q_grid[qq], nbins = 5),
+        error = function(e) {
+          message(paste("IHW_x1 failed at seed", seeds[s], "q =", q_grid[qq], ":", e$message))
+          NULL
+        }
+      )
     }
-  })
 
-
-  # 7. FDRreg
-  res_fdrreg <- FDRreg(z, as.matrix(X), nulltype = "theoretical")
-  for (qq in seq_along(q_grid)) {
-    p7 <- performance(gt, which(res_fdrreg$FDR <= q_grid[qq]), z = z,
-                      bh_level = q_grid[qq], one.sided = TRUE)
-    perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "FDRreg", p7[[4]], p7[[1]], p7[[2]])
-  }
+    
+    for (qq in seq_along(q_grid)) {
+      if (!is.null(res_ihw_x1_list[[qq]])) {
+        p7_1 <- performance(gt, which(adj_pvalues(res_ihw_x1_list[[qq]]) <= q_grid[qq]),
+                            z = z, bh_level = q_grid[qq], one.sided = TRUE)
+        
+        perf_a[nrow(perf_a) + 1, ] <- list(seeds[s], q_grid[qq], "IHW_x1",
+                                       p7_1[[4]], p7_1[[1]], p7_1[[2]])
+      } else {
+        perf_a[nrow(perf_a) + 1, ] <- list(seeds[s], q_grid[qq], "IHW_x1",
+                                       NA, NA, NA)
+      }
+    }
   
-  # 8. IHW
-  # First x
-  for (qq in seq_along(q_grid)) {
-    res_ihw_1 <- ihw(pvalues = p, covariates = X[,1], alpha = q_grid[qq], nbins = 5)
-    p8_1 <- performance(gt, which(adj_pvalues(res_ihw_1) <= q_grid[qq]), z = z, bh_level = q_grid[qq], one.sided = TRUE)
-      
-    perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "IHW_x1", p8_1[[4]], p8_1[[1]], p8_1[[2]])
-  }
-  
-  # Second x
-  for (qq in seq_along(q_grid)) {
-    res_ihw_2 <- ihw(pvalues = p, covariates = X[,2], alpha = q_grid[qq], nbins = 5)
-    p8_2 <- performance(gt, which(adj_pvalues(res_ihw_2) <= q_grid[qq]), z = z, bh_level = q_grid[qq], one.sided = FALSE)
-      
-    perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "IHW_x2", p8_2[[4]], p8_2[[1]], p8_2[[2]])
-  }
+    # Second x
+    set.seed(seeds[s])
+    res_ihw_x2_list <- vector("list", length(q_grid))
+    
+    for (qq in seq_along(q_grid)) {
+      res_ihw_x2_list[[qq]] <- tryCatch(
+        ihw(pvalues = p, covariates = X[, 2], alpha = q_grid[qq], nbins = 5),
+        error = function(e) {
+          message(paste("IHW_x2 failed at seed", seeds[s], "q =", q_grid[qq], ":", e$message))
+          NULL
+        }
+      )
+    }
 
-  results_list[[length(results_list)+1]] <- perf_a
 
+    for (qq in seq_along(q_grid)) {
+      if (!is.null(res_ihw_x2_list[[qq]])) {
+        p7_2 <- performance(gt, which(adj_pvalues(res_ihw_x2_list[[qq]]) <= q_grid[qq]), 
+                            z = z, bh_level = q_grid[qq], one.sided = TRUE)
+        
+        perf_a[nrow(perf_a) + 1, ] <- list(seeds[s], q_grid[qq], "IHW_x2",
+                                       p7_2[[4]], p7_2[[1]], p7_2[[2]])
+      } else {
+        perf_a[nrow(perf_a) + 1, ] <- list(seeds[s], q_grid[qq], "IHW_x2",
+                                       NA, NA, NA)
+      }
+    }
+    
+    
+    # Get the results
+    results_list[[length(results_list) + 1]] <- perf_a
+
+    # Clean up memory
+    gc()
+  } # end seeds loop
+
+  # Combine and calculate average
+  results_s2 <- dplyr::bind_rows(results_list) |>
+    dplyr::mutate(
+      Selected = as.numeric(Selected),
+      FDP      = as.numeric(FDP),
+      Power    = as.numeric(Power)
+    )
+
+  # Save to disk
+  saveRDS(results_s2, cache_file)
 }
 
-# Combine and calculate average
-results_all <- bind_rows(results_list)
-
-results_all <- results_all %>%
-  mutate(
-    Selected = as.numeric(Selected),
-    FDP      = as.numeric(FDP),
-    Power    = as.numeric(Power)
-  )
-
-# If Selected==0，FDP/Power set to be NA
-results_all <- results_all %>%
-  mutate(
-    FDP   = ifelse(Selected == 0, NA_real_, FDP),
-    Power = ifelse(Selected == 0, NA_real_, Power)
-  )
-
-## Group_by a and q
-summary_by_aq <- results_all %>%
-  group_by(Method, q) %>%
-  summarise(
-    mean_Selected = mean(Selected, na.rm = TRUE),
-    mean_FDP      = mean(FDP, na.rm = TRUE),
-    mean_Power    = mean(Power, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-summary_by_aq %>% filter(q == 0.05)
-
-# saveRDS(results_all_x_05 , "C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/chai_env/simX_all_results_05.rds")
-
-# saveRDS(summary_results_x_05, "C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/chai_env/simX_summary_05.rds")
-```
-
-## IHW 
-```{r}
-set.seed(1)
-# library(splines)
-# library(OrderShapeEM)
-# Load your custom functions:
-# source("conditionalGaussianlFDR_null_z_autoK.R")
-# source("performance.R")
-# source("adapt_glm.R")
-# source("adapt_gmm.R")
-# source("yushu.R")
-
-# Initialize
-seeds <- sample(1:10000, 99)
-seeds <- c(seeds, 123)
-results_ihw <- list()
-
-
-q_grid <- seq(0.06, 0.10, by = 0.01)
-  
-for (s in seq_along(seeds)) {
-  set.seed(seeds[s])
-
-  n = 1000
-  n0 <- 950
-  n1 <- 25
-
-  z0 <- rnorm(n0, mean = 0, sd = 1)
-  x0 <- rnorm(n0, mean = 5, sd = 1)
-  y0 <- rnorm(n0, mean = 1, sd = 1)
-  
-  z1 <- rnorm(n1, mean = 2, sd = 0.5)
-  x1 <- rnorm(n1, mean = 4, sd = 1)
-  y1 <- rnorm(n1, mean = 2, sd = 1)
-  
-  z2 <- rnorm(n1, mean = 3, sd = 0.5)
-  x2 <- rnorm(n1, mean = 3, sd = 1)
-  y2 <- rnorm(n1, mean = 3, sd = 1)
-  
-  z <- c(z0, z1, z2)
-  x <- c(x0, x1, x2)
-  y <- c(y0, y1, y2)
-  
-  X <- cbind(x, y)
-
-  gt <- seq((n0+1), n) # Ground truth for alternative
-
-  # Common values
-  x_df <- data.frame(X)
-  # formula_ns <- list("~ns(x, df = 2) + ns(y, df = 2)", 
-  #                    "~ns(x, df = 4) + ns(y, df = 4)",
-  #                    "~ns(x, df = 6) + ns(y, df = 6)")
-  p <- pnorm(z, lower.tail = FALSE)
-  # p <- 2 * (1 - pnorm(abs(z)))
-
-  # Apply models and collect performance
-  perf_a <- data.frame(
-    Seed    = integer(),
-    q       = numeric(),
-    Method  = character(),
-    Selected  = numeric(),
-    FDP       = numeric(),
-    Power     = numeric(),
-    stringsAsFactors = FALSE
-  )
-
-  # 6. IHW
-  # First x
-  for (qq in seq_along(q_grid)) {
-    res_ihw_1 <- ihw(pvalues = p, covariates = X[,1], alpha = q_grid[qq], nbins = 5)
-    p8_1 <- performance(gt, which(adj_pvalues(res_ihw_1) <= q_grid[qq]), z = z, bh_level = q_grid[qq], one.sided = TRUE)
-      
-    perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "IHW_x1", p8_1[[4]], p8_1[[1]], p8_1[[2]])
-  }
-  
-  # Second x
-  for (qq in seq_along(q_grid)) {
-    res_ihw_2 <- ihw(pvalues = p, covariates = X[,2], alpha = q_grid[qq], nbins = 5)
-    p8_2 <- performance(gt, which(adj_pvalues(res_ihw_2) <= q_grid[qq]), z = z, bh_level = q_grid[qq], one.sided = FALSE)
-      
-    perf_a[nrow(perf_a)+1,] <- list(seeds[s], q_grid[qq], "IHW_x2", p8_2[[4]], p8_2[[1]], p8_2[[2]])
-  }
-
-  results_ihw[[length(results_ihw)+1]] <- perf_a
-
-}
-
-results_ihw_q_06_1 <- results_ihw
-
-# Combine and calculate average
-results_ihw_diff_q_06_1 <- dplyr::bind_rows(results_ihw_q_06_1) |>
-  mutate(
-    Selected = as.numeric(Selected),
-    FDP      = as.numeric(FDP),
-    Power    = as.numeric(Power),
-    FDP      = ifelse(Selected == 0, NA_real_, FDP),
-    Power    = ifelse(Selected == 0, NA_real_, Power)
-  )
-
-results_ihw_diff_q <- rbind(results_ihw_diff_q_01_05, results_ihw_diff_q_06_1)
-
-
-results_all_wt_ihw <- rbind(results_all, results_ihw_diff_q)
-
-
-## Group_by a and q
-summary_results_with_ihw <- results_all_wt_ihw %>%
-  group_by(Method, q) %>%
-  summarise(
-    mean_Selected = mean(Selected, na.rm = TRUE),
-    mean_FDP      = mean(FDP, na.rm = TRUE),
-    mean_Power    = mean(Power, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-summary_results_with_ihw %>% filter(q == 0.05)
-
-# saveRDS(results_all_wt_ihw, "C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/chai_env/simX_all_results_diff_q.rds")
-
-# saveRDS(summary_results_with_ihw, "C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/chai_env/simX_summary_diff_q.rds")
 ```
 
 
-### Change NA in FDP and power to 0
+---
+
+## 4. Calculate the average across 100 repeats.
+
 ```{r}
-library(dplyr)
-
-results_0 <- results_all %>%
-  mutate(
-    FDP   = ifelse(Selected == 0 & is.na(FDP), 0, FDP),
-    Power = ifelse(Selected == 0 & is.na(Power), 0, Power)
-  )
-
-summary_0 <- results_0 %>%
+summary_s2 <- results_s2 %>%
   group_by(Method, q) %>%
   summarise(
     mean_Selected = mean(Selected),
@@ -579,254 +381,10 @@ summary_0 <- results_0 %>%
     .groups = "drop"
   )
 
-summary_0 %>% filter(q == 0.05)
+summary_s2 %>% filter(q == 0.05)
 
 
-# saveRDS(results_0, "C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/chai_env/simX_all_results_with_zero.rds")
-# 
-# saveRDS(summary_0, "C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/chai_env/simX_summary_with_zero.rds")
-```
-
-
-
-<!-- # Repeating, 10 replicates, different q -->
-<!-- ```{r} -->
-<!-- set.seed(1) -->
-<!-- library(splines) -->
-<!-- library(dplyr) -->
-<!-- library(ggplot2) -->
-<!-- require(OrderShapeEM) -->
-<!-- library(IHW) -->
-
-
-<!-- # Initialize -->
-<!-- seeds <- sample(1:10000, 9) -->
-<!-- seeds <- c(seeds, 123) -->
-
-<!-- q_grid <- seq(0.05, 0.1, by = 0.01) -->
-<!-- results_list <- list() -->
-
-
-<!-- for (s in seq_along(seeds)) { -->
-<!--   set.seed(seeds[s]) -->
-
-<!--   n = 1000 -->
-<!--   n0 <- 950 -->
-<!--   n1 <- 25 -->
-
-<!--   z0 <- rnorm(n0, mean = 0, sd = 1) -->
-<!--   x0 <- rnorm(n0, mean = 5, sd = 1) -->
-<!--   y0 <- rnorm(n0, mean = 1, sd = 1) -->
-
-<!--   z1 <- rnorm(n1, mean = 2, sd = 0.5) -->
-<!--   x1 <- rnorm(n1, mean = 4, sd = 1) -->
-<!--   y1 <- rnorm(n1, mean = 2, sd = 1) -->
-
-<!--   z2 <- rnorm(n1, mean = 3, sd = 0.5) -->
-<!--   x2 <- rnorm(n1, mean = 3, sd = 1) -->
-<!--   y2 <- rnorm(n1, mean = 3, sd = 1) -->
-
-<!--   z <- c(z0, z1, z2) -->
-<!--   x <- c(x0, x1, x2) -->
-<!--   y <- c(y0, y1, y2) -->
-
-<!--   X <- cbind(x, y) -->
-
-<!--   gt <- seq((n0+1), n) # Ground truth for alternative -->
-
-<!--   # Common values -->
-<!--   x_df <- data.frame(X) -->
-<!--   formula_ns <- list("~ns(x, df = 4)", "~ns(y, df = 4)",  -->
-<!--                      "~ns(x, df = 6)", "~ns(y, df = 6)", -->
-<!--                      "~ns(x, df = 2) + ns(y, df = 2)",  -->
-<!--                      "~ns(x, df = 4) + ns(y, df = 4)",  -->
-<!--                      "~ns(x, df = 6) + ns(y, df = 6)") -->
-
-<!--   p <- pnorm(z, lower.tail = FALSE) -->
-<!--   # p <- 2 * (1 - pnorm(abs(z))) -->
-
-<!--   # Apply models and collect performance -->
-<!--   perf <- data.frame( -->
-<!--         Seed = integer(), -->
-<!--         q    = numeric(), -->
-<!--         Method   = character(), -->
-<!--         Selected = numeric(), -->
-<!--         FDP      = numeric(), -->
-<!--         Power    = numeric(), -->
-<!--         stringsAsFactors = FALSE -->
-<!--       ) -->
-
-<!--   # 2. CHAI -->
-<!--   res_chai <- chai(z, X, M = 100) -->
-
-<!--   for (qq in seq_along(q_grid)) { -->
-<!--       select <- lFDRselect(res_chai, q = q_grid[qq]) -->
-<!--       p2  <- performance(gt, select, z = res_chai$z, -->
-<!--                          bh_level = q_grid[qq], one.sided = TRUE) -->
-<!--       # chai -->
-<!--       perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "chai", p2[[4]], p2[[1]], p2[[2]]) -->
-<!--       # BH -->
-<!--       perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "BH",   p2[[13]], p2[[8]], p2[[9]]) -->
-<!--     } -->
-
-
-<!--   # 3. adapt_gmm_z -->
-<!--   res_gmm_z <- adapt_gmm(x_df, z = z, alphas = q_grid, beta_formulas = formula_ns, testing = "one_sided") -->
-
-<!--   for (qq in seq_along(q_grid)) { -->
-<!--       # idx <- match(qq, alphas)  # 0.05 -> 5, 0.06 -> 6, ..., 0.10 -> 10 -->
-<!--       p3  <- performance(gt, res_gmm_z$rejs[[qq]], z = z, -->
-<!--                          bh_level = q_grid[qq], one.sided = TRUE) -->
-<!--       perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "adapt_gmm_z", p3[[4]], p3[[1]], p3[[2]]) -->
-<!--     } -->
-
-<!--   # 4. adapt_gmm_p -->
-<!--   res_gmm_p <- adapt_gmm(x_df, pvals = p, alphas = q_grid, beta_formulas = formula_ns, testing = "one_sided") -->
-<!--   for (qq in seq_along(q_grid)) { -->
-<!--       # idx <- match(qq, alphas) -->
-<!--       p4  <- performance(gt, res_gmm_p$rejs[[qq]], z = z, -->
-<!--                          bh_level = q_grid[qq], one.sided = TRUE) -->
-<!--       perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "adapt_gmm_p", p4[[4]], p4[[1]], p4[[2]]) -->
-<!--     } -->
-
-<!--   # 5. adapt_glm -->
-<!--   res_glm <- adapt_glm(x_df, pvals = p, alphas = q_grid, pi_formulas = formula_ns, mu_formulas = formula_ns) -->
-
-<!--   empty <- is.null(res_glm) || (!is.list(res_glm$rejs)) -->
-<!--   for (qq in seq_along(q_grid)) { -->
-<!--     if (!empty && lengths(res_glm$rejs)[qq] > 0L){ -->
-<!--      p5 <- performance(gt, res_glm$rejs[[qq]], z = z, -->
-<!--                         bh_level = q_grid[qq], one.sided = TRUE) -->
-<!--      perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "adapt_glm", p5[[4]], p5[[1]], p5[[2]]) -->
-
-<!--     } else { -->
-<!--       perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "adapt_glm", 0, NA, NA) -->
-<!--     } -->
-<!--   } -->
-
-<!--   # 6. OrderShapeEM -->
-<!--   # First x -->
-<!--   tryCatch({ -->
-<!--     res_osem <- OrderShapeEM(pvals = p, order.var = X[,1], OrderShapeEM.control(trace = TRUE)) -->
-
-<!--     for (qq in seq_along(q_grid)) { -->
-<!--         p6 <- performance(gt, which(res_osem$fdr <= q_grid[qq]), z = z, -->
-<!--                           bh_level = q_grid[qq], one.sided = TRUE) -->
-<!--         perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "OrderShapeEM_x1", p6[[4]], p6[[1]], p6[[2]]) -->
-<!--       } -->
-<!--     }, error = function(e) { -->
-<!--       message(paste("OrderShapeEM failed at seed", seeds[s], ":", e$message)) -->
-<!--       for (qq in seq_along(q_grid)) { -->
-<!--         perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "OrderShapeEM_x1", NA, NA, NA) -->
-<!--       } -->
-<!--     }) -->
-
-
-
-<!--   # Second x -->
-<!--   tryCatch({ -->
-<!--     res_osem <- OrderShapeEM(pvals = p, order.var = X[,2], OrderShapeEM.control(trace = TRUE)) -->
-
-<!--     for (qq in seq_along(q_grid)) { -->
-<!--         p6 <- performance(gt, which(res_osem$fdr <= q_grid[qq]), z = z, -->
-<!--                           bh_level = q_grid[qq], one.sided = TRUE) -->
-<!--         perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "OrderShapeEM_x2", p6[[4]], p6[[1]], p6[[2]]) -->
-<!--       } -->
-<!--     }, error = function(e) { -->
-<!--       message(paste("OrderShapeEM failed at seed", seeds[s], ":", e$message)) -->
-<!--       for (qq in seq_along(q_grid)) { -->
-<!--         perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "OrderShapeEM_x2", NA, NA, NA) -->
-<!--       } -->
-<!--     }) -->
-
-<!--   # 7. FDRreg -->
-<!--   res_fdrreg <- FDRreg(z, X, nulltype = "theoretical") -->
-<!--   for (qq in seq_along(q_grid)) { -->
-<!--     p7 <- performance(gt, which(res_fdrreg$FDR <= q_grid[qq]), z = z, -->
-<!--                       bh_level = q_grid[qq], one.sided = TRUE) -->
-<!--     perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "FDRreg", p7[[4]], p7[[1]], p7[[2]]) -->
-<!--   } -->
-
-<!--   # 8. IHW -->
-<!--   # First x -->
-<!--   for (qq in seq_along(q_grid)) { -->
-<!--     res_ihw_1 <- ihw(pvalues = p, covariates = X[,1], alpha = q_grid[qq], nbins = 5) -->
-<!--     p8_1 <- performance(gt, which(adj_pvalues(res_ihw_1) <= q_grid[qq]), z = z, bh_level = q_grid[qq], one.sided = TRUE) -->
-
-<!--     perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "IHW_x1", p8_1[[4]], p8_1[[1]], p8_1[[2]]) -->
-<!--   } -->
-
-
-<!--   # Second x -->
-<!--   for (qq in seq_along(q_grid)) { -->
-<!--     res_ihw_2 <- ihw(pvalues = p, covariates = X[,2], alpha = q_grid[qq], nbins = 5) -->
-<!--     p8_2 <- performance(gt, which(adj_pvalues(res_ihw_2) <= q_grid[qq]), z = z, bh_level = q_grid[qq], one.sided = TRUE) -->
-
-<!--     perf[nrow(perf)+1,] <- list(seeds[s], q_grid[qq], "IHW_x2", p8_2[[4]], p8_2[[1]], p8_2[[2]]) -->
-<!--   } -->
-
-<!--   # Get the results -->
-<!--   results_list[[length(results_list)+1]] <- perf -->
-<!-- } -->
-
-<!-- # Combine and calculate average -->
-<!-- results_diff_q <- dplyr::bind_rows(results_list) -->
-
-<!-- results_diff_q <- results_diff_q %>% -->
-<!--   mutate( -->
-<!--     Selected = as.numeric(Selected), -->
-<!--     FDP      = as.numeric(FDP), -->
-<!--     Power    = as.numeric(Power) -->
-<!--   ) -->
-
-<!-- # If Selected==0，FDP/Power set to be NA -->
-<!-- results_diff_q <- results_diff_q %>% -->
-<!--   mutate( -->
-<!--     FDP   = ifelse(Selected == 0, NA_real_, FDP), -->
-<!--     Power = ifelse(Selected == 0, NA_real_, Power) -->
-<!--   ) -->
-
-<!-- summary_X_by_q <- results_diff_q %>% -->
-<!--   group_by(Method, q) %>% -->
-<!--   summarise( -->
-<!--     mean_Selected = mean(Selected, na.rm = TRUE), -->
-<!--     mean_FDP      = mean(FDP, na.rm = TRUE), -->
-<!--     mean_Power    = mean(Power, na.rm = TRUE), -->
-<!--     .groups = "drop" -->
-<!--   ) -->
-
-
-<!-- print(summary_X_by_q) -->
-<!-- summary_X_by_q %>% filter(q == 0.05) -->
-
-<!-- # saveRDS(results_diff_q , "C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/chai_env/simX_all_results_diff_q.rds") -->
-<!-- #  -->
-<!-- # saveRDS(summary_X_by_q, "C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/chai_env/simX_summary_diff_q.rds") -->
-<!-- ``` -->
-
-
-
-
-
-# pre-processing for Plots
-
-```{r}
-library(ggplot2)
-
-order <- c("chai", "adapt_glm", "adapt_gmm_z", "adapt_gmm_p", 
-           "FDRreg", "OrderShapeEM_x1", "OrderShapeEM_x2", 
-           "IHW_x1", "IHW_x2", "BH")
-
-summary_X_by_q <- summary_0
-summary_X_by_q$Method <- factor(summary_X_by_q$Method, levels = order)
-
-
-###########################################################
-# Plots
-library(ggplot2)
-library(tidyr)
-
-simX_long <- summary_X_by_q %>%
+sim_s2_long <- summary_s2 %>%
   mutate(
     mean_FDP   = ifelse(is.nan(mean_FDP), NA, mean_FDP),
     mean_Power = ifelse(is.nan(mean_Power), NA, mean_Power)
@@ -838,172 +396,43 @@ simX_long <- summary_X_by_q %>%
                          mean_Power = "Power"))
 ```
 
-# Consistant color plot
+
+---
+
+## 5. Main Figure
+
+### 5a. mean FDP across 100 repeats vs. FDR Threshold
+### 5b. mean Power across 100 repeats vs. FDR Threshold
+
 
 ```{r}
-library(dplyr)
-library(ggplot2)
-library(tidyr)
+source("consistant_color.R")
 
-# ---------- color helpers ----------
-blend_color <- function(col, target = "white", amount = 0.4) {
-  a <- grDevices::col2rgb(col) / 255
-  b <- grDevices::col2rgb(target) / 255
-  out <- (1 - amount) * a + amount * b
-  grDevices::rgb(out[1,], out[2,], out[3,])
-}
+p_fdp   <- plot_metric(sim_s2_long, "FDP", "Mean FDP", "FDP vs q", fdp_y = 0.12)
+p_power <- plot_metric(sim_s2_long, "Power", "Mean Power", "Power vs q")
 
-variant_shades <- function(base_col, K = 12) {
-  grDevices::colorRampPalette(c(
-    blend_color(base_col, "white", 0.55),
-    base_col,
-    blend_color(base_col, "black", 0.25)
-  ))(K)
-}
-
-make_method_palette <- function(methods, K = 12) {
-  fixed <- c(
-    chai        = "red",
-    adapt_glm   = "#FF7F0E",
-    adapt_gmm_z = "#2CA02C",
-    adapt_gmm_p = "#9467BD",
-    FDRreg      = "#8C564B",
-    BH          = "black"
-  )
-
-  family_base <- c(
-    OrderShapeEM = "#1F77B4",  # blue family
-    IHW          = "#17BECF"   # teal family
-  )
-
-  ord_shades <- variant_shades(family_base["OrderShapeEM"], K = K)
-  ihw_shades <- variant_shades(family_base["IHW"],          K = K)
-
-  methods <- unique(as.character(methods))
-  pal <- setNames(rep("#7F7F7F", length(methods)), methods)  # fallback grey
-
-  for (m in methods) {
-    if (m %in% names(fixed)) {
-      pal[m] <- fixed[m]
-      next
-    }
-
-    base <- sub("_x\\d+$", "", m)
-    idx  <- suppressWarnings(as.integer(sub(".*_x", "", m)))
-
-    if (base %in% names(family_base)) {
-      if (is.na(idx)) {
-        pal[m] <- family_base[base]  # e.g. "OrderShapeEM" with no suffix
-      } else {
-        idx <- max(1L, min(idx, K))
-        pal[m] <- if (base == "OrderShapeEM") ord_shades[idx] else ihw_shades[idx]
-      }
-    }
-  }
-
-  pal
-}
-
-method_order <- function(methods) {
-  methods <- unique(as.character(methods))
-  core <- c("chai","adapt_glm","adapt_gmm_z","adapt_gmm_p","FDRreg")
-
-  sort_family <- function(base) {
-    fam <- methods[grepl(paste0("^", base, "(_x\\d+)?$"), methods)]
-    base_present <- base %in% fam
-    vars <- fam[grepl("_x\\d+$", fam)]
-    if (length(vars)) {
-      idx <- suppressWarnings(as.integer(sub(".*_x", "", vars)))
-      vars <- vars[order(idx)]
-    }
-    c(if (base_present) base else character(0), vars)
-  }
-
-  out <- c(core, sort_family("OrderShapeEM"), sort_family("IHW"), "BH")
-  out <- unique(out)
-  out[out %in% methods]
-}
-
-# ---------- plotting function (labels, no legend) ----------
-library(ggrepel)
-library(stringr)
-
-plot_metric <- function(long_table, metric_name, ylab, title, K_variants = 12, fdp_y = 0.2){
-  dat <- dplyr::filter(long_table, Metric == metric_name) %>%
-    mutate(Method = as.character(Method))
-
-  ord <- method_order(dat$Method)
-  dat <- dat %>% mutate(Method = factor(Method, levels = ord))
-  pal <- make_method_palette(levels(dat$Method), K = K_variants)
-
-  # endpoints for labels
-  endpoints <- dat %>%
-    group_by(Method) %>%
-    filter(q == max(q, na.rm = TRUE)) %>%
-    slice_tail(n = 1) %>%
-    ungroup() %>%
-    mutate(
-      # option A: wrap long names
-      label = as.character(Method)
-      # label = str_wrap(label, width = 12)
-    )
-
-  x_rng <- range(dat$q, na.rm = TRUE)
-  x_nudge <- diff(x_rng) * 0.03  # more room to the right
-
-  p <- ggplot(dat, aes(x = q, y = Value, group = Method, color = Method)) +
-    geom_line(linewidth = 0.9, na.rm = TRUE) +
-    geom_point(size = 1.6, na.rm = TRUE) +
-
-    # repel labels to avoid overlap
-    ggrepel::geom_text_repel(
-      data = endpoints,
-      aes(label = label),
-      nudge_x = x_nudge,
-      hjust = 0,
-      direction = "y",
-      box.padding = 0.25,
-      point.padding = 0.15,
-      segment.size = 0.25,
-      min.segment.length = 0,
-      max.overlaps = Inf,
-      seed = 1,
-      show.legend = FALSE
-    ) +
-
-    scale_color_manual(values = pal, breaks = ord) +
-    scale_x_continuous(
-      breaks = seq(0.01, 0.10, 0.01),
-      expand = expansion(mult = c(0.02, 0.18))  # add right padding for labels
-    ) +
-    coord_cartesian(
-      ylim = c(0, 1),
-      clip = "off"   # <-- critical: do not clip labels
-    ) +
-    labs(x = "q level", y = ylab, title = title) +
-    theme_minimal() +
-    theme(
-      legend.position = "none",
-      plot.margin = margin(5.5, 60, 5.5, 5.5)  # <-- more right margin
-    )
-
-  if (metric_name == "FDP") {
-    p <- p +
-      geom_abline(slope = 1, intercept = 0, linetype = "dashed", linewidth = 1.2) +
-      coord_cartesian(ylim = c(0, fdp_y))
-  }
-
-  p
-}
-
-
-p_fdp   <- plot_metric(simX_long, "FDP", "Mean FDP", "FDP vs q", fdp_y = 0.12)
-p_power <- plot_metric(simX_long, "Power", "Mean Power", "Power vs q")
-
-library(patchwork)
-combo <- p_fdp + p_power + plot_annotation(title = "Method Performance vs q")
-combo
-
-# ggsave("C:/Users/zwang26/OneDrive - UTHealth Houston/conditionalGaussian/plots/Simulations/SimX_fdr_power_updated_zero.png", plot = combo, width = 14, height = 5, dpi = 300)
+combo <- p_fdp + p_power
 
 ```
+
+
+```{r, fig.width=14, fig.height=5, out.width='100%', warning=FALSE}
+combo
+
+# ggsave(
+#   filename = "../figures/Sim_S2.png",
+#   plot = combo,
+#   width = 14,
+#   height = 5,
+#   dpi = 300
+# )
+```
+
+---
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+```
+
